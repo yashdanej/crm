@@ -4,6 +4,7 @@ const mysql = require("mysql");
 const db = require("./db");
 
 const app = express();
+app.use(express.json());
 
 const authRouter = require("./routes/auth/authRouter");
 
