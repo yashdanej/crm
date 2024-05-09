@@ -1,8 +1,8 @@
 import axios from 'axios';
 import React, { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
-import { api, changeText } from '../../utils/Utils';
+import { useDispatch } from 'react-redux'
+import { Link, useNavigate } from 'react-router-dom'
+import SnackbarWithDecorators, { api, changeText } from '../../utils/Utils';
 import { login } from '../../store/slices/UserSlice';
 
 const Auth = ({path}) => {
@@ -11,13 +11,24 @@ const Auth = ({path}) => {
     email: "",
     user_password: ""
   });
-  const data = useSelector((state) => {
-    return state.users
-  })
-  console.log('data', data);
+  const [snackAlert, setSnackAlert] = useState(false); // popup success or error
+  const [snackbarProperty, setSnackbarProperty] = useState({ // popup success or error text
+      text: '',
+      color: ''
+  });
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const onAuthClick = (e, call) => {
     e.preventDefault();
+    if(user.email.trim() === "" || user.user_password.trim() === "" || call === "signup" && user.full_name.trim() === ""){
+      setSnackbarProperty(prevState => ({
+        ...prevState,
+        text: "All fields are required",
+        color: "danger"
+      }));
+      setSnackAlert(true);
+      return;
+    }
     let body;
     const pathname = call==="login"?"/login":"/signup";
     call==="login"?
@@ -27,9 +38,18 @@ const Auth = ({path}) => {
     .then((res) => {
       console.log(res.data);
       if(res.data.message === "User signed up successfully"){
-        return alert("success signup");
+        navigate("/login");
+      }else if(res.data.message === "Email already exists"){
+        setSnackbarProperty(prevState => ({
+          ...prevState,
+          text: res.data.message,
+          color: "danger"
+        }));
+        setSnackAlert(true);
       }else if(res.data.user){
-        dispatch(login(res.data.user));
+        dispatch(login());
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        console.log("json parse", JSON.parse(localStorage.getItem("user")));
       }
     }).catch((e) => {
       console.log(e);
@@ -37,6 +57,11 @@ const Auth = ({path}) => {
   }
   return (
     <div className='min-h-[100%] h-[100vh] bg-slate-200 flex items-center'>
+       {
+      snackAlert?
+      <SnackbarWithDecorators snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
+      :null
+      }
       <div className="container flex flex-col mx-auto max-w-[500px] bg-white rounded-2xl">
            <div className="flex justify-center w-full h-full my-auto xl:gap-14 lg:justify-normal md:gap-5 draggable">
       <div className="flex items-center justify-center w-full p-12">

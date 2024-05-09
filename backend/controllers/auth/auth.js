@@ -8,7 +8,8 @@ exports.Signup = async (req, res) => {
     const hash_password = bcrypt.hashSync(user_password, salt);
     try {
         // Check if email already exists
-        db.query("SELECT email FROM users WHERE email = ?", [email], (err, existingEmail) => {
+        console.log(email);
+        db.query("SELECT * FROM users WHERE email = ?", [email], (err, existingEmail) => {
             if(err){
                 console.log("error in select email", err);
                 return res.status(200).json({ success: false, message: "Error selecting email", error: err });
@@ -43,7 +44,6 @@ exports.Login = async (req, res) => {
                 if(err){
                     console.error("Error selecting email:", err);
                     reject(err);
-                    return res.status(400).json({ success: false, message: "Error selecting email", error: err });
                 }
                 console.log('result', result);
                 resolve(result[0]);
@@ -51,16 +51,17 @@ exports.Login = async (req, res) => {
         });
         if(!user){
             return res.status(200).json({ success: false, message: "User not found" });
-        }
-        const isPasswordCorrect = bcrypt.compareSync(user_password, user.user_password);
-        if(!isPasswordCorrect){
-            return res.status(200).json({success: false, mesasge: "Invalid credentials"});
         }else{
-            const token = jwt.sign({id: user.id, email: user.email, full_name: user.full_name}, "g[hc+7^:{%&s<vGPM5sT_Zyash_p_d/4;&f!;umN");
-            const {user_password, ...otherDetails} = user;
-            res.cookie("access_token", token, {
-                httpOnly: true
-            }).status(200).json({user: otherDetails, token});
+            const isPasswordCorrect = bcrypt.compareSync(user_password, user.user_password);
+            if(!isPasswordCorrect){
+                return res.status(200).json({success: false, mesasge: "Invalid credentials"});
+            }else{
+                const token = jwt.sign({id: user.id, email: user.email, full_name: user.full_name}, "g[hc+7^:{%&s<vGPM5sT_Zyash_p_d/4;&f!;umN");
+                const {user_password, ...otherDetails} = user;
+                return res.cookie("access_token", token, {
+                    httpOnly: true
+                }).status(200).json({user: otherDetails, token});
+            }
         }
     } catch (error) {
         console.error("Error login:", error);
