@@ -48,7 +48,7 @@ exports.Login = async (req, res) => {
                 console.log('result', result);
                 resolve(result[0]);
             });
-        })
+        });
         if(!user){
             return res.status(200).json({ success: false, message: "User not found" });
         }
