@@ -5,6 +5,6 @@ const db = mysql.createPool({
     host: "localhost",
     user: "root",
     password: "Yash@1212888",
-    database: "crm"
+    database: "crmdb"
 });
 module.exports = db;

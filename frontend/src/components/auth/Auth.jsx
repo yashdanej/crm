@@ -49,6 +49,7 @@ const Auth = ({path}) => {
       }else if(res.data.user){
         dispatch(login());
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        navigate('/lead');
         console.log("json parse", JSON.parse(localStorage.getItem("user")));
       }
     }).catch((e) => {
