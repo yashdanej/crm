@@ -11,7 +11,7 @@ const authRouter = require("./routes/auth/authRouter");
 const leadRouter = require("./routes/lead/leadRouter");
 
 app.use('/api/v1', authRouter);
-app.use('/api/v1', leadRouter);
+app.use('/api/v1/lead', leadRouter);
 
 app.listen(3000, () => {
     console.log("Server started");

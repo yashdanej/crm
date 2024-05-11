@@ -1,15 +1,18 @@
 import { useSelector } from 'react-redux';
 import './App.css';
 import Auth from './components/auth/Auth';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import Dashboard from './pages/dashboard/Dashboard';
 import { useEffect } from 'react';
 import Lead from './components/dashboard/lead/Lead';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
+  const navigate = useNavigate();
   console.log('isLoggedIn', isLoggedIn);
-  const location = useLocation();
+  useEffect(() => {
+    !isLoggedIn && navigate("/login");
+  })
   return (
     <div>
       <Routes>
