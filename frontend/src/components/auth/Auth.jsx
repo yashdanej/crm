@@ -53,6 +53,14 @@ const Auth = ({path}) => {
         localStorage.setItem("user", JSON.stringify(res.data.user));
         navigate('/lead');
         console.log("json parse", JSON.parse(localStorage.getItem("user")));
+      }else{
+        console.log('res', res);
+        setSnackbarProperty(prevState => ({
+          ...prevState,
+          text: res.data.message,
+          color: "danger"
+        }));
+        setSnackAlert(true);
       }
     }).catch((e) => {
       console.log(e);

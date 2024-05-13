@@ -54,7 +54,7 @@ exports.Login = async (req, res) => {
         }else{
             const isPasswordCorrect = bcrypt.compareSync(user_password, user.user_password);
             if(!isPasswordCorrect){
-                return res.status(200).json({success: false, mesasge: "Invalid credentials"});
+                return res.status(200).json({success: false, message: "Invalid credentials"});
             }else{
                 const token = jwt.sign({id: user.id, email: user.email, full_name: user.full_name}, "g[hc+7^:{%&s<vGPM5sT_Zyash_p_d/4;&f!;umN");
                 const {user_password, ...otherDetails} = user;

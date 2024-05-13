@@ -12,7 +12,7 @@ import DropDown2 from './DropwDown2';
 import { useEffect } from 'react';
 import { api, changeText } from '../../../utils/Utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCountries } from '../../../store/slices/LeadSlices';
+import { getCountries, getLead } from '../../../store/slices/LeadSlices';
 import { useState } from 'react';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -20,6 +20,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 export default function NewLeadModal({lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
+    const leadData = useSelector((state) => state.leads.leadData);
     const countriesData = useSelector((state) => state.countries.countriesData);
     const dispatch = useDispatch();
     const languages = ["Turkish", "Japanese", "Persian", "Portuguise_br", "Dutch", "Spanish", "Czech", "Polish", "Catalan", "French", "Greek", "Swedish", "Ukrainian", "Portuguese", "Romanian", "Italian", "Chinese", "Indonesia", "Vietnamese", "Bulgarian", "German", "Norwegian", "English", "Slovak", "Russian"];
@@ -39,33 +40,35 @@ export default function NewLeadModal({lead, setLead, handleClose, open, onHandle
             [name]: checked ? 1 : 0
         }));
     };
-    useEffect(() => {
-        console.log(lead);
-    }, [lead])
     const handelCloseLeadModal = () => {
-        setLead({
-            status: null,
-            source: null,
-            assigned: null,
-            name: "",
-            address: "",
-            position: "",
-            city: "",
-            email: "",
-            state: "",
-            website: "",
-            country: null,
-            phonenumber: "",
-            zip: "",
-            lead_value: null,
-            default_language: "",
-            company: "",
-            description: "",
-            is_public: 0
-        })
         handleClose();
+        dispatch(getLead([]));
     }
-    
+    useEffect(() => {
+      console.log('leadData.length', leadData.length);
+      if(leadData?.length>0){
+        setLead({
+          status: leadData[0].status,
+          source: leadData[0].source,
+          assigned: leadData[0].assigned,
+          name: leadData[0].name,
+          address: leadData[0].address,
+          position: leadData[0].title,
+          city: leadData[0].city,
+          email: leadData[0].email,
+          state: leadData[0].state,
+          website: leadData[0].website,
+          country: leadData[0].country,
+          phonenumber: leadData[0].phonenumber,
+          zip: leadData[0].zip,
+          lead_value: leadData[0].lead_value,
+          default_language: leadData[0].default_language,
+          company: leadData[0].company,
+          description: leadData[0].description,
+          is_public: leadData[0].is_public
+        })
+      }
+    }, [leadData]);
 
   return (
     <React.Fragment>
@@ -80,7 +83,7 @@ export default function NewLeadModal({lead, setLead, handleClose, open, onHandle
       >
        <div className='p-8'>
             <p className='pb-4 font-bold'>Add new lead</p>
-            <div className="flex w-full justify-between items-center gap-7 flex-column flex-wrap md:flex-row md:space-y-0 bg-white dark:bg-gray-900 pb-8">
+            <div className="flex w-full justify-between items-center gap-7 flex-column flex-wrap md:flex-row md:space-y-0 bg-white pb-8">
                 <div>
                     <p className='text-xs font-semibold mb-1 text-black'>Status</p>
                     <DropDown2 lead={lead} setLead={setLead} from="Status" />

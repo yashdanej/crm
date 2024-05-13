@@ -10,7 +10,7 @@ import DropDown from './DropDown';
 import NewLeadModal from './NewLeadModal';
 import { useState } from 'react';
 import SnackbarWithDecorators, { api } from '../../../utils/Utils';
-import { getAllLeads } from '../../../store/slices/LeadSlices';
+import { getAllLeads, getLead } from '../../../store/slices/LeadSlices';
 import { useDispatch } from 'react-redux';
 
 const Lead = () => {
@@ -43,11 +43,55 @@ const Lead = () => {
 
 const dispatch = useDispatch();
 
+  const handleNewLead = () => {
+    setLead({
+      status: null,
+      source: null,
+      assigned: null,
+      name: "",
+      address: "",
+      position: "",
+      city: "",
+      email: "",
+      state: "",
+      website: "",
+      country: null,
+      phonenumber: "",
+      zip: "",
+      lead_value: null,
+      default_language: "",
+      company: "",
+      description: "",
+      is_public: 0
+  });
+  handleClickOpen();
+  }
   const handleClickOpen = () => {
     setOpen(true);
   };
 
   const handleClose = () => {
+    setLead(prevLead => ({
+      status: null,
+      source: null,
+      assigned: null,
+      name: "",
+      address: "",
+      position: "",
+      city: "",
+      email: "",
+      state: "",
+      website: "",
+      country: null,
+      phonenumber: "",
+      zip: "",
+      lead_value: null,
+      default_language: "",
+      company: "",
+      description: "",
+      is_public: 0
+  }));
+    dispatch(getLead([]));
     setOpen(false);
   };
 
@@ -115,14 +159,14 @@ const dispatch = useDispatch();
     }
   }
   return (
-    <div class="p-6">
+    <div className="p-6">
       {
       snackAlert?
       <SnackbarWithDecorators snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
       :null
       }
       <div className='flex gap-4'>
-        <Button onClick={handleClickOpen} startDecorator={<Add />}>New Lead</Button>
+        <Button onClick={handleNewLead} startDecorator={<Add />}>New Lead</Button>
         <IconButton variant="soft" >
           <FavoriteBorder />
         </IconButton>
@@ -130,8 +174,8 @@ const dispatch = useDispatch();
           <OpenInNew />
         </IconButton>
       </div>
-      <div class="bg-white border border-gray-100 shadow-md shadow-black/5 p-6 my-6 rounded-md">
-        <div className="flex items-center gap-7 flex-column flex-wrap md:flex-row md:space-y-0 bg-white dark:bg-gray-900 pb-8">
+      <div className="bg-white border border-gray-100 shadow-md shadow-black/5 p-6 my-6 rounded-md">
+        <div className="flex items-center gap-7 flex-column flex-wrap md:flex-row md:space-y-0 bg-white pb-8">
           <div>
               <span className='text-xs font-semibold text-black'>Filter by</span>
             <Filter/>
@@ -146,29 +190,29 @@ const dispatch = useDispatch();
           </div>
         </div>
         
-                <div class="flex justify-between mb-4 items-start">
-                    <div class="font-medium">Manage orders</div>
-                    <div class="dropdown">
-                        <button type="button" class="dropdown-toggle text-gray-400 hover:text-gray-600"><i class="ri-more-fill"></i></button>
-                        <ul class="dropdown-menu shadow-md shadow-black/5 z-30 hidden py-1.5 rounded-md bg-white border border-gray-100 w-full max-w-[140px]">
+                <div className="flex justify-between mb-4 items-start">
+                    <div className="font-medium">Manage orders</div>
+                    <div className="dropdown">
+                        <button type="button" className="dropdown-toggle text-gray-400 hover:text-gray-600"><i className="ri-more-fill"></i></button>
+                        <ul className="dropdown-menu shadow-md shadow-black/5 z-30 hidden py-1.5 rounded-md bg-white border border-gray-100 w-full max-w-[140px]">
                             <li>
-                                <a href="#" class="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Profile</a>
+                                <a href="#" className="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Profile</a>
                             </li>
                             <li>
-                                <a href="#" class="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Settings</a>
+                                <a href="#" className="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Settings</a>
                             </li>
                             <li>
-                                <a href="#" class="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Logout</a>
+                                <a href="#" className="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Logout</a>
                             </li>
                         </ul>
                     </div>
                 </div>
-                <div class="flex items-center mb-4 order-tab">
-                    <button type="button" data-tab="order" data-tab-page="active" class="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tl-md rounded-bl-md hover:text-gray-600 active">Active</button>
-                    <button type="button" data-tab="order" data-tab-page="completed" class="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 hover:text-gray-600">Completed</button>
-                    <button type="button" data-tab="order" data-tab-page="canceled" class="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tr-md rounded-br-md hover:text-gray-600">Canceled</button>
+                <div className="flex items-center mb-4 order-tab">
+                    <button type="button" data-tab="order" data-tab-page="active" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tl-md rounded-bl-md hover:text-gray-600 active">Active</button>
+                    <button type="button" data-tab="order" data-tab-page="completed" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 hover:text-gray-600">Completed</button>
+                    <button type="button" data-tab="order" data-tab-page="canceled" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tr-md rounded-br-md hover:text-gray-600">Canceled</button>
                 </div>
-               <Table getLeads={getLeads} />
+               <Table handleClickOpen={handleClickOpen} getLeads={getLeads} />
           </div>   
           {
         open && <NewLeadModal onHandleNewLeadClick={onHandleNewLeadClick} lead={lead} setLead={setLead} handleClose={handleClose} open={open} />
