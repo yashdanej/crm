@@ -3,15 +3,16 @@ const jwt = require('jsonwebtoken');
 exports.verifyToken = (req, res, next, verifyUser=false) => {
     try {
         return new Promise((resolve, reject) => {
+            console.log('req.headers.cookie', req.headers.cookie);
             let token;
-            console.log(req.cookies);
+            console.log('req.cookies', req.cookies);
             if(req.cookies){
                 token = req.cookies.access_token;
             }else{
                 return res.status(400).json({success: false, message: "You are not authenticated"});
             }
             if(!token){
-                reject("You are not authenticated");
+                return res.status(400).json({success: false, message: "You are not authenticated"});
             }
             jwt.verify(token, "g[hc+7^:{%&s<vGPM5sT_Zyash_p_d/4;&f!;umN", (err, user) => {
                 if(err)

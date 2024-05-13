@@ -12,7 +12,7 @@ function App() {
   console.log('isLoggedIn', isLoggedIn);
   useEffect(() => {
     !isLoggedIn && navigate("/login");
-  })
+  });
   return (
     <div>
       <Routes>

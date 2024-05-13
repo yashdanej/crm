@@ -3,7 +3,7 @@ import * as React from 'react';
 import Button from '@mui/joy/Button';
 import Snackbar from '@mui/joy/Snackbar';
 import PlaylistAddCheckCircleRoundedIcon from '@mui/icons-material/PlaylistAddCheckCircleRounded';
-
+axios.defaults.withCredentials = true;
 export const api = async (pathname, method, body, formData=false, includeCredentials = false) => {
     const axiosConfig = {
         url: `http://localhost:3000/api/v1${pathname}`,
@@ -35,8 +35,8 @@ export const api = async (pathname, method, body, formData=false, includeCredent
         });
 };
 
-export const changeText = (e, set, content) => {
-    set({...content, [e.target.name]: e.target.value})
+export const changeText = (e, set, content, value) => {
+    set({...content, [e.target.name]: value?value:e.target.value})
 }
 
 export default function SnackbarWithDecorators({snackAlert, setSnackAlert, text, color}) {

@@ -10,6 +10,7 @@ router
     .get("/getcountries", verifyToken, leadController.GetCountries)
     .get("/getstatus", verifyToken, leadController.GetStatus)
     .get("/getsources", verifyToken, leadController.GetSources)
+    .get("/getusers", verifyToken, leadController.GetUsers)
     .get("/leadssearch", verifyToken, leadController.LeadsSearch)
     .patch("/statuschange", verifyToken, leadController.StatusChange)
     .patch("/updatelead/:id", verifyToken, leadController.UpdateLead)

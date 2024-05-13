@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import SnackbarWithDecorators, { api, changeText } from '../../utils/Utils';
 import { login } from '../../store/slices/UserSlice';
+import Cookies from 'js-cookie';
 
 const Auth = ({path}) => {
   const [user, setUser] = useState({
@@ -48,6 +49,7 @@ const Auth = ({path}) => {
         setSnackAlert(true);
       }else if(res.data.user){
         dispatch(login());
+        Cookies.set('access_token', res.data.token, { expires: 7 });
         localStorage.setItem("user", JSON.stringify(res.data.user));
         navigate('/lead');
         console.log("json parse", JSON.parse(localStorage.getItem("user")));

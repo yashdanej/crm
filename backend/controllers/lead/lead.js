@@ -257,6 +257,29 @@ exports.GetSources = async (req, res) => {
     }
 }
 
+exports.GetUsers = async (req, res) => {
+    try {
+        const getUsers = await new Promise((resolve, reject) => {
+            db.query("select * from users", (err, result) => {
+                if(err){
+                    console.log("error in getUsers", err);
+                    reject("error in getUsers");
+                }else{
+                    resolve(result);
+                }   
+            });
+        });
+        if(getUsers.length>0){
+            return res.status(200).json({ success: true, message: "Users fetched successfully", data: getUsers })
+        }else{
+            return res.status(200).json({ success: true, message: "No users found" });
+        }
+    } catch (error) {
+        console.error("Error getUsers:", error);
+        return res.status(400).json({ success: false, message: "Error getUsers", error: error });
+    }
+}
+
 exports.LeadsSearch = async (req, res, next) => {
     let parsed_Url = url.parse(req.url);
     // Parse only querystring.
