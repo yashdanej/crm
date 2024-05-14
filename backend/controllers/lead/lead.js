@@ -290,8 +290,8 @@ exports.LeadsSearch = async (req, res, next) => {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
 
         const leadsSearch = await new Promise((resolve, reject) => {
-            db.query("SELECT * FROM tblleads WHERE addedfrom = ? AND (id LIKE ? OR name LIKE ? OR email LIKE ? OR company LIKE ?)",
-                [getUser, searchLead, searchLead, searchLead, searchLead],
+            db.query("SELECT * FROM tblleads WHERE addedfrom = ? AND (id LIKE ? OR name LIKE ? OR email LIKE ? OR company LIKE ? OR phonenumber LIKE ?)",
+                [getUser, searchLead, searchLead, searchLead, searchLead, searchLead],
                 (err, result) => {
                     if (err) {
                         console.error("Error in leadsSearch query:", err);

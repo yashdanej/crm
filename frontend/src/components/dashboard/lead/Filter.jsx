@@ -5,8 +5,13 @@ import Option from '@mui/joy/Option';
 import Stack from '@mui/joy/Stack';
 import { useSelector } from 'react-redux';
 
-export default function Filter() {
+export default function Filter({ setStatusQuery }) {
   const statusData = useSelector(state => state.status.statusData);
+
+  const handleChange = (event, newValue) => {
+    setStatusQuery(newValue);
+  };
+
   return (
     <form
       onSubmit={(event) => {
@@ -19,18 +24,18 @@ export default function Filter() {
     >
       <Stack spacing={2} alignItems="flex-start">
         <Select
-          placeholder="Select a pet"
-          name="pets"
+          placeholder="Select a status"
+          name="status"
           required
           multiple
-          defaultValue={['dog', 'cat']}
+          onChange={handleChange}
           sx={{ minWidth: 200 }}
         >
           {
             statusData.map((item) => {
               return (
-                <Option value={item.id}>{item.name}</Option>
-              )
+                <Option key={item.id} value={item.id}>{item.name}</Option>
+              );
             })
           }
         </Select>

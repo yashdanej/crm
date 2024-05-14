@@ -67,7 +67,6 @@ export default function SnackbarWithDecorators({snackAlert, setSnackAlert, text,
 }
 
 export const selectedItem = (leadData, item, from) => {
-  console.log('leadData, item, from', leadData, item, from);
   let selected;
   if(from == "Status"){
     selected = item.find(option => option.id === leadData?.status);
