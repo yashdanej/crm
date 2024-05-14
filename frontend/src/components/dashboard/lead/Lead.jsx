@@ -9,8 +9,11 @@ import Filter from './Filter';
 import DropDown from './DropDown';
 import NewLeadModal from './NewLeadModal';
 import SnackbarWithDecorators, { api } from '../../../utils/Utils';
-import { getAllLeads, getAssigned, getLead, getSource, getStatus } from '../../../store/slices/LeadSlices';
+import { getAllLeads, getAssigned, getLead, getSource, getStatus, kanbanViewFn } from '../../../store/slices/LeadSlices';
 import { useDispatch, useSelector } from 'react-redux';
+import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
+import ArrowCircleLeftOutlinedIcon from '@mui/icons-material/ArrowCircleLeftOutlined';
+import LeadsKanaban from './kanbanBoard/LeadsKanaban';
 
 const Lead = () => {
   const leadData = useSelector((state) => state.leads.leadData);
@@ -45,6 +48,7 @@ const Lead = () => {
     description: "",
     is_public: 0
   });
+  const kanbanView = useSelector(state => state.leads.kanbanView);
 
   const dispatch = useDispatch();
 
@@ -263,10 +267,18 @@ const Lead = () => {
         <IconButton variant="soft" >
           <FavoriteBorder />
         </IconButton>
-        <IconButton variant="soft" aria-label="Open in new tab" component="a" href="#as-link">
-          <OpenInNew />
-        </IconButton>
+        {
+          !kanbanView?
+          <IconButton onClick={() => dispatch(kanbanViewFn(true))} variant="soft" aria-label="Open in new tab" component="a">
+            <ArrowCircleRightOutlinedIcon />
+          </IconButton>:
+          <IconButton onClick={() => dispatch(kanbanViewFn(false))} variant="soft" aria-label="Open in new tab" component="a">
+            <ArrowCircleLeftOutlinedIcon />
+          </IconButton>
+        }
       </div>
+      {
+        !kanbanView?(
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex justify-between mb-4">
           <div className="flex space-x-4">
@@ -317,6 +329,8 @@ const Lead = () => {
         </div>
         <Table handleOpenView={handleOpenView} handleClickOpen={handleClickOpen} getLeads={getLeads} />
       </div>
+        ):<LeadsKanaban/>
+      }
       {
         open && <NewLeadModal handleCloseView={handleCloseView} view={view} onHandleNewLeadClick={onHandleNewLeadClick} lead={lead} setLead={setLead} handleClose={handleClose} open={open} />
       }

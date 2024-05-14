@@ -18,7 +18,7 @@ function App() {
       <Routes>
         <Route exact path="/login" element={<Auth path="login" />} />
         <Route exact path="/signup" element={<Auth path="signup" />} />
-        <Route exact path="/lead" element={<Dashboard><Lead /></Dashboard>} />
+        <Route exact path="/admin/leads" element={<Dashboard><Lead /></Dashboard>} />
       </Routes>
     </div>
   );
