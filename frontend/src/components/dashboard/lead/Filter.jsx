@@ -3,8 +3,10 @@ import Button from '@mui/joy/Button';
 import Select from '@mui/joy/Select';
 import Option from '@mui/joy/Option';
 import Stack from '@mui/joy/Stack';
+import { useSelector } from 'react-redux';
 
 export default function Filter() {
+  const statusData = useSelector(state => state.status.statusData);
   return (
     <form
       onSubmit={(event) => {
@@ -24,10 +26,13 @@ export default function Filter() {
           defaultValue={['dog', 'cat']}
           sx={{ minWidth: 200 }}
         >
-          <Option value="dog">Dog</Option>
-          <Option value="cat">Cat</Option>
-          <Option value="fish">Fish</Option>
-          <Option value="bird">Bird</Option>
+          {
+            statusData.map((item) => {
+              return (
+                <Option value={item.id}>{item.name}</Option>
+              )
+            })
+          }
         </Select>
       </Stack>
     </form>

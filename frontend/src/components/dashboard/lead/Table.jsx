@@ -1,14 +1,20 @@
 import React, { useEffect } from 'react'
 import Filter from './Filter'
 import DropDown from './DropDown'
-import { api } from '../../../utils/Utils'
+import SnackbarWithDecorators, { api, selectedItem } from '../../../utils/Utils'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllLeads, getLead } from '../../../store/slices/LeadSlices'
+import { useState } from 'react'
 
-const Table = ({getLeads, handleClickOpen}) => {
+const Table = ({handleOpenView, getLeads, handleClickOpen}) => {
     const leadsData = useSelector((state) => state.leads.leadsData);
     console.log('leadsData', leadsData);
     const dispatch = useDispatch();
+    const [snackAlert, setSnackAlert] = useState(false); // popup success or error
+    const [snackbarProperty, setSnackbarProperty] = useState({ // popup success or error text
+        text: '',
+        color: ''
+    });
     useEffect(() => {
         getLeads();
     }, []);
@@ -26,15 +32,47 @@ const Table = ({getLeads, handleClickOpen}) => {
         });
     }
     const handleView = (id) => {
-        handleLeadEdit(id)
+        handleLeadEdit(id);
+        handleOpenView();
     }
     const handleEdit = (id) => {
         handleLeadEdit(id);
         handleClickOpen();
     }
 
+    const statusData = useSelector(state => state.status.statusData);
+    const sourceData = useSelector(state => state.source.sourceData);
+    const assignedData = useSelector(state => state.assigned.assignedData);
+
+    const onStatusChange = (currentStatus, newStatus, user) => {
+        api(`/lead/statuschange?currentStatus=${currentStatus}&newStatus=${newStatus}&user=${user}`, "patch", false, false, true)
+        .then((res) => {
+            console.log(res);
+            setSnackbarProperty(prevState => ({
+                ...prevState,
+                text: res?.data?.message,
+                color: "success"
+                }));
+            setSnackAlert(true);
+        })
+        .catch((err) => {
+            console.log("err in onStatusChange", err);
+            setSnackbarProperty(prevState => ({
+                ...prevState,
+                text: err,
+                color: "danger"
+                }));
+            setSnackAlert(true);
+        })
+    }
+
   return (
     <div className="overflow-x-auto">
+        {
+      snackAlert?
+      <SnackbarWithDecorators snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
+      :null
+      }
     <table className="w-full min-w-[540px]" data-tab-for="order" data-page="active">
         <thead>
             <tr>
@@ -85,14 +123,23 @@ const Table = ({getLeads, handleClickOpen}) => {
                         </td>
                         <td className="py-2 px-4 border-b border-b-gray-50">
                         {/* <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded object-cover block"/> */}
-                            <span className="text-[13px] font-medium text-gray-400">{item.addedfrom}</span>
+                            <span className="text-[13px] font-medium text-gray-400">{selectedItem(item, assignedData, "Assigned")}</span>
                         </td>
                         <td className="py-2 px-4 border-b border-b-gray-50">
-                            {/* <span className="inline-block p-1 rounded bg-emerald-500/10 text-emerald-500 font-medium text-[12px] leading-none">In progress</span> */}
-                            <span className="text-[13px] font-medium text-gray-400">{item.status}</span>
+                            <span className="inline-block p-1 rounded bg-emerald-500/10 text-emerald-500 font-medium text-[12px] leading-none">
+                                <select onChange={(e) => onStatusChange(item.status, e.target.value, item.id)} name="" id="">
+                                    {
+                                        statusData?.map((item2) => {
+                                            return (
+                                                <option selected={item.status===item2.id} value={item2.id}>{item2.name}</option>
+                                            )
+                                        })
+                                    }
+                                </select>
+                            </span>
                         </td>
                         <td className="py-2 px-4 border-b border-b-gray-50">
-                            <span className="text-[13px] font-medium text-gray-400">{item.source}</span>
+                            <span className="text-[13px] font-medium text-gray-400">{selectedItem(item, sourceData, "Source")}</span>
                         </td>
                         <td className="py-2 px-4 border-b border-b-gray-50">
                             <span className="text-[13px] font-medium text-gray-400">{item.lastcontact}</span>

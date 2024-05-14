@@ -3,8 +3,11 @@ import Button from '@mui/joy/Button';
 import Select from '@mui/joy/Select';
 import Option from '@mui/joy/Option';
 import Stack from '@mui/joy/Stack';
+import { useSelector } from 'react-redux';
 
-export default function DropDown() {
+export default function DropDown({from}) {
+  let sourceData = useSelector(state => state.source.sourceData);
+  let assignedData = useSelector(state => state.assigned.assignedData);
   return (
     <form
       onSubmit={(event) => {
@@ -21,10 +24,22 @@ export default function DropDown() {
           required
           sx={{ minWidth: 200 }}
         >
-          <Option value="dog">Dog</Option>
-          <Option value="cat">Cat</Option>
-          <Option value="fish">Fish</Option>
-          <Option value="bird">Bird</Option>
+          {
+            from === "Source"?
+            (
+              sourceData.map((item) => {
+                return (
+                  <Option value={item.id}>{item.name}</Option>
+                )
+              })
+            ):(
+              assignedData.map((item) => {
+                return (
+                  <Option value={item.id}>{item.full_name}</Option>
+                )
+              })
+            )
+          }
         </Select>
       </Stack>
     </form>

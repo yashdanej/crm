@@ -10,16 +10,16 @@ import Filter from './Filter';
 import DropDown from './DropDown';
 import DropDown2 from './DropwDown2';
 import { useEffect } from 'react';
-import { api, changeText } from '../../../utils/Utils';
+import { api, changeText, selectedItem } from '../../../utils/Utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCountries, getLead } from '../../../store/slices/LeadSlices';
+import { getAssigned, getCountries, getLead, getSource, getStatus } from '../../../store/slices/LeadSlices';
 import { useState } from 'react';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
 });
 
-export default function NewLeadModal({lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
+export default function NewLeadModal({handleCloseView, view, lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
     const leadData = useSelector((state) => state.leads.leadData);
     const countriesData = useSelector((state) => state.countries.countriesData);
     const dispatch = useDispatch();
@@ -42,36 +42,47 @@ export default function NewLeadModal({lead, setLead, handleClose, open, onHandle
     };
     const handelCloseLeadModal = () => {
         handleClose();
+        handleCloseView();
         dispatch(getLead([]));
     }
     useEffect(() => {
       console.log('leadData.length', leadData.length);
       if(leadData?.length>0){
         setLead({
-          status: leadData[0].status,
-          source: leadData[0].source,
-          assigned: leadData[0].assigned,
-          name: leadData[0].name,
-          address: leadData[0].address,
-          position: leadData[0].title,
-          city: leadData[0].city,
-          email: leadData[0].email,
-          state: leadData[0].state,
-          website: leadData[0].website,
-          country: leadData[0].country,
-          phonenumber: leadData[0].phonenumber,
-          zip: leadData[0].zip,
-          lead_value: leadData[0].lead_value,
-          default_language: leadData[0].default_language,
-          company: leadData[0].company,
-          description: leadData[0].description,
-          is_public: leadData[0].is_public
+          status: leadData[0]?.status,
+          source: leadData[0]?.source,
+          assigned: leadData[0]?.assigned,
+          name: leadData[0]?.name,
+          address: leadData[0]?.address,
+          position: leadData[0]?.title,
+          city: leadData[0]?.city,
+          email: leadData[0]?.email,
+          state: leadData[0]?.state,
+          website: leadData[0]?.website,
+          country: leadData[0]?.country,
+          phonenumber: leadData[0]?.phonenumber,
+          zip: leadData[0]?.zip,
+          lead_value: leadData[0]?.lead_value,
+          default_language: leadData[0]?.default_language,
+          company: leadData[0]?.company,
+          description: leadData[0]?.description,
+          is_public: leadData[0]?.is_public
         })
       }
     }, [leadData]);
+    const statusData = useSelector((state) => state.status.statusData);
+    const sourceData = useSelector((state) => state.source.sourceData);
+    const assignedData = useSelector((state) => state.assigned.assignedData);
+    let pathname;
+    pathname = "/lead/getstatus";
 
+    useEffect(() => {
+      console.log('lead', lead);
+    }, [lead]);
   return (
     <React.Fragment>
+      {
+        !view?(
       <Dialog
         open={open}
         TransitionComponent={Transition}
@@ -86,15 +97,15 @@ export default function NewLeadModal({lead, setLead, handleClose, open, onHandle
             <div className="flex w-full justify-between items-center gap-7 flex-column flex-wrap md:flex-row md:space-y-0 bg-white pb-8">
                 <div>
                     <p className='text-xs font-semibold mb-1 text-black'>Status</p>
-                    <DropDown2 lead={lead} setLead={setLead} from="Status" />
+                    <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Status" />
                 </div>
                 <div>
                     <p className='text-xs font-semibold mb-1 text-black'>Source</p>
-                    <DropDown2 lead={lead} setLead={setLead} from="Source" />
+                    <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Source" />
                 </div>
                 <div>
                 <p className='text-xs font-semibold mb-1 text-black'>Assigned</p>
-                    <DropDown2 lead={lead} setLead={setLead} from="Assigned" />
+                    <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Assigned" />
                 </div>
             </div>
             <div>
@@ -224,10 +235,128 @@ export default function NewLeadModal({lead, setLead, handleClose, open, onHandle
             </div>
         <div className='flex gap-2 my-5 justify-end'>
             <button onClick={handelCloseLeadModal} className='bg-blue-950 p-4 px-12 rounded-xl font-bold text-white'>Cancel</button>
-            <button onClick={onHandleNewLeadClick} className='bg-purple-blue-500 p-4 px-12 rounded-xl font-bold text-white'>Submit</button>
+            <button onClick={onHandleNewLeadClick} className='bg-purple-blue-500 p-4 px-12 rounded-xl font-bold text-white'>{leadData?.length>0?"Update":"Submit"}</button>
         </div>
         </div>
       </Dialog>
+        ):
+        (
+          <>
+            <Dialog
+            open={open}
+            TransitionComponent={Transition}
+            keepMounted
+            onClose={handleClose}
+            aria-describedby="alert-dialog-slide-description"
+            fullWidth
+            maxWidth="lg"
+          >
+            <div className='p-8'>
+              <p>#{leadData[0]?.id} {lead?.name}</p>
+              <div className='flex justify-between my-4'>
+                <div className='w-[25%]'>
+                  <p className='bg-slate-200 font-semibold my-2'>Lead Information</p>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Name</p>
+                    <p className='text-[14px]'>{lead?.name}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Position</p>
+                    <p className='text-[14px]'>{lead?.position}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Email Address</p>
+                    <p className='text-[14px]'>{lead?.email}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Website</p>
+                    <p className='text-[14px]'>{lead?.website}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Name</p>
+                    <p className='text-[14px]'>{lead?.phonenumber}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Lead value</p>
+                    <p className='text-[14px]'>{lead?.lead_value}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Company</p>
+                    <p className='text-[14px]'>{lead?.company}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Address</p>
+                    <p className='text-[14px]'>{lead?.address}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>City</p>
+                    <p className='text-[14px]'>{lead?.city}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>State</p>
+                    <p className='text-[14px]'>{lead?.state}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Country</p>
+                    <p className='text-[14px]'>{lead?.country}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Zip Code</p>
+                    <p className='text-[14px]'>{lead?.zip}</p>
+                  </div>
+                  
+                </div>
+                <div className='w-[25%]'>
+                  <p className='bg-slate-200 font-semibold my-2'>General Information</p>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Status</p>
+                    <p className='text-[14px]'>{selectedItem(leadData[0], statusData, "Status")}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Source</p>
+                    <p className='text-[14px]'>{selectedItem(leadData[0], sourceData, "Source")}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Default Language</p>
+                    <p className='text-[14px]'>{lead?.default_language}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Assigned</p>
+                    <p className='text-[14px]'>{selectedItem(leadData[0], assignedData, "Assigned")}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Tags</p>
+                    <p className='text-[14px]'></p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Created</p>
+                    <p className='text-[14px]'>{leadData[0]?.dateadded}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Created</p>
+                    <p className='text-[14px]'>{leadData[0]?.lastcontact}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Public</p>
+                    <p className='text-[14px]'>{leadData[0]?.is_public}</p>
+                  </div>
+                </div>
+                <div>
+                </div>
+              </div>
+              <div className='my-1'>
+                <p className='text-[14px] text-slate-800 font-bold'>Description</p>
+                <p className='text-[14px]'>{lead?.description}</p>
+              </div>
+              <div className='my-1'>
+                <p className='bg-slate-200 font-bold'>Latest Activity</p>
+                <p className='text-[14px]'>{leadData[0]?.addedfrom}</p>
+              </div>
+            </div>
+          </Dialog>
+          </>
+        )
+      }
     </React.Fragment>
   );
 }

@@ -65,3 +65,19 @@ export default function SnackbarWithDecorators({snackAlert, setSnackAlert, text,
     </React.Fragment>
   );
 }
+
+export const selectedItem = (leadData, item, from) => {
+  console.log('leadData, item, from', leadData, item, from);
+  let selected;
+  if(from == "Status"){
+    selected = item.find(option => option.id === leadData?.status);
+  }else if(from === "Source"){
+    selected = item.find(option => option.id === leadData?.source);
+  }else{
+    selected = item.find(option => option.id === leadData?.assigned);
+  }
+  if(from === "Assigned"){
+    return selected ? selected.full_name : null;
+  }
+  return selected ? selected.name : null;
+}

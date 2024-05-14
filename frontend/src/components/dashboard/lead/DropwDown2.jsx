@@ -6,40 +6,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAssigned, getSource, getStatus } from '../../../store/slices/LeadSlices';
 import { api } from '../../../utils/Utils';
 
-export default function DropDown2({ lead, setLead, from }) {
-    const dispatch = useDispatch();
-
-    useEffect(() => {
-        const getDropdownData = async () => {
-            let pathname;
-            if (from === "Status") {
-                pathname = "/lead/getstatus";
-                dispatch(getStatus(await fetchData(pathname)));
-            } else if (from === "Source") {
-                pathname = "/lead/getsources";
-                dispatch(getSource(await fetchData(pathname)));
-            } else {
-                pathname = "/lead/getusers";
-                dispatch(getAssigned(await fetchData(pathname)));
-            }
-        };
-        getDropdownData();
-    }, [dispatch, from]);
-
+export default function DropDown2({ leadData, lead, setLead, from }) {
     const statusData = useSelector((state) => state.status.statusData);
     const sourceData = useSelector((state) => state.source.sourceData);
     const assignedData = useSelector((state) => state.assigned.assignedData);
-
-    const fetchData = async (pathname) => {
-        try {
-            const response = await api(pathname, false, false, true);
-            return response.data.data;
-        } catch (error) {
-            console.error("Error fetching dropdown data:", error);
-            return [];
-        }
-    };
-
     let options = [];
     if (from === "Status") {
         options = statusData || [];
@@ -50,7 +20,6 @@ export default function DropDown2({ lead, setLead, from }) {
     }
 
     const handleChangeStatusSourceAssigned = (event, value) => {
-        console.log('value', value);
         let selectedOption;
         if(from === "Assigned"){
             selectedOption = options.find(option => option.full_name === value);
@@ -63,6 +32,21 @@ export default function DropDown2({ lead, setLead, from }) {
         }));
     };
 
+    const getSelectedValue = () => {
+        if (!leadData) return null;
+        if (from === "Status") {
+            const selected = options.find(option => option.id === leadData.status);
+            return selected ? selected.name : null;
+        } else if (from === "Source") {
+            const selected = options.find(option => option.id === leadData.source);
+            return selected ? selected.name : null;
+        } else if (from === "Assigned") {
+            const selected = options.find(option => option.id === leadData.assigned);
+            return selected ? selected.full_name : null;
+        }
+        return null;
+    };
+
     return (
         <Autocomplete
             disablePortal
@@ -70,6 +54,7 @@ export default function DropDown2({ lead, setLead, from }) {
             name={from}
             onChange={handleChangeStatusSourceAssigned}
             options={options.map(item => from === "Assigned" ? item.full_name : item.name)}
+            value={getSelectedValue()}
             sx={{ width: 300 }}
             renderInput={(params) => <TextField {...params} label={from} />}
         />
