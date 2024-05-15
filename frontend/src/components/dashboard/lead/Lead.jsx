@@ -222,7 +222,7 @@ const Lead = () => {
   useEffect(() => {
     const fetchData = async (pathname) => {
       try {
-        const response = await api(pathname, false, false, true);
+        const response = await api(pathname, "get", false, false, true);
         return response.data.data;
       } catch (error) {
         console.error("Error fetching dropdown data:", error);

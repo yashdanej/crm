@@ -62,7 +62,8 @@ const leadsSlice = createSlice({
     initialState: {
         leadsData: [],
         leadData: [],
-        kanbanView: false
+        kanbanView: false,
+        leadsByStatus: []
     },
     reducers: {
         getAllLeads(state, action){
@@ -73,6 +74,9 @@ const leadsSlice = createSlice({
         },
         kanbanViewFn(state, action){
             state.kanbanView = action.payload
+        },
+        kanbanLeads(state, action){
+            state.leadsByStatus = action.payload
         }
     }
 });
@@ -82,7 +86,7 @@ export const { getStatus } = statusSlice.actions;
 export const { getSource } = sourceSlice.actions;
 export const { getAssigned } = assignedSlice.actions;
 export const { getCountries } = countriesSlice.actions;
-export const { getAllLeads, getLead, kanbanViewFn } = leadsSlice.actions;
+export const { getAllLeads, getLead, kanbanViewFn, kanbanLeads } = leadsSlice.actions;
 
 export const statusReducer = statusSlice.reducer;
 export const sourceReducer = sourceSlice.reducer;

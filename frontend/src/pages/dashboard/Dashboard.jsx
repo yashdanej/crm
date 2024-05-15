@@ -2,10 +2,15 @@ import React, { useEffect, useState } from 'react'
 import Header from '../../components/dashboard/Header'
 import Sidebar from '../../components/dashboard/Sidebar'
 import './dashboard.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../../store/slices/UserSlice';
+import { Link, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 const Dashboard = ({children}) => {
   const [openSidebarToggle, setOpenSidebarToggle] = useState(false);
-
+  const isLoggedIn = useSelector(state => state.isLoggedIn);
+    const dispatch = useDispatch();
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -88,7 +93,7 @@ const Dashboard = ({children}) => {
     };
   }
   useEffect(() => {
-    sidebarFn()
+    sidebarFn();
   }, [openSidebarToggle]);
 
   useEffect(() => {
@@ -121,9 +126,15 @@ const Dashboard = ({children}) => {
         .forEach((item) => item.removeEventListener('click', handleTabClick));
     };
   }, []);
-
-
-
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    dispatch(logout());
+    Cookies.remove("access_token");
+    localStorage.removeItem("user");
+    !isLoggedIn && navigate('/login');
+  }
+    let getUser = JSON.parse(localStorage.getItem("user"));
+    console.log("getUser", getUser);
   return (
     <div className=''>
       <div className="fixed left-0 top-0 w-64 h-full bg-gray-900 p-4 z-50 sidebar-menu transition-transform">
@@ -132,11 +143,21 @@ const Dashboard = ({children}) => {
             <span className="text-lg font-bold text-white ml-3">Logo</span>
         </a>
         <ul className="mt-4">
+            {
+                getUser?.role === 3 && (
+                    <li className="mb-1 group active">
+                        <Link to="/superadmin/users" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
+                            <i className="ri-home-2-line mr-3 text-lg"></i>
+                            <span className="text-sm">User</span>
+                        </Link>
+                    </li>
+                )
+            }
             <li className="mb-1 group active">
-                <a href="#" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
+                <Link to="/admin/leads" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
                     <i className="ri-home-2-line mr-3 text-lg"></i>
                     <span className="text-sm">Dashboard</span>
-                </a>
+                </Link>
             </li>
             <li className="mb-1 group">
                 <a href="#" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100 sidebar-dropdown-toggle">
@@ -389,20 +410,31 @@ const Dashboard = ({children}) => {
                     </div>
                 </li>
                 <li className="dropdown ml-3">
-                    <button type="button" className="dropdown-toggle flex items-center">
-                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
+                    <button id="dropdownUserAvatarButton" data-dropdown-toggle="dropdownAvatar" className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" type="button">
+                    <span className="sr-only">Open user menu</span>
+                    <img className="w-8 h-8 rounded-full" src="/docs/images/people/profile-picture-3.jpg" alt="user photo"/>
                     </button>
-                    <ul className="dropdown-menu shadow-md shadow-black/5 z-30 hidden py-1.5 rounded-md bg-white border border-gray-100 w-full max-w-[140px]">
+
+                    <div id="dropdownAvatar" className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+                        <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                        <div>Bonnie Green</div>
+                        <div className="font-medium truncate">name@flowbite.com</div>
+                        </div>
+                        <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownUserAvatarButton">
                         <li>
-                            <a href="#" className="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Profile</a>
+                            <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Settings</a>
+                            <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Settings</a>
                         </li>
                         <li>
-                            <a href="#" className="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Logout</a>
+                            <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Earnings</a>
                         </li>
-                    </ul>
+                        </ul>
+                        <div className="py-2">
+                            <p onClick={handleLogout} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Sign out</p>
+                        </div>
+                    </div>
                 </li>
             </ul>
         </div>

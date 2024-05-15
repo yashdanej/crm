@@ -3,7 +3,6 @@ import * as React from 'react';
 import Button from '@mui/joy/Button';
 import Snackbar from '@mui/joy/Snackbar';
 import PlaylistAddCheckCircleRoundedIcon from '@mui/icons-material/PlaylistAddCheckCircleRounded';
-axios.defaults.withCredentials = true;
 export const api = async (pathname, method, body, formData=false, includeCredentials = false) => {
     const axiosConfig = {
         url: `http://localhost:3000/api/v1${pathname}`,

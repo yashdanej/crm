@@ -110,53 +110,60 @@ exports.NewLead = async (req, res, next) => {
 
 exports.GetLead = async (req, res, next) => {
     try {
-        let parsed_Url = url.parse(req.url);
-        // Parse only querystring.
-        let parsed_queryString = querystring.parse(parsed_Url.query);
-        console.log('parsed_queryString', parsed_queryString);
-        console.log(parsed_queryString);
-        const getUser = await verifyToken(req, res, next, verifyUser=true);
-        let query = "select * from tblleads where addedfrom = ?";
-        let queryParams = [getUser];
+        const parsedUrl = url.parse(req.url);
+        const parsedQueryString = querystring.parse(parsedUrl.query);
+
+        console.log('parsed_queryString', parsedQueryString);
+
+        const getUser = await verifyToken(req, res, next, true);
+
+        let query = "SELECT * FROM tblleads WHERE 1 = 1";
+        let queryParams = [];
+
+        if (Object.keys(parsedQueryString).length > 0) {
+            Object.keys(parsedQueryString).forEach(key => {
+                let moreQuery = "";
+
+                if (key === "status") {
+                    // Handling 'status' as a comma-separated list
+                    const statuses = parsedQueryString.status.split(',').map(() => '?').join(',');
+                    moreQuery = ` AND ${key} IN (${statuses})`;
+                    queryParams = queryParams.concat(parsedQueryString.status.split(','));
+                } else if (key === "filter") {
+                    moreQuery = ` AND ${parsedQueryString.filter} = true`;
+                } else {
+                    moreQuery = ` AND ${key} = ?`;
+                    queryParams.push(parsedQueryString[key]);
+                }
+
+                query += moreQuery;
+            });
+        }
+
+        console.log('query', query);
+        console.log('queryParams', queryParams);
+
         const getLeads = await new Promise((resolve, reject) => {
-            if(Object.keys(parsed_queryString).length > 0){
-                Object.keys(parsed_queryString).forEach(key => {
-                    let moreQuery;
-                    if(key === "status"){
-                        moreQuery = ` and ${key} in (${parsed_queryString.status})`
-                        query+=moreQuery;
-                    }else if(key === "filter"){
-                        moreQuery = ` and ${parsed_queryString.filter} = true`;
-                        query+=moreQuery;
-                    }
-                    else{
-                        moreQuery = ` and ${key} = ? `;
-                        queryParams.push(parsed_queryString[key]);
-                        query+=moreQuery;
-                    }
-                    console.log('query', query);
-                    console.log('queryParams', queryParams);
-                });
-            }
             db.query(query, queryParams, (err, result) => {
-                if(err){
+                if (err) {
                     console.log("error in getLeads", err);
                     reject("error in getLeads");
-                }else{
+                } else {
                     resolve(result);
-                }   
+                }
             });
         });
-        if(getLeads){
-            return res.status(200).json({ success: true, message: "Leads fetched successfully", data: getLeads })
-        }else{
+
+        if (getLeads) {
+            return res.status(200).json({ success: true, message: "Leads fetched successfully", data: getLeads });
+        } else {
             return res.status(400).json({ success: false, message: "Error GetLead" });
         }
     } catch (error) {
         console.error("Error GetLead:", error);
         return res.status(400).json({ success: false, message: "Error GetLead", error: error });
     }
-}
+};
 
 exports.ViewLead = async (req, res, next) => {
     try {
@@ -166,7 +173,7 @@ exports.ViewLead = async (req, res, next) => {
         }
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         const viewLead = await new Promise((resolve, reject) => {
-            db.query("select * from tblleads where addedfrom = ? and id = ?", [getUser, id], (err, result) => {
+            db.query("select * from tblleads where id = ?", [id], (err, result) => {
                 if(err){
                     console.log("error in ViewLead", err);
                     reject("error in ViewLead");
@@ -290,8 +297,8 @@ exports.LeadsSearch = async (req, res, next) => {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
 
         const leadsSearch = await new Promise((resolve, reject) => {
-            db.query("SELECT * FROM tblleads WHERE addedfrom = ? AND (id LIKE ? OR name LIKE ? OR email LIKE ? OR company LIKE ? OR phonenumber LIKE ?)",
-                [getUser, searchLead, searchLead, searchLead, searchLead, searchLead],
+            db.query("SELECT * FROM tblleads WHERE (id LIKE ? OR name LIKE ? OR email LIKE ? OR company LIKE ? OR phonenumber LIKE ?)",
+                [searchLead, searchLead, searchLead, searchLead, searchLead],
                 (err, result) => {
                     if (err) {
                         console.error("Error in leadsSearch query:", err);
@@ -319,7 +326,7 @@ exports.StatusChange = async (req, res, next) => {
         const {currentStatus, newStatus, user} = parsed_queryString;
         console.log(currentStatus, newStatus, user);
         const statusChange = await new Promise((resolve, reject) => {
-            db.query("update tblleads set last_lead_status = ?, last_status_change = ?, status = ? where addedfrom = ? and id = ?", [currentStatus, new Date(), newStatus, getUser, user], (err, result) => {
+            db.query("update tblleads set last_lead_status = ?, last_status_change = ?, status = ? where id = ?", [currentStatus, new Date(), newStatus, user], (err, result) => {
                 if (err) {
                     console.error("Error in statusChange query:", err);
                     reject(err);
@@ -406,7 +413,7 @@ exports.UpdateLead = async (req, res, next) => {
                     console.log('Current status:', currentStatus.status);
         
                     await new Promise((resolve, reject) => {
-                        db.query("UPDATE tblleads SET last_lead_status = ?, last_status_change = ?, status = ? WHERE addedfrom = ? AND id = ?", [currentStatus.status, new Date(), userStatus.id, getUser, leadId], (err, result) => {
+                        db.query("UPDATE tblleads SET last_lead_status = ?, last_status_change = ?, status = ? WHERE id = ?", [currentStatus.status, new Date(), userStatus.id, leadId], (err, result) => {
                             if (err) {
                                 console.log("Error updating lead:", err);
                                 reject(err);
@@ -526,8 +533,8 @@ exports.UpdateLead = async (req, res, next) => {
         }
 
         // Construct the SQL update query
-        const updateQuery = `UPDATE tblleads SET ${updateFields.join(', ')} WHERE id = ? AND addedfrom = ?`;
-        queryParams.push(leadId, getUser);
+        const updateQuery = `UPDATE tblleads SET ${updateFields.join(', ')} WHERE id = ?`;
+        queryParams.push(leadId);
 
         // Execute the update query
         const updateLead = await new Promise((resolve, reject) => {
@@ -551,4 +558,118 @@ exports.UpdateLead = async (req, res, next) => {
         console.error("Error in updateLead:", error);
         return res.status(400).json({ success: false, message: "Error in updateLead", error: error });
     }
+}
+
+exports.AddStatus = async (req, res, next) => {
+    try {
+        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("select * from users where id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+        if(getSelectedUser.role === 1){
+            return res.status(400).json({success: false, message: "Permission denied"})
+        }else{
+            const { name, statusorder, color } = req.body;
+            await new Promise((resolve, reject) => {
+                db.query("insert into tblleads_status set ?", {name, statusorder, color}, (err, result) => {
+                    if (err) {
+                        console.error("Error getSelectedUser:", err);
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return res.status(200).json({success: true, message: "Status added successfully"});
+        }
+    } catch (error) {
+        console.error("Error in AddStatus:", error);
+        return res.status(400).json({ success: false, message: "Error in AddStatus", error: error });
+    }
+}
+
+exports.AddSource = async (req, res, next) => {
+    try {
+        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("select * from users where id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+        if(getSelectedUser.role === 1){
+            return res.status(400).json({success: false, message: "Permission denied"})
+        }else{
+            const { name } = req.body;
+            await new Promise((resolve, reject) => {
+                db.query("insert into tblleads_sources set ?", {name}, (err, result) => {
+                    if (err) {
+                        console.error("Error getSelectedUser:", err);
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return res.status(200).json({success: true, message: "Source added successfully"});
+        }
+    } catch (error) {
+        console.error("Error in AddStatus:", error);
+        return res.status(400).json({ success: false, message: "Error in AddStatus", error: error });
+    }
+}
+
+exports.KanbanView = async (req, res) => {
+    try {
+        const status1 = await queryStatus(1);
+        const status2 = await queryStatus(2);
+        const status3 = await queryStatus(3);
+        const status4 = await queryStatus(4);
+        const status5 = await queryStatus(5);
+        const status6 = await queryStatus(6);
+        const status7 = await queryStatus(7);
+        const status8 = await queryStatus(8);
+
+        return res.status(200).json({
+            success: true,
+            message: "Source added successfully",
+            data: {
+                Customer: status1,
+                "Free Leads": status2,
+                Denied: status3,
+                "In talk": status4,
+                "Follow Up": status5,
+                BNI: status6,
+                Transfered: status7,
+                "first talk done": status8
+            }
+        });
+    } catch (error) {
+        console.error("Error in KanbanView:", error);
+        return res.status(400).json({ success: false, message: "Error in KanbanView", error: error });
+    }
+}
+
+async function queryStatus(status) {
+    return new Promise((resolve, reject) => {
+        db.query("select * from tblleads where status = ?", [status], (err, result) => {
+            if (err) {
+                console.error(`Error querying status ${status}:`, err);
+                reject(err);
+            } else {
+                resolve(result);
+            }
+        });
+    });
 }

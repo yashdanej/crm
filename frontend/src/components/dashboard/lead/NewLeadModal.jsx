@@ -14,12 +14,16 @@ import { api, changeText, selectedItem } from '../../../utils/Utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAssigned, getCountries, getLead, getSource, getStatus } from '../../../store/slices/LeadSlices';
 import { useState } from 'react';
+import ControlPointDuplicateIcon from '@mui/icons-material/ControlPointDuplicate';
+import AddStatusSources from './AddStatusSources';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
 });
 
 export default function NewLeadModal({handleCloseView, view, lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
+    const [openS, setOpenS] = useState(false);
+    const [from, setFrom] = useState("");
     const leadData = useSelector((state) => state.leads.leadData);
     const countriesData = useSelector((state) => state.countries.countriesData);
     const dispatch = useDispatch();
@@ -79,6 +83,7 @@ export default function NewLeadModal({handleCloseView, view, lead, setLead, hand
     useEffect(() => {
       console.log('lead', lead);
     }, [lead]);
+    let getUser = JSON.parse(localStorage.getItem("user"));
   return (
     <React.Fragment>
       {
@@ -97,11 +102,31 @@ export default function NewLeadModal({handleCloseView, view, lead, setLead, hand
             <div className="flex w-full justify-between items-center gap-7 flex-column flex-wrap md:flex-row md:space-y-0 bg-white pb-8">
                 <div>
                     <p className='text-xs font-semibold mb-1 text-black'>Status</p>
-                    <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Status" />
+                    <div className="flex">
+                      <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Status" />
+                        {
+                          getUser.role !== 1 &&
+                          <button onClick={() => {setOpenS(true);setFrom("Status")}} class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
+                            <ControlPointDuplicateIcon/>
+                            
+                          </button>
+                        }
+                    </div>
                 </div>
+                {
+                  openS && <AddStatusSources openS={openS} setOpenS={setOpenS} from={from} />
+                }
                 <div>
                     <p className='text-xs font-semibold mb-1 text-black'>Source</p>
-                    <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Source" />
+                    <div className="flex">
+                      <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Source" />
+                      {
+                          getUser.role !== 1 &&
+                          <button onClick={() => {setOpenS(true);setFrom("Sources")}} class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
+                            <ControlPointDuplicateIcon/>
+                          </button>
+                        }
+                    </div>
                 </div>
                 <div>
                 <p className='text-xs font-semibold mb-1 text-black'>Assigned</p>
@@ -357,6 +382,7 @@ export default function NewLeadModal({handleCloseView, view, lead, setLead, hand
           </>
         )
       }
+      
     </React.Fragment>
   );
 }

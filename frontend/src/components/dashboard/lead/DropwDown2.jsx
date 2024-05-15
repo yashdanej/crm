@@ -20,12 +20,14 @@ export default function DropDown2({ leadData, lead, setLead, from }) {
     }
 
     const handleChangeStatusSourceAssigned = (event, value) => {
+        console.log('value', value);
         let selectedOption;
         if(from === "Assigned"){
             selectedOption = options.find(option => option.full_name === value);
         }else{
             selectedOption = options.find(option => option.name === value);
         }
+        console.log('selectedOption', selectedOption);
         setLead(prevLead => ({
             ...prevLead,
             [from.toLowerCase()]: selectedOption.id
@@ -33,18 +35,21 @@ export default function DropDown2({ leadData, lead, setLead, from }) {
     };
 
     const getSelectedValue = () => {
-        if (!leadData) return null;
+        console.log('options in', options);
+        console.log('leadData', leadData);
         if (from === "Status") {
-            const selected = options.find(option => option.id === leadData.status);
+            const selected = options.find(option => option.id === lead?.status);
+            console.log("selected status", selected);
             return selected ? selected.name : null;
         } else if (from === "Source") {
-            const selected = options.find(option => option.id === leadData.source);
+            const selected = options.find(option => option.id === lead?.source);
+            console.log("selected source", selected);
             return selected ? selected.name : null;
         } else if (from === "Assigned") {
-            const selected = options.find(option => option.id === leadData.assigned);
+            const selected = options.find(option => option.id === lead?.assigned);
+            console.log("selected assigned", selected);
             return selected ? selected.full_name : null;
         }
-        return null;
     };
 
     return (

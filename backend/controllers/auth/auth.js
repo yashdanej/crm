@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const db = require("../../db");
 const jwt = require("jsonwebtoken");
+const { verifyToken } = require("../../middleware/verifyToken");
 
 exports.Signup = async (req, res) => {
     const { email, user_password, full_name } = req.body;
@@ -66,5 +67,54 @@ exports.Login = async (req, res) => {
     } catch (error) {
         console.error("Error login:", error);
         return res.status(400).json({ success: false, message: "Error signing up", error: error });
+    }
+}
+
+exports.UpdateRole = async (req, res, next) => {
+    try {
+        const getUserId = await verifyToken(req, res, next, verifyUser=true);
+        console.log('getUser', getUserId);
+        const id = req.params.id;
+        const getUser = await new Promise((resolve, reject) => {
+            db.query("select * from users where id = ?", [getUserId], (err, result) => {
+                if (err) {
+                    console.error("Error getUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+        if(getUser.role !== 3){
+            return res.status(400).json({success: false, message: "Permission denied"});
+        }else if(!id){
+            return res.status(400).json({success: false, message: "Id not found"});
+        }else{
+            const getSelectedUser = await new Promise((resolve, reject) => {
+                db.query("select * from users where id = ?", [id], (err, result) => {
+                    if (err) {
+                        console.error("Error getSelectedUser:", err);
+                        reject(err);
+                    } else {
+                        resolve(result[0]);
+                    }
+                });
+            });
+            let role = getSelectedUser.role === 2 ? 1 : 2
+            const updateRole = await new Promise((resolve, reject) => {
+                db.query("update users set role = ? where id = ?", [role, id], (err, result) => {
+                    if (err) {
+                        console.error("Error updating user role:", err);
+                        reject(err);
+                    } else {
+                        console.log('Role updated successfully', result);
+                        resolve(result);
+                    }
+                });
+            });
+            return res.status(200).json({success: true, message: "Role updated successfully"})
+        }
+    } catch (error) {
+        console.log("error in UpdateRole");
     }
 }

@@ -37,7 +37,7 @@ const Auth = ({path}) => {
     body=user
     api(pathname, "post", body)
     .then((res) => {
-      console.log(res.data);
+      console.log("res.data", res.data);
       if(res.data.message === "User signed up successfully"){
         navigate("/login");
       }else if(res.data.message === "Email already exists"){
@@ -51,7 +51,7 @@ const Auth = ({path}) => {
         dispatch(login());
         Cookies.set('access_token', res.data.token, { expires: 7 });
         localStorage.setItem("user", JSON.stringify(res.data.user));
-        navigate('/lead');
+        navigate('/admin/leads');
         console.log("json parse", JSON.parse(localStorage.getItem("user")));
       }else{
         console.log('res', res);
