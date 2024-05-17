@@ -17,5 +17,6 @@ router
     .patch("/statuschange", verifyToken, leadController.StatusChange)
     .patch("/updatelead/:id", verifyToken, leadController.UpdateLead)
     .get("/kanbanview", verifyToken, leadController.KanbanView)
+    .patch("/bulkaction", verifyToken, leadController.BulkAction)
 
 module.exports = router;

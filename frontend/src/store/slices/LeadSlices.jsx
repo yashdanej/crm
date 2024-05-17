@@ -63,7 +63,8 @@ const leadsSlice = createSlice({
         leadsData: [],
         leadData: [],
         kanbanView: false,
-        leadsByStatus: []
+        leadsByStatus: [],
+        leadIds: ""
     },
     reducers: {
         getAllLeads(state, action){
@@ -77,6 +78,17 @@ const leadsSlice = createSlice({
         },
         kanbanLeads(state, action){
             state.leadsByStatus = action.payload
+        },
+        leadIdSelect(state, action) {
+            const id = action.payload;
+            const currentIds = state.leadIds ? state.leadIds.split(",") : [];
+            
+            if (currentIds.includes(id)) {
+                state.leadIds = currentIds.filter(currentId => currentId !== id).join(",");
+            } else {
+                currentIds.push(id);
+                state.leadIds = currentIds.join(",");
+            }
         }
     }
 });
@@ -86,7 +98,7 @@ export const { getStatus } = statusSlice.actions;
 export const { getSource } = sourceSlice.actions;
 export const { getAssigned } = assignedSlice.actions;
 export const { getCountries } = countriesSlice.actions;
-export const { getAllLeads, getLead, kanbanViewFn, kanbanLeads } = leadsSlice.actions;
+export const { getAllLeads, getLead, kanbanViewFn, kanbanLeads, leadIdSelect } = leadsSlice.actions;
 
 export const statusReducer = statusSlice.reducer;
 export const sourceReducer = sourceSlice.reducer;

@@ -679,3 +679,32 @@ async function queryStatus(status) {
         });
     });
 }
+
+exports.BulkAction = async (req, res, next) => {
+    const { leadids, lost, status, source, lastcontact, assigned, tags, is_public } = req.body;
+    try {
+        leadids.split(",").forEach(async id => {
+            let finalStatus = status;
+
+            if (lost === true || lost === 'true' || lost === 1) {
+                finalStatus = 3;
+            }
+
+            await new Promise((resolve, reject) => {
+                db.query("update tblleads set lost = ?, status = ?, source = ?, lastcontact = ?, assigned = ?, tags = ?, is_public = ? where id = ?", [lost, finalStatus, source, lastcontact, assigned, tags, is_public, id], (err, result) => {
+                    if (err) {
+                        console.error(`Error in bulkAction:`, err);
+                        reject(err);
+                    } else {
+                        console.log("result", result);
+                        resolve(result);
+                    }
+                });
+            })
+        });
+        return res.status(200).json({success: true, message: "Bulk action success"});
+    } catch (error) {
+        console.error("Error in bulkAction:", error);
+        return res.status(400).json({ success: false, message: "Error in bulkAction", error: error });
+    }
+}

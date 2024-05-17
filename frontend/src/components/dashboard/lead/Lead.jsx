@@ -20,6 +20,7 @@ const Lead = () => {
   const leadsStatus = useSelector(state => state.leads.leadsByStatus);
   const getAllStatus = useSelector(state => state.status.statusData);
   const [open, setOpen] = useState(false);
+  const [bulkAction, setBulkAction] = useState(false);
   const [searchTxt, setSearchTxt] = useState("");
   const [snackAlert, setSnackAlert] = useState(false); // popup success or error
   const [snackbarProperty, setSnackbarProperty] = useState({ // popup success or error text
@@ -58,6 +59,7 @@ const Lead = () => {
 
   const handleCloseView = () => {
     setView(false);
+    setBulkAction(false);
   };
 
   const handleOpenView = () => {
@@ -297,7 +299,7 @@ const Lead = () => {
         summary && (
           <>
             <p className='font-bold text-xl text-slate-600'>Leads Summary</p>
-            <div className="flex justify-between my-6">
+            <div className="flex flex-wrap justify-between my-6">
               {
                 Object.keys(leadsStatus).map((statusKey) => {
                   return (
@@ -313,7 +315,7 @@ const Lead = () => {
         !kanbanView?(
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex justify-between mb-4">
-          <div className="flex space-x-4">
+          <div className="sm:flex m-auto sm:m-0 space-x-4">
             <Filter setStatusQuery={(value) => setFilterQuery('status', value)} />
             <DropDown from="Source" onChange={setSourceQuery} />
             <DropDown from="Assigned" onChange={setAssignedQuery} />
@@ -322,7 +324,6 @@ const Lead = () => {
         </div>
 
         <div className="flex justify-between mb-4 items-start">
-          <div className="font-medium">Manage orders</div>
           <div className="dropdown">
             <button type="button" className="dropdown-toggle text-gray-400 hover:text-gray-600"><i className="ri-more-fill"></i></button>
             <ul className="dropdown-menu shadow-md shadow-black/5 z-30 hidden py-1.5 rounded-md bg-white border border-gray-100 w-full max-w-[140px]">
@@ -340,9 +341,8 @@ const Lead = () => {
         </div>
         <div className="flex justify-between items-center mb-4 order-tab">
           <div>
-            <button type="button" data-tab="order" data-tab-page="active" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tl-md rounded-bl-md hover:text-gray-600 active">Active</button>
-            <button type="button" data-tab="order" data-tab-page="completed" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 hover:text-gray-600">Completed</button>
-            <button type="button" data-tab="order" data-tab-page="canceled" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tr-md rounded-br-md hover:text-gray-600">Canceled</button>
+            <button type="button" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tl-md rounded-bl-md hover:text-gray-600 active">Active</button>
+            <button type="button" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tr-md rounded-br-md hover:text-gray-600" onClick={() => setBulkAction(true)}>Bulk Actions</button>
           </div>
           <div>
             <form className="max-w-md mx-auto">
@@ -364,7 +364,7 @@ const Lead = () => {
         ):<LeadsKanaban/>
       }
       {
-        open && <NewLeadModal handleCloseView={handleCloseView} view={view} onHandleNewLeadClick={onHandleNewLeadClick} lead={lead} setLead={setLead} handleClose={handleClose} open={open} />
+      ( bulkAction || open) && <NewLeadModal bulkAction={bulkAction} handleCloseView={handleCloseView} view={view} onHandleNewLeadClick={onHandleNewLeadClick} lead={lead} setLead={setLead} handleClose={handleClose} open={open} />
       }
     </div>
   );

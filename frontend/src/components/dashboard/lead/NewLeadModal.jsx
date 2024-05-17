@@ -18,15 +18,29 @@ import ControlPointDuplicateIcon from '@mui/icons-material/ControlPointDuplicate
 import AddStatusSources from './AddStatusSources';
 import { Chip, Stack } from '@mui/material';
 import InputTags from './tags/InputTags';
+import SelectDropDown from './SelectDropDown';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
 });
 
-export default function NewLeadModal({handleCloseView, view, lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
+export default function NewLeadModal({bulkAction, handleCloseView, view, lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
+    const leadIds = useSelector(state => state.leads.leadIds);
     const [openS, setOpenS] = useState(false);
     const [from, setFrom] = useState("");
     const leadData = useSelector((state) => state.leads.leadData);
+    const statusDatas = useSelector(state => state.status.statusData);
+    const sourceDatas = useSelector(state => state.source.sourceData);
+    const assignedDatas = useSelector(state => state.assigned.assignedData);
+    
+    const [lost, setLost] = useState(false);
+    const [lastcontact, setLastContact] = useState(null);
+    const [tags, setTags] = useState(null);
+    const [is_public, setIs_Public] = useState(false);
+
+    const [selectStatus, setSelectStatus] = useState(null);
+    const [selectSource, setSelectSource] = useState(null);
+    const [selectAssigned, setSelectAssigned] = useState(null);
     const countriesData = useSelector((state) => state.countries.countriesData);
     const dispatch = useDispatch();
     const languages = ["Turkish", "Japanese", "Persian", "Portuguise_br", "Dutch", "Spanish", "Czech", "Polish", "Catalan", "French", "Greek", "Swedish", "Ukrainian", "Portuguese", "Romanian", "Italian", "Chinese", "Indonesia", "Vietnamese", "Bulgarian", "German", "Norwegian", "English", "Slovak", "Russian"];
@@ -80,16 +94,21 @@ export default function NewLeadModal({handleCloseView, view, lead, setLead, hand
     const statusData = useSelector((state) => state.status.statusData);
     const sourceData = useSelector((state) => state.source.sourceData);
     const assignedData = useSelector((state) => state.assigned.assignedData);
+
+   
     let pathname;
     pathname = "/lead/getstatus";
 
     useEffect(() => {
       console.log('lead', lead);
-    }, [lead]);
+    console.log("leadIds", leadIds);
+      console.log(selectStatus, selectSource, selectAssigned);
+    }, [lead, selectStatus, selectSource, selectAssigned]);
     let getUser = JSON.parse(localStorage.getItem("user"));
   return (
     <React.Fragment>
       {
+        !bulkAction?(
         !view?(
       <Dialog
         open={open}
@@ -399,6 +418,32 @@ export default function NewLeadModal({handleCloseView, view, lead, setLead, hand
           </Dialog>
           </>
         )
+      ):<>
+        <Dialog
+        open={bulkAction}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={handleClose}
+        aria-describedby="alert-dialog-slide-description"
+        fullWidth
+      >
+        <div className='p-10'>
+          <p className='text-gray-500 font-bold text-xl'>Bulk Action</p>
+          <hr className='my-6' />
+          <div class="flex items-center mb-4">
+              <input id="default-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+              <label for="default-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Mark as lost</label>
+          </div>
+            <SelectDropDown name="Change Status" data={statusDatas} set={setSelectStatus} value={selectStatus} />
+            <SelectDropDown name="Change Sources" data={sourceDatas} set={setSelectSource} value={selectSource} />
+            <SelectDropDown name="Change Assigned" data={assignedDatas} set={setSelectAssigned} value={selectAssigned} />
+            Tags:
+            <InputTags lead={lead} setLead={setLead} />
+            <input type="radio" name="is_public" value="public" /> Public
+            <input type="radio" className='ml-5' name="is_public" value="Private" /> Private
+        </div>
+        </Dialog>
+      </>
       }
       
     </React.Fragment>
