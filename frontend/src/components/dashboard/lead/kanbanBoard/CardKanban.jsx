@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { selectedItem } from '../../../../utils/Utils';
 import { useSelector } from 'react-redux';
 
-const CardKanban = ({item}) => {
+const CardKanban = ({item, status, setStatus}) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const toggleExpand = () => {
         setIsExpanded(!isExpanded);
@@ -10,7 +10,9 @@ const CardKanban = ({item}) => {
       const statusData = useSelector(state => state.status.statusData);
       const sourceData = useSelector(state => state.source.sourceData);
   return (
-    <div className='p-5 m-5 bg-white'>
+    <div draggable 
+    onDragStart={(e) => setStatus({...status, oldStatus: item?.status, lead: item?.id})}
+    className='p-5 m-5 bg-white'>
         <p>#{item.id} - {item.name}</p>
         <div className='flex justify-between'>
             <p className='font-bold'>Source:</p>

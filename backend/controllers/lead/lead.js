@@ -4,8 +4,8 @@ const querystring = require('querystring');
 const url = require('url');
 
 exports.NewLead = async (req, res, next) => {
-    const { status, source, assigned, name, address, position, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, is_public } = req.body;
-    console.log(status, source, assigned, name, address, position, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, is_public);
+    const { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, is_public } = req.body;
+    console.log(status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, is_public);
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         console.log('userAddedFrom', getUser);
@@ -80,6 +80,7 @@ exports.NewLead = async (req, res, next) => {
                 assigned: userAssigned.id,
                 name,
                 address,
+                tags,
                 title: position,
                 city,
                 email, state, website, country: userCoutry.country_id, phonenumber, zip, lead_value, default_language, company, description, is_public,
@@ -297,8 +298,8 @@ exports.LeadsSearch = async (req, res, next) => {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
 
         const leadsSearch = await new Promise((resolve, reject) => {
-            db.query("SELECT * FROM tblleads WHERE (id LIKE ? OR name LIKE ? OR email LIKE ? OR company LIKE ? OR phonenumber LIKE ?)",
-                [searchLead, searchLead, searchLead, searchLead, searchLead],
+            db.query("SELECT * FROM tblleads WHERE (id LIKE ? OR name LIKE ? OR email LIKE ? OR company LIKE ? OR phonenumber LIKE ? OR Tags LIKE ?)",
+                [searchLead, searchLead, searchLead, searchLead, searchLead, searchLead],
                 (err, result) => {
                     if (err) {
                         console.error("Error in leadsSearch query:", err);
@@ -323,6 +324,7 @@ exports.StatusChange = async (req, res, next) => {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         let parsed_Url = url.parse(req.url);
         let parsed_queryString = querystring.parse(parsed_Url.query);
+        console.log('parsed_queryString', parsed_queryString);
         const {currentStatus, newStatus, user} = parsed_queryString;
         console.log(currentStatus, newStatus, user);
         const statusChange = await new Promise((resolve, reject) => {
@@ -350,7 +352,7 @@ exports.StatusChange = async (req, res, next) => {
 
 exports.UpdateLead = async (req, res, next) => {
     const leadId = req.params.id;
-    const { status, source, assigned, name, address, position, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, is_public } = req.body;
+    const { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, is_public } = req.body;
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         const updateFields = [];
@@ -482,6 +484,10 @@ exports.UpdateLead = async (req, res, next) => {
         if (position !== undefined) {
             updateFields.push("title = ?");
             queryParams.push(position);
+        }
+        if (tags !== undefined) {
+            updateFields.push("tags = ?");
+            queryParams.push(tags);
         }
         if (city !== undefined) {
             updateFields.push("city = ?");
