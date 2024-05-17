@@ -12,7 +12,7 @@ const CardKanban = ({item, status, setStatus}) => {
   return (
     <div draggable 
     onDragStart={(e) => setStatus({...status, oldStatus: item?.status, lead: item?.id})}
-    className='p-5 m-5 bg-white'>
+    className='p-5 m-5 bg-white rounded-xl'>
         <p>#{item.id} - {item.name}</p>
         <div className='flex justify-between'>
             <p className='font-bold'>Source:</p>

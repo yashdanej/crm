@@ -16,6 +16,8 @@ import { getAssigned, getCountries, getLead, getSource, getStatus } from '../../
 import { useState } from 'react';
 import ControlPointDuplicateIcon from '@mui/icons-material/ControlPointDuplicate';
 import AddStatusSources from './AddStatusSources';
+import { Chip, Stack } from '@mui/material';
+import InputTags from './tags/InputTags';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -59,6 +61,7 @@ export default function NewLeadModal({handleCloseView, view, lead, setLead, hand
           name: leadData[0]?.name,
           address: leadData[0]?.address,
           position: leadData[0]?.title,
+          tags: leadData[0]?.tags,
           city: leadData[0]?.city,
           email: leadData[0]?.email,
           state: leadData[0]?.state,
@@ -134,6 +137,9 @@ export default function NewLeadModal({handleCloseView, view, lead, setLead, hand
                 </div>
             </div>
             <div>
+              <InputTags lead={lead} setLead={setLead} tagss={leadData[0]?.tags} />
+            </div>
+            <div>
                 <div className='sm:flex block gap-8'>
                     <div className='w-full'>
                         <label htmlFor="name" className="mb-2 text-sm text-start text-grey-900">Name*</label>
@@ -196,20 +202,20 @@ export default function NewLeadModal({handleCloseView, view, lead, setLead, hand
           </div>
           <div className='sm:flex block gap-8'>
           <div className='w-full'>
-    <label htmlFor="lead_value" className="mb-2 text-sm text-start text-grey-900">Lead Value*</label>
-    <input 
-        id="lead_value" 
-        type="number" 
-        name="lead_value" 
-        value={lead?.lead_value} 
-        onChange={(e) => { 
-            const value = parseInt(e.target.value); // Parse input value as a number
-            changeText(e, setLead, lead, value) 
-        }} 
-        placeholder="Lead Value" 
-        className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
-    />
-</div>
+            <label htmlFor="lead_value" className="mb-2 text-sm text-start text-grey-900">Lead Value*</label>
+            <input 
+                id="lead_value" 
+                type="number" 
+                name="lead_value" 
+                value={lead?.lead_value} 
+                onChange={(e) => { 
+                    const value = parseInt(e.target.value); // Parse input value as a number
+                    changeText(e, setLead, lead, value) 
+                }} 
+                placeholder="Lead Value" 
+                className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+            />
+        </div>
 
             <div className='w-full'>
               <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">System Language*</label>
@@ -351,7 +357,19 @@ export default function NewLeadModal({handleCloseView, view, lead, setLead, hand
                   </div>
                   <div className='my-1'>
                     <p className='text-[14px] text-slate-800 font-bold'>Tags</p>
-                    <p className='text-[14px]'></p>
+                    <p className='text-[14px]'>
+                      {
+                        leadData[0]?.tags &&
+                        <Stack direction="row" spacing={1}>
+                        {leadData[0]?.tags.split(",").map((tag) => {
+                            return (
+                                    <Chip label={tag} variant="outlined" />
+                                )
+                            })
+                        }
+                        </Stack>
+                      }
+                    </p>
                   </div>
                   <div className='my-1'>
                     <p className='text-[14px] text-slate-800 font-bold'>Created</p>

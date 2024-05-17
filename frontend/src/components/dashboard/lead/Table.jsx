@@ -5,9 +5,12 @@ import SnackbarWithDecorators, { api, selectedItem } from '../../../utils/Utils'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllLeads, getLead } from '../../../store/slices/LeadSlices'
 import { useState } from 'react'
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 
 const Table = ({handleOpenView, getLeads, handleClickOpen}) => {
     const leadsData = useSelector((state) => state.leads.leadsData);
+    const getAllStatus = useSelector(state => state.status.statusData);
     console.log('leadsData', leadsData);
     const dispatch = useDispatch();
     const [snackAlert, setSnackAlert] = useState(false); // popup success or error
@@ -119,14 +122,28 @@ const Table = ({handleOpenView, getLeads, handleClickOpen}) => {
                             <span className="text-[13px] font-medium text-gray-400">{item.lead_value}</span>
                         </td>
                         <td className="py-2 px-4 border-b border-b-gray-50">
-                            <span className="text-[13px] font-medium text-gray-400"></span>
+                            <span className="text-[13px] font-medium text-gray-400">
+                                {
+                                    item.tags &&
+                                    <Stack direction="row" spacing={1}>
+                                    {item.tags.split(",").map((tag) => {
+                                        return (
+                                                <Chip label={tag} variant="outlined" />
+                                            )
+                                        })
+                                    }
+                                    </Stack>
+                                }
+                            </span>
                         </td>
                         <td className="py-2 px-4 border-b border-b-gray-50">
                         {/* <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded object-cover block"/> */}
                             <span className="text-[13px] font-medium text-gray-400">{selectedItem(item, assignedData, "Assigned")}</span>
                         </td>
                         <td className="py-2 px-4 border-b border-b-gray-50">
-                            <span className="inline-block p-1 rounded bg-emerald-500/10 text-emerald-500 font-medium text-[12px] leading-none">
+                            <span className="inline-block p-1 rounded bg-emerald-500/10 font-medium text-[12px] leading-none"
+                            style={{color: getAllStatus.find(option => option.id === item.status)?.color}}
+                            >
                                 <select onChange={(e) => onStatusChange(item.status, e.target.value, item.id)} name="" id="">
                                     {
                                         statusData?.map((item2) => {

@@ -10,17 +10,13 @@ const LeadsKanaban = () => {
     newStatus: null,
     lead: null
   });
+  const dispatch = useDispatch();
+
   const [snackAlert, setSnackAlert] = useState(false);
   const [snackbarProperty, setSnackbarProperty] = useState({
     text: '',
     color: ''
   });
-
-  const statusData = useSelector(state => state.status.statusData);
-  
-  const leadsStatus = useSelector(state => state.leads.leadsByStatus);
-  const dispatch = useDispatch();
-
   const getLeadsByStatus = () => {
     api("/lead/kanbanview", "get", false, false, true)
       .then((res) => {
@@ -30,10 +26,9 @@ const LeadsKanaban = () => {
         console.log("err in getLeadsByStatus", err);
       });
   };
-
-  useEffect(() => {
-    getLeadsByStatus();
-  }, []);
+  const statusData = useSelector(state => state.status.statusData);
+  
+  const leadsStatus = useSelector(state => state.leads.leadsByStatus);
 
   const handleDrop = (e, statusId) => {
     e.preventDefault(); 

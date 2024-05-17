@@ -9,7 +9,7 @@ import Filter from './Filter';
 import DropDown from './DropDown';
 import NewLeadModal from './NewLeadModal';
 import SnackbarWithDecorators, { api } from '../../../utils/Utils';
-import { getAllLeads, getAssigned, getLead, getSource, getStatus, kanbanViewFn } from '../../../store/slices/LeadSlices';
+import { getAllLeads, getAssigned, getLead, getSource, getStatus, kanbanLeads, kanbanViewFn } from '../../../store/slices/LeadSlices';
 import { useDispatch, useSelector } from 'react-redux';
 import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
 import ArrowCircleLeftOutlinedIcon from '@mui/icons-material/ArrowCircleLeftOutlined';
@@ -17,6 +17,8 @@ import LeadsKanaban from './kanbanBoard/LeadsKanaban';
 
 const Lead = () => {
   const leadData = useSelector((state) => state.leads.leadData);
+  const leadsStatus = useSelector(state => state.leads.leadsByStatus);
+  const getAllStatus = useSelector(state => state.status.statusData);
   const [open, setOpen] = useState(false);
   const [searchTxt, setSearchTxt] = useState("");
   const [snackAlert, setSnackAlert] = useState(false); // popup success or error
@@ -24,6 +26,7 @@ const Lead = () => {
       text: '',
       color: ''
   });
+  const [summary, setSummary] = useState(false);
   const [statusQuery, setStatusQuery] = useState([]);
   const [sourceQuery, setSourceQuery] = useState([]);
   const [assignedQuery, setAssignedQuery] = useState([]);
@@ -35,6 +38,7 @@ const Lead = () => {
     name: "",
     address: "",
     position: "",
+    tags: null,
     city: "",
     email: "",
     state: "",
@@ -69,6 +73,7 @@ const Lead = () => {
       name: "",
       address: "",
       position: "",
+      tags: null,
       city: "",
       email: "",
       state: "",
@@ -97,6 +102,7 @@ const Lead = () => {
       name: "",
       address: "",
       position: "",
+      tags: null,
       city: "",
       email: "",
       state: "",
@@ -113,6 +119,15 @@ const Lead = () => {
     dispatch(getLead([]));
     handleCloseView();
     setOpen(false);
+  };
+  const getLeadsByStatus = () => {
+    api("/lead/kanbanview", "get", false, false, true)
+      .then((res) => {
+        dispatch(kanbanLeads(res.data.data));
+      })
+      .catch((err) => {
+        console.log("err in getLeadsByStatus", err);
+      });
   };
 
   const getLeads = () => {
@@ -242,6 +257,7 @@ const Lead = () => {
 
     getDropdownData();
     getLeads(); // Fetch leads initially
+    getLeadsByStatus();
   }, []);
 
   useEffect(() => {
@@ -264,7 +280,7 @@ const Lead = () => {
         >
           Add new lead
         </Button>
-        <IconButton variant="soft" >
+        <IconButton onClick={() => setSummary(!summary)} variant="soft" >
           <FavoriteBorder />
         </IconButton>
         {
@@ -277,6 +293,22 @@ const Lead = () => {
           </IconButton>
         }
       </div>
+      {
+        summary && (
+          <>
+            <p className='font-bold text-xl text-slate-600'>Leads Summary</p>
+            <div className="flex justify-between my-6">
+              {
+                Object.keys(leadsStatus).map((statusKey) => {
+                  return (
+                    <span className={`font-bold`} style={{color: getAllStatus.find(option => option.name === statusKey).color}} key={statusKey}>{leadsStatus[statusKey].length}<span> {statusKey}</span> </span>
+                  )
+                })
+              }
+            </div>
+          </>
+        )
+      }
       {
         !kanbanView?(
       <div className="bg-white rounded-lg shadow-md p-6">
