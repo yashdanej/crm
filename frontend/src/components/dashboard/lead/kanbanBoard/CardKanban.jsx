@@ -9,6 +9,7 @@ const CardKanban = ({item, status, setStatus}) => {
       };
       const statusData = useSelector(state => state.status.statusData);
       const sourceData = useSelector(state => state.source.sourceData);
+      console.log("item, status, setStatus", item, status, setStatus);
   return (
     <div draggable 
     onDragStart={(e) => setStatus({...status, oldStatus: item?.status, lead: item?.id})}

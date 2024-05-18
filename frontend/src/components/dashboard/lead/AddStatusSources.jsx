@@ -17,21 +17,21 @@ export default function AddStatusSources({ openS, setOpenS, from }) {
     const [name, setName] = useState("");
     const [status, setStatus] = useState({
         name: "",
-        orderstatus: 0,
+        statusorder: 0,
         color: "#000000" // Default color value
     });
 
     const onSubmit = () => {
         const pathname = from === "Status" ? "/lead/addstatus" : "/lead/addsources";
-        const body = from === "Status" ? status : name;
+        const body = from === "Status" ? status : { name: name }; // Correctly determine the body based on the 'from' prop
         console.log("body", body);
-        api(pathname, "post", {name: body}, false, true)
-            .then((res) => {
-                console.log(res);
-            })
-            .catch((err) => {
-                console.log(err);
-            });
+        api(pathname, "post", body, false, true) // Pass the 'body' directly to the API request
+        .then((res) => {
+            console.log(res);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
     }
 
     useEffect(() => {

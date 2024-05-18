@@ -568,9 +568,9 @@ exports.UpdateLead = async (req, res, next) => {
 
 exports.AddStatus = async (req, res, next) => {
     try {
-        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
         const getSelectedUser = await new Promise((resolve, reject) => {
-            db.query("select * from users where id = ?", [getUser], (err, result) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
                 if (err) {
                     console.error("Error getSelectedUser:", err);
                     reject(err);
@@ -579,27 +579,34 @@ exports.AddStatus = async (req, res, next) => {
                 }
             });
         });
-        if(getSelectedUser.role === 1){
-            return res.status(400).json({success: false, message: "Permission denied"})
-        }else{
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        } else {
             const { name, statusorder, color } = req.body;
+            console.log("name, statusorder, color", name, statusorder, color); // Check if these values are correct
+
             await new Promise((resolve, reject) => {
-                db.query("insert into tblleads_status set ?", {name, statusorder, color}, (err, result) => {
+                db.query("INSERT INTO tblleads_status (name, statusorder, color) VALUES (?, ?, ?)", [name, statusorder, color], (err, result) => {
                     if (err) {
-                        console.error("Error getSelectedUser:", err);
+                        console.error("Error in INSERT query:", err);
                         reject(err);
                     } else {
+                        console.log("Status added successfully");
                         resolve(result);
                     }
                 });
             });
-            return res.status(200).json({success: true, message: "Status added successfully"});
+
+            return res.status(200).json({ success: true, message: "Status added successfully" });
         }
     } catch (error) {
         console.error("Error in AddStatus:", error);
         return res.status(400).json({ success: false, message: "Error in AddStatus", error: error });
     }
 }
+
+
 
 exports.AddSource = async (req, res, next) => {
     try {
@@ -636,45 +643,105 @@ exports.AddSource = async (req, res, next) => {
     }
 }
 
+// exports.KanbanView = async (req, res) => {
+//     try {
+//         const status1 = await queryStatus(1);
+//         const status2 = await queryStatus(2);
+//         const status3 = await queryStatus(3);
+//         const status4 = await queryStatus(4);
+//         const status5 = await queryStatus(5);
+//         const status6 = await queryStatus(6);
+//         const status7 = await queryStatus(7);
+//         const status8 = await queryStatus(8);
+
+//         return res.status(200).json({
+//             success: true,
+//             message: "Source added successfully",
+//             data: {
+//                 Customer: status1,
+//                 "Free Leads": status2,
+//                 Denied: status3,
+//                 "In talk": status4,
+//                 "Follow Up": status5,
+//                 BNI: status6,
+//                 Transfered: status7,
+//                 "first talk done": status8
+//             }
+//         });
+//     } catch (error) {
+//         console.error("Error in KanbanView:", error);
+//         return res.status(400).json({ success: false, message: "Error in KanbanView", error: error });
+//     }
+// }
+
+// async function queryStatus(status) {
+//     return new Promise((resolve, reject) => {
+//         db.query("select * from tblleads where status = ?", [status], (err, result) => {
+//             if (err) {
+//                 console.error(`Error querying status ${status}:`, err);
+//                 reject(err);
+//             } else {
+//                 resolve(result);
+//             }
+//         });
+//     });
+// }
+
 exports.KanbanView = async (req, res) => {
     try {
-        const status1 = await queryStatus(1);
-        const status2 = await queryStatus(2);
-        const status3 = await queryStatus(3);
-        const status4 = await queryStatus(4);
-        const status5 = await queryStatus(5);
-        const status6 = await queryStatus(6);
-        const status7 = await queryStatus(7);
-        const status8 = await queryStatus(8);
+        // Fetch status IDs from the database
+        const statusIds = await getStatusIds();
 
+        // Create an array of promises for querying each status
+        const statusPromises = statusIds.map(async (statusId) => {
+            // Query the status based on the status ID
+            const statusData = await queryStatusById(statusId);
+            return { [statusId]: statusData };
+        });
+
+        // Wait for all promises to resolve
+        const statusResults = await Promise.all(statusPromises);
+
+        // Combine the results into a single object
+        const data = statusResults.reduce((acc, statusResult) => {
+            return { ...acc, ...statusResult };
+        }, {});
+
+        // Return the response with the collected data
         return res.status(200).json({
             success: true,
-            message: "Source added successfully",
-            data: {
-                Customer: status1,
-                "Free Leads": status2,
-                Denied: status3,
-                "In talk": status4,
-                "Follow Up": status5,
-                BNI: status6,
-                Transfered: status7,
-                "first talk done": status8
-            }
+            message: "Kanban data retrieved successfully",
+            data
         });
     } catch (error) {
         console.error("Error in KanbanView:", error);
-        return res.status(400).json({ success: false, message: "Error in KanbanView", error: error });
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
 
-async function queryStatus(status) {
+
+async function getStatusIds() {
     return new Promise((resolve, reject) => {
-        db.query("select * from tblleads where status = ?", [status], (err, result) => {
+        db.query("SELECT DISTINCT status FROM tblleads", (err, results) => {
             if (err) {
-                console.error(`Error querying status ${status}:`, err);
+                console.error("Error fetching status IDs:", err);
                 reject(err);
             } else {
-                resolve(result);
+                const statusIds = results.map(result => result.status);
+                resolve(statusIds);
+            }
+        });
+    });
+}
+
+async function queryStatusById(statusId) {
+    return new Promise((resolve, reject) => {
+        db.query("SELECT * FROM tblleads WHERE status = ?", [statusId], (err, results) => {
+            if (err) {
+                console.error(`Error querying status ${statusId}:`, err);
+                reject(err);
+            } else {
+                resolve(results);
             }
         });
     });
@@ -683,6 +750,7 @@ async function queryStatus(status) {
 exports.BulkAction = async (req, res, next) => {
     const { leadids, lost, status, source, lastcontact, assigned, tags, is_public } = req.body;
     try {
+        console.log(leadids, leadids);
         leadids.split(",").forEach(async id => {
             let finalStatus = status;
 

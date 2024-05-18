@@ -82,12 +82,15 @@ const leadsSlice = createSlice({
         leadIdSelect(state, action) {
             const id = action.payload;
             const currentIds = state.leadIds ? state.leadIds.split(",") : [];
-            
-            if (currentIds.includes(id)) {
-                state.leadIds = currentIds.filter(currentId => currentId !== id).join(",");
+            console.log('currentIds', currentIds);
+        
+            if (currentIds.includes(`${id}`)) {
+                state.leadIds = currentIds.filter(currentId => currentId !== `${id}`).join(",");
+                console.log('state.leadIds', state.leadIds);
             } else {
                 currentIds.push(id);
                 state.leadIds = currentIds.join(",");
+                console.log('state.leadIds2', state.leadIds);
             }
         }
     }

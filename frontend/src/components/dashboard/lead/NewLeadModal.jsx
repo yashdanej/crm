@@ -16,9 +16,14 @@ import { getAssigned, getCountries, getLead, getSource, getStatus } from '../../
 import { useState } from 'react';
 import ControlPointDuplicateIcon from '@mui/icons-material/ControlPointDuplicate';
 import AddStatusSources from './AddStatusSources';
-import { Chip, Stack } from '@mui/material';
+import { Chip, Stack, TextField } from '@mui/material';
 import InputTags from './tags/InputTags';
 import SelectDropDown from './SelectDropDown';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -35,14 +40,17 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
     
     const [lost, setLost] = useState(false);
     const [lastcontact, setLastContact] = useState(null);
-    const [tags, setTags] = useState(null);
     const [is_public, setIs_Public] = useState(false);
 
     const [selectStatus, setSelectStatus] = useState(null);
     const [selectSource, setSelectSource] = useState(null);
     const [selectAssigned, setSelectAssigned] = useState(null);
+    
     const countriesData = useSelector((state) => state.countries.countriesData);
     const dispatch = useDispatch();
+    const handleDateChange = (date) => {
+      setLastContact(date ? dayjs(date).format('MM/DD/YYYY') : null);
+    };
     const languages = ["Turkish", "Japanese", "Persian", "Portuguise_br", "Dutch", "Spanish", "Czech", "Polish", "Catalan", "French", "Greek", "Swedish", "Ukrainian", "Portuguese", "Romanian", "Italian", "Chinese", "Indonesia", "Vietnamese", "Bulgarian", "German", "Norwegian", "English", "Slovak", "Russian"];
     useEffect(() => {
         api("/lead/getcountries", "get", false, false, true)
@@ -66,7 +74,6 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
         dispatch(getLead([]));
     }
     useEffect(() => {
-      console.log('leadData.length', leadData.length);
       if(leadData?.length>0){
         setLead({
           status: leadData[0]?.status,
@@ -105,6 +112,25 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
       console.log(selectStatus, selectSource, selectAssigned);
     }, [lead, selectStatus, selectSource, selectAssigned]);
     let getUser = JSON.parse(localStorage.getItem("user"));
+
+    const handleSelectLost = (e) => {
+      setLost(!lost);
+    }
+    const handleChange = (event) => {
+      setIs_Public(event.target.value === 'public');
+    };
+    const onBulkAction = () => {
+      console.log({leadids: leadIds, lost, status:selectStatus, source: selectSource, lastcontact, assigned: selectAssigned, tags: lead?.tags, is_public});
+      api("/lead/bulkaction", "patch", {leadids: leadIds, lost, status:selectStatus, source: selectSource, assigned: selectAssigned, tags: lead?.tags, is_public}, false, true)
+      .then((res) => {
+        console.log("res", res.data);
+        getLeads();
+        handelCloseLeadModal();
+      })
+      .catch((err) => {
+
+      });
+    }
   return (
     <React.Fragment>
       {
@@ -431,17 +457,49 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
           <p className='text-gray-500 font-bold text-xl'>Bulk Action</p>
           <hr className='my-6' />
           <div class="flex items-center mb-4">
-              <input id="default-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+              <input onChange={(e) => handleSelectLost(e)} checked={lost} id="default-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
               <label for="default-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Mark as lost</label>
           </div>
+          <div className="mb-4">
+          <label htmlFor="lastcontact-datepicker" className="block text-sm font-medium text-gray-700">Last Contact</label>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Last Contact"
+              value={lastcontact ? dayjs(lastcontact, 'MM/DD/YYYY') : null}
+              onChange={handleDateChange}
+              renderInput={(params) => <TextField {...params} fullWidth />}
+            />
+          </LocalizationProvider>
+        </div>
+          {
+            !lost &&
             <SelectDropDown name="Change Status" data={statusDatas} set={setSelectStatus} value={selectStatus} />
+          }
             <SelectDropDown name="Change Sources" data={sourceDatas} set={setSelectSource} value={selectSource} />
             <SelectDropDown name="Change Assigned" data={assignedDatas} set={setSelectAssigned} value={selectAssigned} />
             Tags:
             <InputTags lead={lead} setLead={setLead} />
-            <input type="radio" name="is_public" value="public" /> Public
-            <input type="radio" className='ml-5' name="is_public" value="Private" /> Private
-        </div>
+            <div>
+              <input
+                type="radio"
+                name="is_public"
+                value="public"
+                checked={is_public === true}
+                onChange={handleChange}
+              /> Public
+
+              <input
+                type="radio"
+                className='ml-5'
+                name="is_public"
+                value="private"
+                checked={is_public === false}
+                onChange={handleChange}
+              /> Private
+            </div>
+          </div>
+          <button onClick={handleClose} className='bg-slate-500 text-white p-5'>Cancel</button>
+          <button onClick={onBulkAction} className='bg-slate-900 text-white p-5'>Bulk action</button>
         </Dialog>
       </>
       }

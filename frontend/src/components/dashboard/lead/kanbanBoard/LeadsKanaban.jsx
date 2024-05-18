@@ -17,6 +17,7 @@ const LeadsKanaban = () => {
     text: '',
     color: ''
   });
+  
   const getLeadsByStatus = () => {
     api("/lead/kanbanview", "get", false, false, true)
       .then((res) => {
@@ -26,14 +27,17 @@ const LeadsKanaban = () => {
         console.log("err in getLeadsByStatus", err);
       });
   };
+
+  useEffect(() => {
+    getLeadsByStatus();
+  }, []);
+
   const statusData = useSelector(state => state.status.statusData);
-  
-  const leadsStatus = useSelector(state => state.leads.leadsByStatus);
+  const leadsByStatus = useSelector(state => state.leads.leadsByStatus);
 
   const handleDrop = (e, statusId) => {
     e.preventDefault(); 
     if (status.oldStatus === statusId) return; // No change if same status
-    console.log('statusId', statusId);
 
     api(`/lead/statuschange?currentStatus=${status.oldStatus}&newStatus=${statusId}&user=${status.lead}`, "patch", false, false, true)
       .then((res) => {
@@ -64,22 +68,22 @@ const LeadsKanaban = () => {
           color={snackbarProperty.color}
         />
       )}
-      {Object.keys(leadsStatus).map((statusKey, index) => (
+      {statusData && statusData.map((statusObj, index) => (
         <div
-          key={statusKey}
-          onDrop={(e) => handleDrop(e, statusData.find(option => option.name === statusKey).id)}
+          key={statusObj.id}
+          onDrop={(e) => handleDrop(e, statusObj.id)}
           onDragOver={(e) => e.preventDefault()}
           className='bg-slate-100 rounded-lg text-[14px]'
           style={{ minWidth: '25%' }}
         >
           <div
             className="p-3 text-white rounded-lg"
-            style={{ backgroundColor: statusData.find(option => option.name === statusKey).color }}
+            style={{ backgroundColor: statusObj.color }}
           >
-            <p>{statusKey} - $0.00 - {leadsStatus[statusKey].length} Leads</p>
+            <p>{statusObj.name} - $0.00 - {leadsByStatus[statusObj.name]?.length || 0} Leads</p>
           </div>
           <div>
-            {leadsStatus[statusKey].map((item, idx) => (
+            {leadsByStatus && leadsByStatus[statusObj.id]?.map((item, idx) => (
               <CardKanban status={status} setStatus={setStatus} key={idx} item={item} />
             ))}
           </div>

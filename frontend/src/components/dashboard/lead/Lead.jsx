@@ -17,6 +17,7 @@ import LeadsKanaban from './kanbanBoard/LeadsKanaban';
 
 const Lead = () => {
   const leadData = useSelector((state) => state.leads.leadData);
+  const checkLeadIdSelected = useSelector(state => state.leads.leadIds);
   const leadsStatus = useSelector(state => state.leads.leadsByStatus);
   const getAllStatus = useSelector(state => state.status.statusData);
   const [open, setOpen] = useState(false);
@@ -342,7 +343,7 @@ const Lead = () => {
         <div className="flex justify-between items-center mb-4 order-tab">
           <div>
             <button type="button" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tl-md rounded-bl-md hover:text-gray-600 active">Active</button>
-            <button type="button" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tr-md rounded-br-md hover:text-gray-600" onClick={() => setBulkAction(true)}>Bulk Actions</button>
+            <button type="button" className="bg-gray-200 text-sm font-medium disabled:bg-gray-50 disabled:text-gray-400 text-gray-800 py-2 px-4 rounded-tr-md rounded-br-md hover:text-gray-600" disabled={checkLeadIdSelected === ""} onClick={() => setBulkAction(true)}>Bulk Actions</button>
           </div>
           <div>
             <form className="max-w-md mx-auto">
