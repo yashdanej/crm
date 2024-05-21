@@ -30,7 +30,7 @@ export default function DropDown2({ leadData, lead, setLead, from }) {
         console.log('selectedOption', selectedOption);
         setLead(prevLead => ({
             ...prevLead,
-            [from.toLowerCase()]: selectedOption.id
+            [from.toLowerCase()]: selectedOption?.id
         }));
     };
 

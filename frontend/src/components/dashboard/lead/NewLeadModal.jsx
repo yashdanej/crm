@@ -12,7 +12,7 @@ import DropDown2 from './DropwDown2';
 import { useEffect } from 'react';
 import { api, changeText, selectedItem } from '../../../utils/Utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAssigned, getCountries, getLead, getSource, getStatus } from '../../../store/slices/LeadSlices';
+import { getAssigned, getCountries, getLead, getSource, getStatus, leadIdDeselectAll } from '../../../store/slices/LeadSlices';
 import { useState } from 'react';
 import ControlPointDuplicateIcon from '@mui/icons-material/ControlPointDuplicate';
 import AddStatusSources from './AddStatusSources';
@@ -30,7 +30,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
 });
 
-export default function NewLeadModal({bulkAction, handleCloseView, view, lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
+export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction, handleCloseView, view, lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
     const leadIds = useSelector(state => state.leads.leadIds);
     const [openS, setOpenS] = useState(false);
     const [from, setFrom] = useState("");
@@ -76,7 +76,6 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
     }
     useEffect(() => {
       if(leadData?.length>0){
-        const country = countriesData.find(option => option.country_id === leadData[0]?.country)  
         setLead({
           status: leadData[0]?.status,
           source: leadData[0]?.source,
@@ -89,7 +88,7 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
           email: leadData[0]?.email,
           state: leadData[0]?.state,
           website: leadData[0]?.website,
-          country: country?.short_name,
+          country: leadData[0]?.country,
           phonenumber: leadData[0]?.phonenumber,
           zip: leadData[0]?.zip,
           lead_value: leadData[0]?.lead_value,
@@ -122,15 +121,28 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
       setIs_Public(event.target.value === 'public');
     };
     const onBulkAction = () => {
+      function formatDateToMySQL(date) {
+        const [month, day, year] = date.split('/');
+        return `${year}-${month}-${day}`;
+      }
+      let lastcontected;
+      if(lastcontact != undefined || lastcontact != null){
+        lastcontected = formatDateToMySQL(lastcontact);
+      }
       console.log({leadids: leadIds, lost, status:selectStatus, source: selectSource, lastcontact, assigned: selectAssigned, tags: lead?.tags, is_public});
-      api("/lead/bulkaction", "patch", {leadids: leadIds, lost, status:selectStatus, source: selectSource, assigned: selectAssigned, tags: lead?.tags, is_public}, false, true)
+      api("/lead/bulkaction", "patch", {leadids: leadIds, lost, status:selectStatus, source: selectSource, lastcontact: lastcontected, assigned: selectAssigned, tags: lead?.tags, is_public}, false, true)
       .then((res) => {
-        console.log("res", res.data);
         getLeads();
+        handleCloseView();
+        setBulkAction(false);
+        dispatch(leadIdDeselectAll());
         handelCloseLeadModal();
       })
       .catch((err) => {
-
+        console.log("Error in onBulkAction", err);
+        handleCloseView();
+        setBulkAction(false);
+        handelCloseLeadModal();
       });
     }
     const [validationMessage, setValidationMessage] = useState('');
@@ -230,7 +242,7 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
             <p className='pb-4 font-bold'>Add new lead</p>
             <div className="flex w-full justify-between items-center gap-7 flex-column flex-wrap md:flex-row md:space-y-0 bg-white pb-8">
                 <div>
-                    <p className='text-xs font-semibold mb-1 text-black'>Status</p>
+                    <p className='text-xs font-semibold mb-1 text-black'>Status*</p>
                     <div className="flex">
                       <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Status" />
                         {
@@ -243,10 +255,10 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
                     </div>
                 </div>
                 {
-                  openS && <AddStatusSources openS={openS} setOpenS={setOpenS} from={from} />
+                  openS && <AddStatusSources getDropdownData={getDropdownData} openS={openS} setOpenS={setOpenS} from={from} />
                 }
                 <div>
-                    <p className='text-xs font-semibold mb-1 text-black'>Source</p>
+                    <p className='text-xs font-semibold mb-1 text-black'>Source*</p>
                     <div className="flex">
                       <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Source" />
                       {
@@ -258,7 +270,7 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
                     </div>
                 </div>
                 <div>
-                <p className='text-xs font-semibold mb-1 text-black'>Assigned</p>
+                <p className='text-xs font-semibold mb-1 text-black'>Assigned*</p>
                     <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Assigned" />
                 </div>
             </div>
@@ -360,7 +372,7 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
             <label htmlFor="phonenumber" className="mb-2 text-sm text-start text-grey-900">Phone*</label>
             <input
               id="phonenumber"
-              type="text"
+              type="number"
               name="phonenumber"
               value={lead?.phonenumber}
               onChange={(e) => { validatePhoneNumber(e); }}
@@ -404,6 +416,7 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
             <div className='w-full'>
               <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">System Language*</label>
               <select id="default_language" name="default_language" value={lead?.default_language} onChange={(e) => {changeText(e, setLead, lead)}} className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
+                <option>Select default language</option>
                 {languages.map(language => (
                   <option key={language} value={language}>{language}</option>
                 ))}
@@ -415,13 +428,16 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
               <label htmlFor="company" className="mb-2 text-sm text-start text-grey-900">Company (optional)</label>
               <input id="company" type="text" name="company" value={lead?.company} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Company" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
             </div>
-            <div className='w-full flex items-center'>
-              <select onChange={(e) => changeText(e, setLead, lead)} className='w-full bg-slate-100 rounded-xl p-4' name="priority" id="">
-                <option selected={lead?.priority === "Low"} value="Low">Low</option>
-                <option selected={lead?.priority === "Medium"} value="Medium">Medium</option>
-                <option selected={lead?.priority === "High"} value="High">High</option>
-                <option selected={lead?.priority === "Urgent"} value="Urgent">Urgent</option>
-              </select>
+            <div className='w-full'>
+              <label htmlFor="company" className="mb-2 text-sm text-start text-grey-900">Priority*</label>
+              <div className='flex items-center'>
+                <select onChange={(e) => changeText(e, setLead, lead)} className='w-full bg-slate-100 rounded-xl p-4' name="priority" id="">
+                  <option selected={lead?.priority === "Low"} value="Low">Low</option>
+                  <option selected={lead?.priority === "Medium"} value="Medium">Medium</option>
+                  <option selected={lead?.priority === "High"} value="High">High</option>
+                  <option selected={lead?.priority === "Urgent"} value="Urgent">Urgent</option>
+                </select>
+              </div>
             </div>
           </div>
           <div className='sm:flex block gap-8'>
@@ -566,7 +582,7 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
                     <p className='text-[14px]'>{leadData[0]?.dateadded}</p>
                   </div>
                   <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Created</p>
+                    <p className='text-[14px] text-slate-800 font-bold'>Last Contacted</p>
                     <p className='text-[14px]'>{leadData[0]?.lastcontact}</p>
                   </div>
                   <div className='my-1'>
@@ -582,8 +598,8 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
                 <p className='text-[14px]'>{lead?.description}</p>
               </div>
               <div className='my-1'>
-                <p className='bg-slate-200 font-bold'>Latest Activity</p>
-                <p className='text-[14px]'>{leadData[0]?.addedfrom}</p>
+                <p className='bg-slate-200 font-semibold my-3'>Latest Activity</p>
+                <p className='text-[14px]'><span className='font-bold'>{assignedDatas.find(option => option.id == leadData[0]?.addedfrom)?.full_name}</span> - {assignedDatas.find(option => option.id == leadData[0]?.addedfrom)?.full_name} assigned to {assignedDatas.find(option => option.id == leadData[0]?.assigned)?.full_name}</p>
               </div>
             </div>
           </Dialog>

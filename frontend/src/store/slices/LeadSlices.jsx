@@ -79,7 +79,7 @@ const leadsSlice = createSlice({
         kanbanLeads(state, action){
             state.leadsByStatus = action.payload
         },
-        leadIdSelect(state, action) {
+        leadIdSelect(state, action){
             const id = action.payload;
             const currentIds = state.leadIds ? state.leadIds.split(",") : [];
             console.log('currentIds', currentIds);
@@ -92,6 +92,9 @@ const leadsSlice = createSlice({
                 state.leadIds = currentIds.join(",");
                 console.log('state.leadIds2', state.leadIds);
             }
+        },
+        leadIdDeselectAll(state, action){
+            state.leadIds = ""
         }
     }
 });
@@ -101,7 +104,7 @@ export const { getStatus } = statusSlice.actions;
 export const { getSource } = sourceSlice.actions;
 export const { getAssigned } = assignedSlice.actions;
 export const { getCountries } = countriesSlice.actions;
-export const { getAllLeads, getLead, kanbanViewFn, kanbanLeads, leadIdSelect } = leadsSlice.actions;
+export const { getAllLeads, getLead, kanbanViewFn, kanbanLeads, leadIdSelect, leadIdDeselectAll } = leadsSlice.actions;
 
 export const statusReducer = statusSlice.reducer;
 export const sourceReducer = sourceSlice.reducer;

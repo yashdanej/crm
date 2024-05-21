@@ -45,7 +45,7 @@ const Lead = () => {
     email: "",
     state: "",
     website: "",
-    country: null,
+    country: "",
     phonenumber: "",
     zip: "",
     lead_value: null,
@@ -82,13 +82,14 @@ const Lead = () => {
       email: "",
       state: "",
       website: "",
-      country: null,
+      country: "",
       phonenumber: "",
       zip: "",
       lead_value: null,
       default_language: "",
       company: "",
       description: "",
+      priority: "",
       is_public: 0
     });
     handleClickOpen();
@@ -111,7 +112,7 @@ const Lead = () => {
       email: "",
       state: "",
       website: "",
-      country: null,
+      country: "",
       phonenumber: "",
       zip: "",
       lead_value: null,
@@ -168,8 +169,11 @@ const countriesData = useSelector((state) => state.countries.countriesData);
     if (
       lead.name === "" ||
       lead.status === null ||
+      lead.status === undefined ||
       lead.source === null ||
+      lead.source === undefined ||
       lead.assigned === null ||
+      lead.assigned === undefined ||
       lead.address === "" ||
       lead.position === "" ||
       lead.email === "" ||
@@ -180,7 +184,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
     ) {
       setSnackbarProperty(prevState => ({
         ...prevState,
-        text: "All fields are required",
+        text: "* fields are required!",
         color: "danger"
       }));
       setSnackAlert(true);
@@ -189,20 +193,14 @@ const countriesData = useSelector((state) => state.countries.countriesData);
       console.log("leadData lead", leadData);
       const pathname = leadData.length > 0 ? `/lead/updatelead/${leadData[0].id}` : "/lead/newlead";
       const method = leadData.length > 0 ? "patch" : "post";
-      const country = countriesData.find(option => option.short_name === lead?.country);
-      console.log('country', country);
-      const newLead = {
-        ...lead, 
-        country: country.country_id
-      }
-      api(pathname, method, newLead, false, true)
+      api(pathname, method, lead, false, true)
         .then((res) => {
           console.log("res from newLead", res);
           handleClose();
           getLeads();
           setSnackbarProperty(prevState => ({
             ...prevState,
-            text: res.data.message,
+            text: res?.data?.message,
             color: "success"
           }));
           setSnackAlert(true);
@@ -239,27 +237,26 @@ const countriesData = useSelector((state) => state.countries.countriesData);
     }
   };
 
+  const getDropdownData = async () => {
+    let pathname;
+    pathname = "/lead/getstatus";
+    dispatch(getStatus(await fetchData(pathname)));
+    pathname = "/lead/getsources";
+    dispatch(getSource(await fetchData(pathname)));
+    pathname = "/lead/getusers";
+    dispatch(getAssigned(await fetchData(pathname)));
+  };
+  const fetchData = async (pathname) => {
+    try {
+      const response = await api(pathname, "get", false, false, true);
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching dropdown data:", error);
+      return [];
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async (pathname) => {
-      try {
-        const response = await api(pathname, "get", false, false, true);
-        return response.data.data;
-      } catch (error) {
-        console.error("Error fetching dropdown data:", error);
-        return [];
-      }
-    };
-
-    const getDropdownData = async () => {
-      let pathname;
-      pathname = "/lead/getstatus";
-      dispatch(getStatus(await fetchData(pathname)));
-      pathname = "/lead/getsources";
-      dispatch(getSource(await fetchData(pathname)));
-      pathname = "/lead/getusers";
-      dispatch(getAssigned(await fetchData(pathname)));
-    };
-
     getDropdownData();
     getLeads(); // Fetch leads initially
     getLeadsByStatus();
@@ -307,7 +304,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
                 Object.keys(leadsStatus).map((statusKey) => {
                   console.log("statusKey", statusKey);
                   return (
-                    <span className={`font-bold`} style={{color: getAllStatus.find(option => option.id === statusKey)?.color}} key={statusKey}>{leadsStatus[statusKey].length}<span> {statusKey}</span> </span>
+                    <span className={`font-bold text-slate-600`} key={statusKey}>{leadsStatus[statusKey].length}<span style={{color: `${getAllStatus?.find(option => option.id == statusKey)?.color}`}}> {getAllStatus.find(option => option.id == statusKey)?.name}</span> </span>
                   )
                 })
               }
@@ -346,7 +343,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
         <div className="flex justify-between items-center mb-4 order-tab">
           <div>
             <button type="button" className="bg-gray-50 text-sm font-medium text-gray-400 py-2 px-4 rounded-tl-md rounded-bl-md hover:text-gray-600 active">Active</button>
-            <button type="button" className="bg-gray-200 text-sm font-medium disabled:bg-gray-50 disabled:text-gray-400 text-gray-800 py-2 px-4 rounded-tr-md rounded-br-md hover:text-gray-600" disabled={checkLeadIdSelected === ""} onClick={() => setBulkAction(true)}>Bulk Actions</button>
+            <button type="button" className="bg-gray-200 text-sm font-medium disabled:bg-gray-50 disabled:text-gray-400 text-gray-800 py-2 px-4 rounded-tr-md rounded-br-md hover:text-gray-600" disabled={checkLeadIdSelected === "" || checkLeadIdSelected == []} onClick={() => setBulkAction(true)}>Bulk Actions</button>
           </div>
           <div>
             <form className="max-w-md mx-auto">
@@ -368,7 +365,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
         ):<LeadsKanaban/>
       }
       {
-      ( bulkAction || open) && <NewLeadModal bulkAction={bulkAction} handleCloseView={handleCloseView} view={view} onHandleNewLeadClick={onHandleNewLeadClick} lead={lead} setLead={setLead} handleClose={handleClose} open={open} />
+      ( bulkAction || open) && <NewLeadModal getDropdownData={getDropdownData} getLeads={getLeads} setBulkAction={setBulkAction} bulkAction={bulkAction} handleCloseView={handleCloseView} view={view} onHandleNewLeadClick={onHandleNewLeadClick} lead={lead} setLead={setLead} handleClose={handleClose} open={open} />
       }
     </div>
   );

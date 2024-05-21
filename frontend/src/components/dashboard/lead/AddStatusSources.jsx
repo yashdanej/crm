@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { api } from '../../../utils/Utils';
 import { ChromePicker } from 'react-color'; // Import the color picker component
 
-export default function AddStatusSources({ openS, setOpenS, from }) {
+export default function AddStatusSources({ getDropdownData, openS, setOpenS, from }) {
     const [name, setName] = useState("");
     const [status, setStatus] = useState({
         name: "",
@@ -28,6 +28,7 @@ export default function AddStatusSources({ openS, setOpenS, from }) {
         api(pathname, "post", body, false, true) // Pass the 'body' directly to the API request
         .then((res) => {
             console.log(res);
+            getDropdownData();
         })
         .catch((err) => {
             console.log(err);

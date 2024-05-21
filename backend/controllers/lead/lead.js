@@ -4,7 +4,7 @@ const querystring = require('querystring');
 const url = require('url');
 
 exports.NewLead = async (req, res, next) => {
-    const { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
+    let { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
     console.log(status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public);
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
@@ -25,21 +25,6 @@ exports.NewLead = async (req, res, next) => {
             });
         });
         console.log('userAssigned', userAssigned);
-        const userCoutry = await new Promise((resolve, reject) => {
-            db.query("select * from tblcountries where country_id = ?", [country], (err, result) => {
-                if(err){
-                    console.log("error in userAssigned", err);
-                    reject("error in userCoutry");
-                }else{
-                    if(!result || result.length === 0){
-                        return res.status(400).json({ success: false, message: "no country found" });
-                    }else{
-                        resolve(result[0]);
-                    }
-                }
-            });
-        });
-        console.log('userCoutry', userCoutry);
 
         const userSource = await new Promise((resolve, reject) => {
             db.query("select * from tblleads_sources where id = ?", [source], (err, result) => {
@@ -72,7 +57,7 @@ exports.NewLead = async (req, res, next) => {
             });
         });
         console.log('userStatus', userStatus);
-
+        priority = priority?priority:"Low"
         const newLead = await new Promise((resolve, reject) => {
             db.query("insert into tblleads set ?", {
                 status: userStatus.id,
@@ -83,7 +68,7 @@ exports.NewLead = async (req, res, next) => {
                 tags,
                 title: position,
                 city,
-                email, state, website, country: userCoutry.country_id, phonenumber, zip, lead_value, default_language, company, description, priority, is_public,
+                email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public,
                 addedfrom: getUser,
                 dateadded: new Date(),
                 lastcontact: new Date()
@@ -313,8 +298,8 @@ exports.LeadsSearch = async (req, res, next) => {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
 
         const leadsSearch = await new Promise((resolve, reject) => {
-            db.query("SELECT * FROM tblleads WHERE (id LIKE ? OR name LIKE ? OR email LIKE ? OR company LIKE ? OR phonenumber LIKE ? OR Tags LIKE ?)",
-                [searchLead, searchLead, searchLead, searchLead, searchLead, searchLead],
+            db.query("SELECT * FROM tblleads WHERE (id LIKE ? OR name LIKE ? OR email LIKE ? OR company LIKE ? OR phonenumber LIKE ? OR tags LIKE ? OR country LIKE ? OR priority LIKE ?)",
+                [searchLead, searchLead, searchLead, searchLead, searchLead, searchLead, searchLead, searchLead],
                 (err, result) => {
                     if (err) {
                         console.error("Error in leadsSearch query:", err);
@@ -378,22 +363,8 @@ exports.UpdateLead = async (req, res, next) => {
         let userStatus;
         
         if (country !== undefined) {
-            userCoutry = await new Promise((resolve, reject) => {
-                db.query("select * from tblcountries where country_id = ?", [country], (err, result) => {
-                    if(err){
-                        console.log("error in userAssigned", err);
-                        reject("error in userCoutry");
-                    }else{
-                        if(!result || result.length === 0){
-                            return res.status(400).json({ success: false, message: "no country found" });
-                        }else{
-                            resolve(result[0]);
-                        }
-                    }
-                });
-            });
             updateFields.push("country = ?");
-            queryParams.push(userCoutry.country_id);
+            queryParams.push(country);
         }
 
         if (status !== undefined) {
@@ -768,30 +739,78 @@ async function queryStatusById(statusId) {
 
 exports.BulkAction = async (req, res, next) => {
     const { leadids, lost, status, source, lastcontact, assigned, tags, is_public } = req.body;
+
     try {
-        console.log(leadids, leadids);
-        leadids.split(",").forEach(async id => {
+        console.log(leadids);
+
+        const updatePromises = leadids.split(",").map(async id => {
             let finalStatus = status;
 
             if (lost === true || lost === 'true' || lost === 1) {
                 finalStatus = 3;
             }
 
-            await new Promise((resolve, reject) => {
-                db.query("update tblleads set lost = ?, status = ?, source = ?, lastcontact = ?, assigned = ?, tags = ?, is_public = ? where id = ?", [lost, finalStatus, source, lastcontact, assigned, tags, is_public, id], (err, result) => {
+            // Prepare the fields and values to be updated
+            const fields = [];
+            const values = [];
+
+            if (lost !== false) {
+                fields.push("lost = ?");
+                values.push(lost);
+            }
+            if (finalStatus !== null) {
+                fields.push("status = ?");
+                values.push(finalStatus);
+            }
+            if (source !== null) {
+                fields.push("source = ?");
+                values.push(source);
+            }
+            if (lastcontact != undefined) {
+                console.log('lastcontact', lastcontact);
+                fields.push("lastcontact = ?");
+                values.push(lastcontact);
+            }
+            if (assigned !== null) {
+                fields.push("assigned = ?");
+                values.push(assigned);
+            }
+            if (tags !== null) {
+                fields.push("tags = ?");
+                values.push(tags);
+            }
+            if (is_public !== false) {
+                fields.push("is_public = ?");
+                values.push(is_public);
+            }
+            console.log('fields', fields);
+            // If no fields to update, skip this ID
+            if (fields.length === 0) {
+                return Promise.resolve({ success: false, message: `No values to update for ID ${id}` });
+            }
+
+            values.push(id);
+
+            const query = `UPDATE tblleads SET ${fields.join(", ")} WHERE id = ?`;
+
+            return new Promise((resolve, reject) => {
+                db.query(query, values, (err, result) => {
                     if (err) {
-                        console.error(`Error in bulkAction:`, err);
+                        console.error(`Error in bulkAction for ID ${id}:`, err);
                         reject(err);
                     } else {
-                        console.log("result", result);
-                        resolve(result);
+                        console.log(`Result for ID ${id}`, result);
+                        resolve({ success: true, result });
                     }
                 });
-            })
+            });
         });
-        return res.status(200).json({success: true, message: "Bulk action success"});
+
+        const results = await Promise.all(updatePromises);
+        return res.status(200).json({ success: true, message: "Bulk action success", results });
+
     } catch (error) {
         console.error("Error in bulkAction:", error);
         return res.status(400).json({ success: false, message: "Error in bulkAction", error: error });
     }
-}
+};
