@@ -12,7 +12,8 @@ const Users = () => {
     const users = useSelector(state => state.assigned.assignedData)
     const dispatch = useDispatch();
     const getUsers = () => {
-        api("/lead/getusers", "get", false, false, true)
+        let getUser = JSON.parse(localStorage.getItem("user"));
+        api(`/lead/getusers/${getUser.id}`, "get", false, false, true)
         .then((res) => {
             dispatch(getAssigned(res.data.data));
         })

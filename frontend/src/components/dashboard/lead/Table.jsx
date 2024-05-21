@@ -18,7 +18,6 @@ const Table = ({ handleOpenView, getLeads, handleClickOpen }) => {
     });
     const [selectedLeads, setSelectedLeads] = useState([]); // State to manage selected checkboxes
     const [selectAll, setSelectAll] = useState(false); // State to manage select all checkbox
-
     useEffect(() => {
         getLeads();
     }, []);
@@ -112,6 +111,7 @@ const Table = ({ handleOpenView, getLeads, handleClickOpen }) => {
                         <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Assigned</th>
                         <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Status</th>
                         <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Source</th>
+                        <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Priority</th>
                         <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Last Contact</th>
                         <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tr-md rounded-br-md">Created</th>
                     </tr>
@@ -176,6 +176,9 @@ const Table = ({ handleOpenView, getLeads, handleClickOpen }) => {
                                     </td>
                                     <td className="py-2 px-4 border-b border-b-gray-50">
                                         <span className="text-[13px] font-medium text-gray-400">{selectedItem(item, sourceData, "Source")}</span>
+                                    </td>
+                                    <td className="py-2 px-4 border-b border-b-gray-50">
+                                        <span className="text-[13px] font-medium text-gray-400">{item.priority}</span>
                                     </td>
                                     <td className="py-2 px-4 border-b border-b-gray-50">
                                         <span className="text-[13px] font-medium text-gray-400">{item.lastcontact}</span>

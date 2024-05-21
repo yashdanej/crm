@@ -5,7 +5,7 @@ import Snackbar from '@mui/joy/Snackbar';
 import PlaylistAddCheckCircleRoundedIcon from '@mui/icons-material/PlaylistAddCheckCircleRounded';
 export const api = async (pathname, method, body, formData=false, includeCredentials = false) => {
     const axiosConfig = {
-        url: `http://65.0.30.99:8000/api/v1${pathname}`,
+        url: `http://localhost:8000/api/v1${pathname}`,
         method: method,
     };
     if(body){

@@ -24,6 +24,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -75,6 +76,7 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
     }
     useEffect(() => {
       if(leadData?.length>0){
+        const country = countriesData.find(option => option.country_id === leadData[0]?.country)  
         setLead({
           status: leadData[0]?.status,
           source: leadData[0]?.source,
@@ -87,7 +89,7 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
           email: leadData[0]?.email,
           state: leadData[0]?.state,
           website: leadData[0]?.website,
-          country: leadData[0]?.country,
+          country: country?.short_name,
           phonenumber: leadData[0]?.phonenumber,
           zip: leadData[0]?.zip,
           lead_value: leadData[0]?.lead_value,
@@ -131,6 +133,85 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
 
       });
     }
+    const [validationMessage, setValidationMessage] = useState('');
+    const [mobileValidation, setMobileValidation] = useState('');
+    const validateWebsite = (e) => {
+      const urlPattern = new RegExp(
+        '^https?:\\/\\/www\\.' + // protocol and www.
+        '([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.' + // domain name
+        '([a-z]{2,})$', // domain extension
+        'i' // case insensitive
+      );
+  
+      const { value } = e.target;
+      changeText(e, setLead, lead);
+      if (value.trim() !== "" && !urlPattern.test(value)) {
+        setValidationMessage('Please enter a valid URL starting with www and ending with a domain extension like .com or .in.');
+      } else {
+        setValidationMessage('');
+      }
+    };
+
+    const validatePhoneNumber = (e) => {
+      const phoneNumberPattern = /^\d{10}$/; // This pattern matches exactly 10 digits
+    const { value } = e.target;
+    changeText(e, setLead, lead);
+
+    if (!phoneNumberPattern.test(value)) {
+      setMobileValidation('Please enter a valid 10-digit phone number.');
+    } else {
+      setMobileValidation('');
+    }
+    };
+    const [emailValidation, setEmailValidation] = useState('');
+    const validateEmail = (e) => {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simple email validation regex
+      const { value } = e.target;
+      changeText(e, setLead, lead);
+  
+      if (!emailPattern.test(value)) {
+        setEmailValidation('Please enter a valid email address.');
+      } else {
+        setEmailValidation('');
+      }
+    };
+
+    const fetchLocationInfo = async (zipCode) => {
+      try {
+        console.log(zipCode);
+        console.log("Running fetchLocationInfo");
+  
+        const response = await axios.get(`https://app.zipcodebase.com/api/v1/search?apikey=67783eb0-173d-11ef-934a-11338ba92fe9&codes=${zipCode}`)
+  
+        console.log("response from axios", response);
+  
+        const data = response.data;
+        console.log("data from zipcode", data);
+  
+        if (data && data.results && data.results[zipCode]) {
+          const firstResult = data.results[zipCode][0];
+          const { province, state, country_code } = firstResult;
+          console.log("province, state, country_code", province, state, country_code);
+          return { province, state, country_code };
+        }
+      } catch (error) {
+        console.error('Error fetching location information:', error);
+      }
+      return null;
+    };
+  
+    const handleZipCodeChange = async (e) => {
+      const zipCode = e.target.value;
+      setLead((prevLead) => ({ ...prevLead, zip: zipCode }));
+  
+      // Fetch location information based on zip code
+      const locationInfo = await fetchLocationInfo(zipCode);
+      if (locationInfo) {
+        const { province, state, country_code } = locationInfo;
+        const country = countriesData.find(option => option.iso2 === country_code)  
+        setLead((prevLead) => ({ ...prevLead, state, city: province, country: country.short_name }));
+      }
+    };
   return (
     <React.Fragment>
       {
@@ -200,50 +281,108 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
                         <label htmlFor="position" className="mb-2 text-sm text-start text-grey-900">Position*</label>
                         <input id="position" type="text" value={lead?.position} onChange={(e) => {changeText(e, setLead, lead)}} name="position" placeholder="Enter your position" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
                     </div>
+                   
                     <div className='w-full'>
-                    <label htmlFor="city" className="mb-2 text-sm text-start text-grey-900">City*</label>
-                        <input id="city" type="text" name="city" value={lead?.city} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Enter your city" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
-                    </div>
+                    <label htmlFor="zip" className="mb-2 text-sm text-start text-grey-900">Zip Code*</label>
+                    <input
+                      id="zip"
+                      type="number"
+                      name="zip"
+                      value={lead.zip}
+                      onChange={handleZipCodeChange}
+                      placeholder="Zip Code"
+                      className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+                    />
+                  </div>
                 </div>
                 
 
                 <div className='sm:flex block gap-8'>
-            <div className='w-full'>
-              <label htmlFor="email" className="mb-2 text-sm text-start text-grey-900">Email*</label>
-              <input id="email" type="email" name="email" value={lead?.email} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="mail@loopple.com" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
-            </div>
-            <div className='w-full'>
-              <label htmlFor="state" className="mb-2 text-sm text-start text-grey-900">State*</label>
-              <input id="state" type="text" name="state" value={lead?.state} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="State" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
-            </div>
+                <div className='w-full'>
+                  <label htmlFor="email" className="mb-2 text-sm text-start text-grey-900">Email*</label>
+                  <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    value={lead?.email.toLowerCase()}
+                    onChange={(e) => { validateEmail(e); }}
+                    placeholder="mail@loopple.com"
+                    className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-1 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+                  />
+                  {emailValidation && (
+                    <p className="mb-7 text-red-500 text-sm">{emailValidation}</p>
+                  )}
+                </div>
+                <div className='w-full'>
+                  <label htmlFor="state" className="mb-2 text-sm text-start text-grey-900">State</label>
+                  <input
+                    id="state"
+                    type="text"
+                    name="state"
+                    value={lead.state}
+                    disabled
+                    placeholder="State"
+                    className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+                  />
+                </div>
           </div>
           <div className='sm:flex block gap-8'>
-            <div className='w-full'>
-              <label htmlFor="website" className="mb-2 text-sm text-start text-grey-900">Website</label>
-              <input id="website" type="text" name="website" value={lead?.website} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Website" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
-            </div>
-            <div className='w-full'>
-              <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">Country*</label>
-              <select id="country" name="country" value={lead?.country} onChange={(e) => {
-                const value = parseInt(e.target.value); // Parse input value as a number
-                changeText(e, setLead, lead, value) 
-                }} 
-                className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
-                {countriesData?.map(country => (
-                  <option key={country.country_id} value={country.country_id}>{country.short_name}</option>
-                ))}
-              </select>
-            </div>
+          <div className='w-full'>
+      <label htmlFor="website" className="mb-2 text-sm text-start text-grey-900">Website (optional)</label>
+      <input
+        id="website"
+        type="text"
+        name="website"
+        value={lead?.website}
+        onChange={(e) => validateWebsite(e)}
+        placeholder="https://www.example.com"
+        className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-1 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+      />
+      {validationMessage && (
+        <p className="mb-7 text-red-500 text-sm">{validationMessage}</p>
+      )}
+    </div>
+        <div className='w-full'>
+          <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">Country</label>
+          <input
+            id="country"
+            type="text"
+            name="country"
+            value={lead.country}
+            disabled
+            placeholder="Country"
+            className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+          />
+        </div>
           </div>
           <div className='sm:flex block gap-8'>
-            <div className='w-full'>
-              <label htmlFor="phonenumber" className="mb-2 text-sm text-start text-grey-900">Phone</label>
-              <input id="phonenumber" type="text" name="phonenumber" value={lead?.phonenumber} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Phone" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
-            </div>
-            <div className='w-full'>
-              <label htmlFor="zip" className="mb-2 text-sm text-start text-grey-900">Zip Code</label>
-              <input id="zip" type="text" name="zip" value={lead?.zip} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Zip Code" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
-            </div>
+          <div className='w-full'>
+            <label htmlFor="phonenumber" className="mb-2 text-sm text-start text-grey-900">Phone*</label>
+            <input
+              id="phonenumber"
+              type="text"
+              name="phonenumber"
+              value={lead?.phonenumber}
+              onChange={(e) => { validatePhoneNumber(e); }}
+              placeholder="Phone"
+              className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-1 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+            />
+            {mobileValidation && (
+              <p className="mb-7 text-red-500 text-sm">{mobileValidation}</p>
+            )}
+          </div>
+          <div className='w-full'>
+          <label htmlFor="city" className="mb-2 text-sm text-start text-grey-900">City</label>
+          <input
+            id="city"
+            type="text"
+            name="city"
+            value={lead.city}
+            disabled
+            placeholder="City"
+            className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+          />
+        </div>
           </div>
           <div className='sm:flex block gap-8'>
           <div className='w-full'>
@@ -273,15 +412,21 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
           </div>
           <div className='sm:flex block gap-8'>
             <div className='w-full'>
-              <label htmlFor="company" className="mb-2 text-sm text-start text-grey-900">Company</label>
+              <label htmlFor="company" className="mb-2 text-sm text-start text-grey-900">Company (optional)</label>
               <input id="company" type="text" name="company" value={lead?.company} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Company" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
             </div>
-            <div className='w-full'>
+            <div className='w-full flex items-center'>
+              <select onChange={(e) => changeText(e, setLead, lead)} className='w-full bg-slate-100 rounded-xl p-4' name="priority" id="">
+                <option selected={lead?.priority === "Low"} value="Low">Low</option>
+                <option selected={lead?.priority === "Medium"} value="Medium">Medium</option>
+                <option selected={lead?.priority === "High"} value="High">High</option>
+                <option selected={lead?.priority === "Urgent"} value="Urgent">Urgent</option>
+              </select>
             </div>
           </div>
           <div className='sm:flex block gap-8'>
             <div className='w-full'>
-              <label htmlFor="description" className="mb-2 text-sm text-start text-grey-900">Description</label>
+              <label htmlFor="description" className="mb-2 text-sm text-start text-grey-900">Description (optional)</label>
               <textarea id="description" name="description" value={lead?.description} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Description" rows="4" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
             </div>
           </div>
@@ -311,7 +456,7 @@ export default function NewLeadModal({bulkAction, handleCloseView, view, lead, s
             </div>
         <div className='flex gap-2 my-5 justify-end'>
             <button onClick={handelCloseLeadModal} className='bg-blue-950 p-4 px-12 rounded-xl font-bold text-white'>Cancel</button>
-            <button onClick={onHandleNewLeadClick} className='bg-purple-blue-500 p-4 px-12 rounded-xl font-bold text-white'>{leadData?.length>0?"Update":"Submit"}</button>
+            <button disabled={validationMessage !=="" || mobileValidation !== "" || emailValidation !== ""} onClick={onHandleNewLeadClick} className='disabled:bg-slate-300 bg-purple-blue-500 p-4 px-12 rounded-xl font-bold text-white'>{leadData?.length>0?"Update":"Submit"}</button>
         </div>
         </div>
       </Dialog>

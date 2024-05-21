@@ -12,7 +12,7 @@ router
     .post("/addstatus", verifyToken, leadController.AddStatus)
     .get("/getsources", verifyToken, leadController.GetSources)
     .post("/addsources", verifyToken, leadController.AddSource)
-    .get("/getusers", verifyToken, leadController.GetUsers)
+    .get("/getusers/:id?", verifyToken, leadController.GetUsers)
     .get("/leadssearch", verifyToken, leadController.LeadsSearch)
     .patch("/statuschange", verifyToken, leadController.StatusChange)
     .patch("/updatelead/:id", verifyToken, leadController.UpdateLead)

@@ -4,8 +4,8 @@ const querystring = require('querystring');
 const url = require('url');
 
 exports.NewLead = async (req, res, next) => {
-    const { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, is_public } = req.body;
-    console.log(status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, is_public);
+    const { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
+    console.log(status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public);
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         console.log('userAddedFrom', getUser);
@@ -83,7 +83,7 @@ exports.NewLead = async (req, res, next) => {
                 tags,
                 title: position,
                 city,
-                email, state, website, country: userCoutry.country_id, phonenumber, zip, lead_value, default_language, company, description, is_public,
+                email, state, website, country: userCoutry.country_id, phonenumber, zip, lead_value, default_language, company, description, priority, is_public,
                 addedfrom: getUser,
                 dateadded: new Date(),
                 lastcontact: new Date()
@@ -199,7 +199,7 @@ exports.ViewLead = async (req, res, next) => {
 exports.GetCountries = async (req, res) => {
     try {
         const getCountries = await new Promise((resolve, reject) => {
-            db.query("select country_id, short_name from tblcountries", (err, result) => {
+            db.query("select country_id, short_name, iso2 from tblcountries", (err, result) => {
                 if(err){
                     console.log("error in getCountries", err);
                     reject("error in getCountries");
@@ -267,16 +267,31 @@ exports.GetSources = async (req, res) => {
 
 exports.GetUsers = async (req, res) => {
     try {
-        const getUsers = await new Promise((resolve, reject) => {
-            db.query("select * from users", (err, result) => {
-                if(err){
-                    console.log("error in getUsers", err);
-                    reject("error in getUsers");
-                }else{
-                    resolve(result);
-                }   
+        const id = req.params.id;
+        let getUsers;
+        if(id){
+            getUsers = await new Promise((resolve, reject) => {
+                db.query("select * from users where id != ?", [id], (err, result) => {
+                    if(err){
+                        console.log("error in getUsers", err);
+                        reject("error in getUsers");
+                    }else{
+                        resolve(result);
+                    }   
+                });
             });
-        });
+        }else{
+            getUsers = await new Promise((resolve, reject) => {
+                db.query("select * from users", (err, result) => {
+                    if(err){
+                        console.log("error in getUsers", err);
+                        reject("error in getUsers");
+                    }else{
+                        resolve(result);
+                    }   
+                });
+            });
+        }
         if(getUsers.length>0){
             return res.status(200).json({ success: true, message: "Users fetched successfully", data: getUsers })
         }else{
@@ -352,7 +367,7 @@ exports.StatusChange = async (req, res, next) => {
 
 exports.UpdateLead = async (req, res, next) => {
     const leadId = req.params.id;
-    const { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, is_public } = req.body;
+    const { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         const updateFields = [];
@@ -528,6 +543,10 @@ exports.UpdateLead = async (req, res, next) => {
         if (description !== undefined) {
             updateFields.push("description = ?");
             queryParams.push(description);
+        }
+        if (priority !== undefined) {
+            updateFields.push("priority = ?");
+            queryParams.push(priority);
         }
         if (is_public !== undefined) {
             updateFields.push("is_public = ?");

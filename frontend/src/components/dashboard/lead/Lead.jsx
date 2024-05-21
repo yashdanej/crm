@@ -52,6 +52,7 @@ const Lead = () => {
     default_language: "",
     company: "",
     description: "",
+    priority: "Low",
     is_public: 0
   });
   const kanbanView = useSelector(state => state.leads.kanbanView);
@@ -160,6 +161,7 @@ const Lead = () => {
         console.log("Completed");
     });
 }
+const countriesData = useSelector((state) => state.countries.countriesData);
 
   const onHandleNewLeadClick = () => {
     console.log("lead", lead);
@@ -170,17 +172,11 @@ const Lead = () => {
       lead.assigned === null ||
       lead.address === "" ||
       lead.position === "" ||
-      lead.city === "" ||
       lead.email === "" ||
-      lead.state === "" ||
-      lead.website === "" ||
-      lead.country === null ||
       lead.phonenumber === "" ||
       lead.zip === "" ||
       lead.lead_value === null ||
-      lead.default_language === "" ||
-      lead.company === "" ||
-      lead.description === ""
+      lead.default_language === ""
     ) {
       setSnackbarProperty(prevState => ({
         ...prevState,
@@ -193,7 +189,13 @@ const Lead = () => {
       console.log("leadData lead", leadData);
       const pathname = leadData.length > 0 ? `/lead/updatelead/${leadData[0].id}` : "/lead/newlead";
       const method = leadData.length > 0 ? "patch" : "post";
-      api(pathname, method, lead, false, true)
+      const country = countriesData.find(option => option.short_name === lead?.country);
+      console.log('country', country);
+      const newLead = {
+        ...lead, 
+        country: country.country_id
+      }
+      api(pathname, method, newLead, false, true)
         .then((res) => {
           console.log("res from newLead", res);
           handleClose();
@@ -303,8 +305,9 @@ const Lead = () => {
             <div className="flex flex-wrap justify-between my-6">
               {
                 Object.keys(leadsStatus).map((statusKey) => {
+                  console.log("statusKey", statusKey);
                   return (
-                    <span className={`font-bold`} style={{color: getAllStatus.find(option => option.name === statusKey).color}} key={statusKey}>{leadsStatus[statusKey].length}<span> {statusKey}</span> </span>
+                    <span className={`font-bold`} style={{color: getAllStatus.find(option => option.id === statusKey)?.color}} key={statusKey}>{leadsStatus[statusKey].length}<span> {statusKey}</span> </span>
                   )
                 })
               }
