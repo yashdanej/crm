@@ -19,4 +19,18 @@ router
     .get("/kanbanview", verifyToken, leadController.KanbanView)
     .patch("/bulkaction", verifyToken, leadController.BulkAction)
 
+    // Customization - ProfileOfClient
+    .post("/addprofileofclient", verifyToken, leadController.AddProfileOfClient)
+    .get("/getallprofileofclients", verifyToken, leadController.GetAllProfileOfClients)
+    .get("/getprofileofclient/:id", verifyToken, leadController.GetProfileOfClient)
+    .patch("/updateprofileofclient/:id", verifyToken, leadController.UpdateProfileOfClient)
+    .delete("/deleteprofileofclient/:id", verifyToken, leadController.DeleteProfileOfClient)
+
+    // Customization - ProfileOfClient
+    .post("/addtypeofwork", verifyToken, leadController.AddTypeOfWork)
+    .get("/getalltypesofwork", verifyToken, leadController.GetAllTypesOfWork)
+    .get("/gettypeofwork/:id", verifyToken, leadController.GetTypeOfWork)
+    .patch("/updatetypeofwork/:id", verifyToken, leadController.UpdateTypeOfWork)
+    .delete("/deletetypeofwork/:id", verifyToken, leadController.DeleteTypeOfWork)
+
 module.exports = router;

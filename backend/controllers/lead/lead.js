@@ -814,3 +814,345 @@ exports.BulkAction = async (req, res, next) => {
         return res.status(400).json({ success: false, message: "Error in bulkAction", error: error });
     }
 };
+
+
+// CRUD START - Profile Of Client
+
+// ..Create
+exports.AddProfileOfClient = async (req, res, next) => {
+    try {
+        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const { name } = req.body;
+        const existClientProfile = await new Promise((resolve, reject) => {
+            db.query("select * from profileclient where name = ?", [name], (err, result) => {
+                if (err) {
+                    console.error(`Error in newClientProfile:`, err);
+                    reject(err);
+                } else {
+                    console.log(`results`, result);
+                    resolve({ success: true, result });
+                }
+            });
+        })
+        console.log('existClientProfile.result', existClientProfile.result.length);
+        if(existClientProfile.result.length > 0){
+            return res.status(200).json({success: true, message: "This client profile already exists!"});
+        }else{
+            if(name){
+                const newClientProfile = await new Promise((resolve, reject) => {
+                    db.query("insert into profileclient set ?", {name, addedfrom: getUser}, (err, result) => {
+                        if (err) {
+                            console.error(`Error in newClientProfile:`, err);
+                            reject(err);
+                        } else {
+                            console.log(`result`, result);
+                            resolve({ success: true, result });
+                        }
+                    });
+                })
+                return res.status(200).json({success: true, message: "Client profile added successfully"});
+            }else{
+                console.error("Error in AddProfileOfClient:", error);
+                return res.status(400).json({ success: false, message: "Name is required" }); 
+            }
+        }
+    } catch (error) {
+        console.error("Error in AddProfileOfClient:", error);
+        return res.status(400).json({ success: false, message: "Error in bulkAction", error: error });
+    }
+}
+
+// ..Read
+exports.GetAllProfileOfClients = async (req, res, next) => {
+    try {
+        const getAllProfileOfClients = await new Promise((resolve, reject) => {
+            db.query("select * from profileclient", (err, result) => {
+                if(err){
+                    console.log("error in getAllProfileOfClients", err);
+                    reject("error in getAllProfileOfClients");
+                }else{
+                    resolve(result);
+                }   
+            });
+        });
+        if(getAllProfileOfClients.length>0){
+            return res.status(200).json({ success: true, message: "Client profile fetched successfully", data: getAllProfileOfClients })
+        }else{
+            return res.status(200).json({ success: true, message: "No client profile found" });
+        }
+    } catch (error) {
+        console.error("Error getProfileOfClient:", error);
+        return res.status(400).json({ success: false, message: "Error getAllProfileOfClients", error: error });
+    }
+}
+
+// Getone - Edit
+exports.GetProfileOfClient = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const getProfileOfClient = await new Promise((resolve, reject) => {
+            db.query("select * from profileclient where id = ?", [id], (err, result) => {
+                if(err){
+                    console.log("error in getProfileOfClient", err);
+                    reject("error in getProfileOfClient");
+                }else{
+                    resolve(result);
+                }   
+            });
+        });
+        if(getProfileOfClient.length>0){
+            return res.status(200).json({ success: true, message: "Client profile fetched successfully", data: getProfileOfClient })
+        }else{
+            return res.status(200).json({ success: true, message: "No client profile found" });
+        }
+    } catch (error) {
+        console.error("Error getProfileOfClient:", error);
+        return res.status(400).json({ success: false, message: "Error getProfileOfClient", error: error });
+    }
+}
+
+// Update Client Profile
+exports.UpdateProfileOfClient = async (req, res, next) => {
+    try {
+        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const { name } = req.body;
+        const id = req.params.id;
+        const existClientProfile = await new Promise((resolve, reject) => {
+            db.query("select * from profileclient where name = ?", [name], (err, result) => {
+                if (err) {
+                    console.error(`Error in newClientProfile:`, err);
+                    reject(err);
+                } else {
+                    console.log(`results`, result);
+                    resolve({ success: true, result });
+                }
+            });
+        });
+        console.log('existClientProfile.result[0].id', existClientProfile.result[0]?.id);
+        if(existClientProfile.result.length > 0 && existClientProfile.result[0]?.id != id ){
+            return res.status(200).json({success: true, message: "This client profile already exists!"});
+        }else{
+            if(name){
+                const updateClientProfile = await new Promise((resolve, reject) => {
+                    db.query("update profileclient set name = ?, addedfrom = ? where id = ?", [name, getUser, id], (err, result) => {
+                        if (err) {
+                            console.error(`Error in updateClientProfile:`, err);
+                            reject(err);
+                        } else {
+                            console.log(`result`, result);
+                            resolve({ success: true, result });
+                        }
+                    });
+                })
+                return res.status(200).json({success: true, message: "Client profile updated successfully"});
+            }else{
+                console.error("Error in UpdateProfileOfClient:", error);
+                return res.status(400).json({ success: false, message: "Name is required" }); 
+            }
+        }
+    } catch (error) {
+        console.error("Error in UpdateProfileOfClient:", error);
+        return res.status(400).json({ success: false, message: "Error in bulkAction", error: error });
+    }
+}
+
+
+// Delete Client Profile
+exports.DeleteProfileOfClient = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        if(!id){
+            return res.status(400).json({ success: false, message: "No id provided" });
+        }
+        const deleteProfileOfClient = await new Promise((resolve, reject) => {
+            db.query("delete from profileclient where id = ?", [id], (err, result) => {
+                if(err){
+                    console.log("error in deleteProfileOfClient", err);
+                    reject("error in deleteProfileOfClient");
+                }else{
+                    resolve(result);
+                }   
+            });
+        });
+        console.log("deleteProfileOfClient", deleteProfileOfClient);
+        if(deleteProfileOfClient.affectedRows == 1){
+            return res.status(200).json({ success: true, message: "Type of work deleted successfully" })
+        }else{
+            return res.status(200).json({ success: true, message: "No type of work found" });
+        }
+    } catch (error) {
+        console.error("Error DeleteProfileOfClient:", error);
+        return res.status(400).json({ success: false, message: "Error DeleteProfileOfClient", error: error });
+    }
+}
+
+// CRUD END - Profile Of Client
+
+// CRUD START - Type Of Work
+
+// ..Create
+exports.AddTypeOfWork = async (req, res, next) => {
+    try {
+        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const { name } = req.body;
+        const existTypeOfWork = await new Promise((resolve, reject) => {
+            db.query("select * from typeofwork where name = ?", [name], (err, result) => {
+                if (err) {
+                    console.error(`Error in existTypeOfWork:`, err);
+                    reject(err);
+                } else {
+                    console.log(`results`, result);
+                    resolve({ success: true, result });
+                }
+            });
+        })
+        console.log('existTypeOfWork.result', existTypeOfWork.result.length);
+        if(existTypeOfWork.result.length > 0){
+            return res.status(200).json({success: true, message: "This type of work already exists!"});
+        }else{
+            if(name){
+                const newTypeOfWork = await new Promise((resolve, reject) => {
+                    db.query("insert into typeofwork set ?", {name, addedfrom: getUser}, (err, result) => {
+                        if (err) {
+                            console.error(`Error in newTypeOfWork:`, err);
+                            reject(err);
+                        } else {
+                            console.log(`result`, result);
+                            resolve({ success: true, result });
+                        }
+                    });
+                })
+                return res.status(200).json({success: true, message: "Type of work added successfully"});
+            }else{
+                console.error("Error in newTypeOfWork:", error);
+                return res.status(400).json({ success: false, message: "Name is required" }); 
+            }
+        }
+    } catch (error) {
+        console.error("Error in newTypeOfWork:", error);
+        return res.status(400).json({ success: false, message: "Error in newTypeOfWork", error: error });
+    }
+}
+
+// ..Read
+exports.GetAllTypesOfWork = async (req, res, next) => {
+    try {
+        const getAllTypeOfWork = await new Promise((resolve, reject) => {
+            db.query("select * from typeofwork", (err, result) => {
+                if(err){
+                    console.log("error in getAllTypeOfWork", err);
+                    reject("error in getAllTypeOfWork");
+                }else{
+                    resolve(result);
+                }   
+            });
+        });
+        if(getAllTypeOfWork.length>0){
+            return res.status(200).json({ success: true, message: "Types of work fetched successfully", data: getAllTypeOfWork })
+        }else{
+            return res.status(200).json({ success: true, message: "No types of work found" });
+        }
+    } catch (error) {
+        console.error("Error getAllTypeOfWork:", error);
+        return res.status(400).json({ success: false, message: "Error getAllTypeOfWork", error: error });
+    }
+}
+
+// Getone - Edit
+exports.GetTypeOfWork = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const getTypeOfWork = await new Promise((resolve, reject) => {
+            db.query("select * from typeofwork where id = ?", [id], (err, result) => {
+                if(err){
+                    console.log("error in getTypeOfWork", err);
+                    reject("error in getTypeOfWork");
+                }else{
+                    resolve(result);
+                }   
+            });
+        });
+        if(getTypeOfWork.length>0){
+            return res.status(200).json({ success: true, message: "Type of work fetched successfully", data: getTypeOfWork })
+        }else{
+            return res.status(200).json({ success: true, message: "No type of work found" });
+        }
+    } catch (error) {
+        console.error("Error getTypeOfWork:", error);
+        return res.status(400).json({ success: false, message: "Error getTypeOfWork", error: error });
+    }
+}
+
+// Update Client Profile
+exports.UpdateTypeOfWork = async (req, res, next) => {
+    try {
+        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const { name } = req.body;
+        const id = req.params.id;
+        const existTypeOfWork = await new Promise((resolve, reject) => {
+            db.query("select * from typeofwork where name = ?", [name], (err, result) => {
+                if (err) {
+                    console.error(`Error in newTypeOfWork:`, err);
+                    reject(err);
+                } else {
+                    console.log(`results`, result);
+                    resolve({ success: true, result });
+                }
+            });
+        });
+        console.log('existTypeOfWork.result[0].id', existTypeOfWork.result[0]?.id);
+        if(existTypeOfWork.result.length > 0 && existTypeOfWork.result[0]?.id != id ){
+            return res.status(200).json({success: true, message: "This type of work already exists!"});
+        }else{
+            if(name){
+                const updateTypeOfWork = await new Promise((resolve, reject) => {
+                    db.query("update typeofwork set name = ?, addedfrom = ? where id = ?", [name, getUser, id], (err, result) => {
+                        if (err) {
+                            console.error(`Error in updateTypeOfWork:`, err);
+                            reject(err);
+                        } else {
+                            console.log(`result`, result);
+                            resolve({ success: true, result });
+                        }
+                    });
+                });
+                return res.status(200).json({success: true, message: "Type of work updated successfully"});
+            }else{
+                console.error("Error in updateTypeOfWork:", error);
+                return res.status(400).json({ success: false, message: "Name is required" }); 
+            }
+        }
+    } catch (error) {
+        console.error("Error in updateTypeOfWork:", error);
+        return res.status(400).json({ success: false, message: "Error in updateTypeOfWork", error: error });
+    }
+}
+
+// Delete Client Profile
+exports.DeleteTypeOfWork = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        if(!id){
+            return res.status(400).json({ success: false, message: "No id provided" });
+        }
+        const deleteTypeOfWork = await new Promise((resolve, reject) => {
+            db.query("delete from typeofwork where id = ?", [id], (err, result) => {
+                if(err){
+                    console.log("error in deleteTypeOfWork", err);
+                    reject("error in deleteTypeOfWork");
+                }else{
+                    resolve(result);
+                }
+            });
+        });
+        console.log("deleteTypeOfWork", deleteTypeOfWork);
+        if(deleteTypeOfWork.affectedRows == 1){
+            return res.status(200).json({ success: true, message: "Type of work deleted successfully" })
+        }else{
+            return res.status(200).json({ success: true, message: "Type of work profile found" });
+        }
+    } catch (error) {
+        console.error("Error deleteTypeOfWork:", error);
+        return res.status(400).json({ success: false, message: "Error deleteTypeOfWork", error: error });
+    }
+}
