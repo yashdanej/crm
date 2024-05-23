@@ -10,7 +10,7 @@ import Filter from './Filter';
 import DropDown from './DropDown';
 import DropDown2 from './DropwDown2';
 import { useEffect } from 'react';
-import { api, changeText, selectedItem } from '../../../utils/Utils';
+import { api, changeText, displayTimeOfPost, selectedItem } from '../../../utils/Utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAssigned, getCountries, getLead, getSource, getStatus, leadIdDeselectAll } from '../../../store/slices/LeadSlices';
 import { useState } from 'react';
@@ -284,18 +284,18 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
                         <input id="name" type="text" name="name" value={lead?.name} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Enter your name" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
                     </div>
                     <div className='w-full'>
-                        <label htmlFor="address" className="mb-2 text-sm text-start text-grey-900">Address*</label>
+                        <label htmlFor="address" className="mb-2 text-sm text-start text-grey-900">Address (optional)</label>
                         <textarea rows={1} id="address" value={lead?.address} onChange={(e) => {changeText(e, setLead, lead)}} name="address" placeholder="Enter your address" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"></textarea>
                     </div>
                 </div>
                 <div className='sm:flex block gap-8'>
                     <div className='w-full'>
-                        <label htmlFor="position" className="mb-2 text-sm text-start text-grey-900">Position*</label>
+                        <label htmlFor="position" className="mb-2 text-sm text-start text-grey-900">Position (optional)</label>
                         <input id="position" type="text" value={lead?.position} onChange={(e) => {changeText(e, setLead, lead)}} name="position" placeholder="Enter your position" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
                     </div>
                    
                     <div className='w-full'>
-                    <label htmlFor="zip" className="mb-2 text-sm text-start text-grey-900">Zip Code*</label>
+                    <label htmlFor="zip" className="mb-2 text-sm text-start text-grey-900">Zip Code (optional)</label>
                     <input
                       id="zip"
                       type="number"
@@ -311,7 +311,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
 
                 <div className='sm:flex block gap-8'>
                 <div className='w-full'>
-                  <label htmlFor="email" className="mb-2 text-sm text-start text-grey-900">Email*</label>
+                  <label htmlFor="email" className="mb-2 text-sm text-start text-grey-900">Email{getUser.role === 1 ? "*" : " (optional)"}</label>
                   <input
                     id="email"
                     type="email"
@@ -326,7 +326,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
                   )}
                 </div>
                 <div className='w-full'>
-                  <label htmlFor="state" className="mb-2 text-sm text-start text-grey-900">State</label>
+                  <label htmlFor="state" className="mb-2 text-sm text-start text-grey-900">State (optional)</label>
                   <input
                     id="state"
                     type="text"
@@ -355,7 +355,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
       )}
     </div>
         <div className='w-full'>
-          <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">Country</label>
+          <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">Country (optional)</label>
           <input
             id="country"
             type="text"
@@ -384,7 +384,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
             )}
           </div>
           <div className='w-full'>
-          <label htmlFor="city" className="mb-2 text-sm text-start text-grey-900">City</label>
+          <label htmlFor="city" className="mb-2 text-sm text-start text-grey-900">City (optional)</label>
           <input
             id="city"
             type="text"
@@ -398,7 +398,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
           </div>
           <div className='sm:flex block gap-8'>
           <div className='w-full'>
-            <label htmlFor="lead_value" className="mb-2 text-sm text-start text-grey-900">Lead Value*</label>
+            <label htmlFor="lead_value" className="mb-2 text-sm text-start text-grey-900">Lead Value (optional)</label>
             <input 
                 id="lead_value" 
                 type="number" 
@@ -414,7 +414,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
         </div>
 
             <div className='w-full'>
-              <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">System Language*</label>
+              <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">System Language (optional)</label>
               <select id="default_language" name="default_language" value={lead?.default_language} onChange={(e) => {changeText(e, setLead, lead)}} className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
                 <option>Select default language</option>
                 {languages.map(language => (
@@ -425,11 +425,11 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
           </div>
           <div className='sm:flex block gap-8'>
             <div className='w-full'>
-              <label htmlFor="company" className="mb-2 text-sm text-start text-grey-900">Company (optional)</label>
+              <label htmlFor="company" className="mb-2 text-sm text-start text-grey-900">Company {getUser.role === 1 ? "*":"(optional)"}</label>
               <input id="company" type="text" name="company" value={lead?.company} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Company" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
             </div>
             <div className='w-full'>
-              <label htmlFor="company" className="mb-2 text-sm text-start text-grey-900">Priority*</label>
+              <label htmlFor="company" className="mb-2 text-sm text-start text-grey-900">Priority (optional)</label>
               <div className='flex items-center'>
                 <select onChange={(e) => changeText(e, setLead, lead)} className='w-full bg-slate-100 rounded-xl p-4' name="priority" id="">
                   <option selected={lead?.priority === "Low"} value="Low">Low</option>
@@ -442,7 +442,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
           </div>
           <div className='sm:flex block gap-8'>
             <div className='w-full'>
-              <label htmlFor="description" className="mb-2 text-sm text-start text-grey-900">Description (optional)</label>
+              <label htmlFor="description" className="mb-2 text-sm text-start text-grey-900">Description*</label>
               <textarea id="description" name="description" value={lead?.description} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Description" rows="4" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
             </div>
           </div>
@@ -579,11 +579,11 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
                   </div>
                   <div className='my-1'>
                     <p className='text-[14px] text-slate-800 font-bold'>Created</p>
-                    <p className='text-[14px]'>{leadData[0]?.dateadded}</p>
+                    <p className='text-[14px]'>{displayTimeOfPost(leadData[0]?.dateadded)}</p>
                   </div>
                   <div className='my-1'>
                     <p className='text-[14px] text-slate-800 font-bold'>Last Contacted</p>
-                    <p className='text-[14px]'>{leadData[0]?.lastcontact}</p>
+                    <p className='text-[14px]'>{displayTimeOfPost(leadData[0]?.lastcontact)}</p>
                   </div>
                   <div className='my-1'>
                     <p className='text-[14px] text-slate-800 font-bold'>Public</p>

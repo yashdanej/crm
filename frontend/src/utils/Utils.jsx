@@ -79,3 +79,31 @@ export const selectedItem = (leadData, item, from) => {
   }
   return selected ? selected.name : null;
 }
+export const displayTimeOfPost = (ele) => {
+  let timeDifference;
+  const createdDate = new Date(ele);
+  const currentDate = new Date();
+  // Calculate the time difference in milliseconds
+  timeDifference = currentDate.getTime() - createdDate.getTime();
+  
+  // Function to calculate the time difference in minutes, hours, days, weeks, or years
+  const getTimeDifferenceString = () => {
+    if (timeDifference < 60 * 1000) { // Less than 1 minute
+      return `${Math.floor(timeDifference / 1000)} seconds ago`;
+    } else if (timeDifference < 60 * 60 * 1000) { // Less than 1 hour
+      return `${Math.floor(timeDifference / (60 * 1000))} minutes ago`;
+    } else if (timeDifference < 24 * 60 * 60 * 1000) { // Less than 1 day
+      return `${Math.floor(timeDifference / (60 * 60 * 1000))} hours ago`;
+    } else if (timeDifference < 7 * 24 * 60 * 60 * 1000) { // Less than 1 week
+      const daysAgo = Math.floor(timeDifference / (24 * 60 * 60 * 1000));
+      return daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
+    } else if (timeDifference < 365 * 24 * 60 * 60 * 1000) { // Less than 1 year
+      const weeksAgo = Math.floor(timeDifference / (7 * 24 * 60 * 60 * 1000));
+      return weeksAgo === 1 ? '1 week ago' : `${weeksAgo} weeks ago`;
+    } else { // More than 1 year
+      const yearsAgo = Math.floor(timeDifference / (365 * 24 * 60 * 60 * 1000));
+      return yearsAgo === 1 ? '1 year ago' : `${yearsAgo} years ago`;
+    }
+  };
+  return getTimeDifferenceString();
+}

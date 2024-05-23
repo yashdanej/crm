@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { selectedItem } from '../../../../utils/Utils';
+import { displayTimeOfPost, selectedItem } from '../../../../utils/Utils';
 import { useSelector } from 'react-redux';
 
 const CardKanban = ({item, status, setStatus}) => {
@@ -21,11 +21,11 @@ const CardKanban = ({item, status, setStatus}) => {
         </div>
         <div className='flex justify-between'>
             <p className='font-bold'>Last Contact:</p>
-            <p className='font-semibold text-gray-700'>{item.lastcontact}</p>
+            <p className='font-semibold text-gray-700'>{displayTimeOfPost(item.lastcontact)}</p>
         </div>
         <div className='flex justify-between'>
             <p className='font-bold'>Created:</p>
-            <p className='font-semibold text-gray-700'>{item.dateadded}</p>
+            <p className='font-semibold text-gray-700'>{displayTimeOfPost(item.dateadded)}</p>
         </div>
         <div className='flex justify-between mb-2'>
             <p className='font-bold'>Lead Value:</p>

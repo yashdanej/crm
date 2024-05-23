@@ -15,9 +15,11 @@ app.use(cookieParser());
 
 const authRouter = require("./routes/auth/authRouter");
 const leadRouter = require("./routes/lead/leadRouter");
+const agentRouter = require("./routes/agents/agentRouter");
 
 app.use('/api/v1', authRouter);
 app.use('/api/v1/lead', leadRouter);
+app.use('/api/v1/agents', agentRouter);
 app.use('/api/v1/zipcode', createProxyMiddleware({
     target: 'http://www.postalpincode.in',
     changeOrigin: true,

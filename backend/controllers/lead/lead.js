@@ -577,7 +577,7 @@ exports.AddStatus = async (req, res, next) => {
             console.log("name, statusorder, color", name, statusorder, color); // Check if these values are correct
 
             await new Promise((resolve, reject) => {
-                db.query("INSERT INTO tblleads_status (name, statusorder, color) VALUES (?, ?, ?)", [name, statusorder, color], (err, result) => {
+                db.query("INSERT INTO tblleads_status (name, statusorder, color, addedfrom) VALUES (?, ?, ?, ?)", [name, statusorder, color, getSelectedUser.id], (err, result) => {
                     if (err) {
                         console.error("Error in INSERT query:", err);
                         reject(err);
@@ -616,7 +616,7 @@ exports.AddSource = async (req, res, next) => {
         }else{
             const { name } = req.body;
             await new Promise((resolve, reject) => {
-                db.query("insert into tblleads_sources set ?", {name}, (err, result) => {
+                db.query("insert into tblleads_sources set ?", {name, addedfrom: getSelectedUser.id}, (err, result) => {
                     if (err) {
                         console.error("Error getSelectedUser:", err);
                         reject(err);
@@ -821,7 +821,21 @@ exports.BulkAction = async (req, res, next) => {
 // ..Create
 exports.AddProfileOfClient = async (req, res, next) => {
     try {
-        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
         const { name } = req.body;
         const existClientProfile = await new Promise((resolve, reject) => {
             db.query("select * from profileclient where name = ?", [name], (err, result) => {
@@ -858,7 +872,7 @@ exports.AddProfileOfClient = async (req, res, next) => {
         }
     } catch (error) {
         console.error("Error in AddProfileOfClient:", error);
-        return res.status(400).json({ success: false, message: "Error in bulkAction", error: error });
+        return res.status(400).json({ success: false, message: "Error in AddProfileOfClient", error: error });
     }
 }
 
@@ -914,7 +928,21 @@ exports.GetProfileOfClient = async (req, res, next) => {
 // Update Client Profile
 exports.UpdateProfileOfClient = async (req, res, next) => {
     try {
-        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
         const { name } = req.body;
         const id = req.params.id;
         const existClientProfile = await new Promise((resolve, reject) => {
@@ -960,6 +988,21 @@ exports.UpdateProfileOfClient = async (req, res, next) => {
 // Delete Client Profile
 exports.DeleteProfileOfClient = async (req, res, next) => {
     try {
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
         const id = req.params.id;
         if(!id){
             return res.status(400).json({ success: false, message: "No id provided" });
@@ -976,9 +1019,9 @@ exports.DeleteProfileOfClient = async (req, res, next) => {
         });
         console.log("deleteProfileOfClient", deleteProfileOfClient);
         if(deleteProfileOfClient.affectedRows == 1){
-            return res.status(200).json({ success: true, message: "Type of work deleted successfully" })
+            return res.status(200).json({ success: true, message: "Prfile client deleted successfully" })
         }else{
-            return res.status(200).json({ success: true, message: "No type of work found" });
+            return res.status(200).json({ success: true, message: "No profile client found" });
         }
     } catch (error) {
         console.error("Error DeleteProfileOfClient:", error);
@@ -993,7 +1036,21 @@ exports.DeleteProfileOfClient = async (req, res, next) => {
 // ..Create
 exports.AddTypeOfWork = async (req, res, next) => {
     try {
-        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
         const { name } = req.body;
         const existTypeOfWork = await new Promise((resolve, reject) => {
             db.query("select * from typeofwork where name = ?", [name], (err, result) => {
@@ -1086,7 +1143,21 @@ exports.GetTypeOfWork = async (req, res, next) => {
 // Update Client Profile
 exports.UpdateTypeOfWork = async (req, res, next) => {
     try {
-        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
         const { name } = req.body;
         const id = req.params.id;
         const existTypeOfWork = await new Promise((resolve, reject) => {
@@ -1131,6 +1202,21 @@ exports.UpdateTypeOfWork = async (req, res, next) => {
 // Delete Client Profile
 exports.DeleteTypeOfWork = async (req, res, next) => {
     try {
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
         const id = req.params.id;
         if(!id){
             return res.status(400).json({ success: false, message: "No id provided" });

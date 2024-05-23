@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Filter from './Filter'
 import DropDown from './DropDown'
-import SnackbarWithDecorators, { api, selectedItem } from '../../../utils/Utils'
+import SnackbarWithDecorators, { api, displayTimeOfPost, selectedItem } from '../../../utils/Utils'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAllLeads, getLead, leadIdSelect } from '../../../store/slices/LeadSlices'
 import Chip from '@mui/material/Chip';
@@ -181,10 +181,10 @@ const Table = ({ handleOpenView, getLeads, handleClickOpen }) => {
                                         <span className="text-[13px] font-medium text-gray-400">{item.priority}</span>
                                     </td>
                                     <td className="py-2 px-4 border-b border-b-gray-50">
-                                        <span className="text-[13px] font-medium text-gray-400">{item.lastcontact}</span>
+                                        <span className="text-[13px] font-medium text-gray-400">{displayTimeOfPost(item.lastcontact)}</span>
                                     </td>
                                     <td className="py-2 px-4 border-b border-b-gray-50">
-                                        <span className="text-[13px] font-medium text-gray-400">{item.dateadded}</span>
+                                        <span className="text-[13px] font-medium text-gray-400">{displayTimeOfPost(item.dateadded)}</span>
                                     </td>
                                 </tr>
                             )

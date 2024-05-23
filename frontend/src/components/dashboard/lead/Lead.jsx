@@ -56,6 +56,9 @@ const Lead = () => {
     is_public: 0
   });
   const kanbanView = useSelector(state => state.leads.kanbanView);
+  
+  let getUser = JSON.parse(localStorage.getItem("user"));
+  console.log("getUser", getUser);
 
   const dispatch = useDispatch();
 
@@ -164,23 +167,17 @@ const Lead = () => {
 }
 const countriesData = useSelector((state) => state.countries.countriesData);
 
+  const isFieldEmpty = (field) => field === "" || field === null || field === undefined;
   const onHandleNewLeadClick = () => {
     console.log("lead", lead);
     if (
-      lead.name === "" ||
-      lead.status === null ||
-      lead.status === undefined ||
-      lead.source === null ||
-      lead.source === undefined ||
-      lead.assigned === null ||
-      lead.assigned === undefined ||
-      lead.address === "" ||
-      lead.position === "" ||
-      lead.email === "" ||
-      lead.phonenumber === "" ||
-      lead.zip === "" ||
-      lead.lead_value === null ||
-      lead.default_language === ""
+      (getUser.role === 1 && (isFieldEmpty(lead.email) || isFieldEmpty(lead.company))) ||
+      isFieldEmpty(lead.name) ||
+      isFieldEmpty(lead.status) ||
+      isFieldEmpty(lead.source) ||
+      isFieldEmpty(lead.assigned) ||
+      isFieldEmpty(lead.phonenumber) ||
+      isFieldEmpty(lead.description)
     ) {
       setSnackbarProperty(prevState => ({
         ...prevState,
@@ -265,7 +262,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
   useEffect(() => {
     getLeads(); // Fetch leads whenever statusQuery, sourceQuery, or assignedQuery changes
   }, [statusQuery, sourceQuery, assignedQuery]);
-
+  
   return (
     <div className="p-6">
       {
