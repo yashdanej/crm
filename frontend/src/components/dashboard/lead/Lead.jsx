@@ -8,12 +8,14 @@ import Table from './Table';
 import Filter from './Filter';
 import DropDown from './DropDown';
 import NewLeadModal from './NewLeadModal';
-import SnackbarWithDecorators, { api } from '../../../utils/Utils';
+import SnackbarWithDecorators, { BACKEND, api } from '../../../utils/Utils';
 import { getAllLeads, getAssigned, getLead, getSource, getStatus, kanbanLeads, kanbanViewFn } from '../../../store/slices/LeadSlices';
 import { useDispatch, useSelector } from 'react-redux';
 import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
 import ArrowCircleLeftOutlinedIcon from '@mui/icons-material/ArrowCircleLeftOutlined';
 import LeadsKanaban from './kanbanBoard/LeadsKanaban';
+import { getUserNotification } from '../../../store/slices/Notification';
+import io from 'socket.io-client';
 
 const Lead = () => {
   const leadData = useSelector((state) => state.leads.leadData);
@@ -56,10 +58,15 @@ const Lead = () => {
     is_public: 0
   });
   const kanbanView = useSelector(state => state.leads.kanbanView);
-  
+  const socket = useSelector(state => state.notification.socket);
   let getUser = JSON.parse(localStorage.getItem("user"));
+  useEffect(() => {
+    if (socket) {
+      socket.emit("setup", getUser);
+    }
+  }, [socket, getUser]);
+  
   console.log("getUser", getUser);
-
   const dispatch = useDispatch();
 
   const handleCloseView = () => {
@@ -194,6 +201,18 @@ const countriesData = useSelector((state) => state.countries.countriesData);
         .then((res) => {
           console.log("res from newLead", res);
           handleClose();
+          api(`/notification/addnotification/${lead.assigned}`, "post", {type: "leadassign"}, false, true)
+            .then((res) => {
+              if (socket) {
+                socket.emit("newnotification", res.data.data);
+              }
+            })
+            .catch((err) => {
+              console.log("err from newLead", err);
+            })
+            .finally(() => {
+              console.log("Completed");
+            });
           getLeads();
           setSnackbarProperty(prevState => ({
             ...prevState,
@@ -259,6 +278,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
     getLeadsByStatus();
   }, []);
 
+  
   useEffect(() => {
     getLeads(); // Fetch leads whenever statusQuery, sourceQuery, or assignedQuery changes
   }, [statusQuery, sourceQuery, assignedQuery]);

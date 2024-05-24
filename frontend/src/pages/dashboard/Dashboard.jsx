@@ -7,6 +7,9 @@ import { logout } from '../../store/slices/UserSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import Profile from './Profile';
+import { MenuPopupState, SimpleBadge, api } from '../../utils/Utils';
+import { getUserNotification } from '../../store/slices/Notification';
+import { MenuPopup } from './MenuPopup';
 
 const Dashboard = ({children}) => {
   const [openSidebarToggle, setOpenSidebarToggle] = useState(false);
@@ -135,7 +138,7 @@ const Dashboard = ({children}) => {
     !isLoggedIn && navigate('/login');
   }
     let getUser = JSON.parse(localStorage.getItem("user"));
-    console.log("getUser", getUser);
+
   return (
     <div className=''>
       <div className="fixed left-0 top-0 w-64 h-full bg-gray-900 p-4 z-50 sidebar-menu transition-transform">
@@ -303,112 +306,8 @@ const Dashboard = ({children}) => {
                         </div>
                     </div>
                 </li>
-                <li className="dropdown">
-                    <button type="button" className="dropdown-toggle text-gray-400 w-8 h-8 rounded flex items-center justify-center hover:bg-gray-50 hover:text-gray-600">
-                        <i className="ri-notification-3-line"></i>
-                    </button>
-                    <div className="dropdown-menu shadow-md shadow-black/5 z-30 hidden max-w-xs w-full bg-white rounded-md border border-gray-100">
-                        <div className="flex items-center px-4 pt-4 border-b border-b-gray-100 notification-tab">
-                            <button type="button" data-tab="notification" data-tab-page="notifications" className="text-gray-400 font-medium text-[13px] hover:text-gray-600 border-b-2 border-b-transparent mr-4 pb-1 active">Notifications</button>
-                            <button type="button" data-tab="notification" data-tab-page="messages" className="text-gray-400 font-medium text-[13px] hover:text-gray-600 border-b-2 border-b-transparent mr-4 pb-1">Messages</button>
-                        </div>
-                        <div className="my-2">
-                            <ul className="max-h-64 overflow-y-auto" data-tab-for="notification" data-page="notifications">
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">New order</div>
-                                            <div className="text-[11px] text-gray-400">from a user</div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">New order</div>
-                                            <div className="text-[11px] text-gray-400">from a user</div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">New order</div>
-                                            <div className="text-[11px] text-gray-400">from a user</div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">New order</div>
-                                            <div className="text-[11px] text-gray-400">from a user</div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">New order</div>
-                                            <div className="text-[11px] text-gray-400">from a user</div>
-                                        </div>
-                                    </a>
-                                </li>
-                            </ul>
-                            <ul className="max-h-64 overflow-y-auto hidden" data-tab-for="notification" data-page="messages">
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">John Doe</div>
-                                            <div className="text-[11px] text-gray-400">Hello there!</div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">John Doe</div>
-                                            <div className="text-[11px] text-gray-400">Hello there!</div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">John Doe</div>
-                                            <div className="text-[11px] text-gray-400">Hello there!</div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">John Doe</div>
-                                            <div className="text-[11px] text-gray-400">Hello there!</div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="py-2 px-4 flex items-center hover:bg-gray-50 group">
-                                        <img src="https://placehold.co/32x32" alt="" className="w-8 h-8 rounded block object-cover align-middle"/>
-                                        <div className="ml-2">
-                                            <div className="text-[13px] text-gray-600 font-medium truncate group-hover:text-blue-500">John Doe</div>
-                                            <div className="text-[11px] text-gray-400">Hello there!</div>
-                                        </div>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                <li>
+                    <MenuPopup />
                 </li>
                 <Profile handleLogout={handleLogout} />
             </ul>

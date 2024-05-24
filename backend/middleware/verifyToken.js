@@ -3,9 +3,7 @@ const jwt = require('jsonwebtoken');
 exports.verifyToken = (req, res, next, verifyUser=false) => {
     try {
         return new Promise((resolve, reject) => {
-            console.log('req.headers.cookie', req.headers.cookie);
             let token;
-            console.log('req.cookies', req.cookies);
             if(req.cookies){
                 token = req.cookies.access_token;
             }else{

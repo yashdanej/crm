@@ -3,9 +3,15 @@ import * as React from 'react';
 import Button from '@mui/joy/Button';
 import Snackbar from '@mui/joy/Snackbar';
 import PlaylistAddCheckCircleRoundedIcon from '@mui/icons-material/PlaylistAddCheckCircleRounded';
+import Badge from '@mui/material/Badge';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+
+export const BACKEND_URL = "http://localhost:8000/api/v1";
+export const BACKEND = "http://localhost:8000";
+
 export const api = async (pathname, method, body, formData=false, includeCredentials = false) => {
     const axiosConfig = {
-        url: `http://localhost:8000/api/v1${pathname}`,
+        url: `${BACKEND_URL}${pathname}`,
         method: method,
     };
     if(body){
@@ -106,4 +112,14 @@ export const displayTimeOfPost = (ele) => {
     }
   };
   return getTimeDifferenceString();
+}
+
+
+
+export const SimpleBadge = ({length}) => {
+  return (
+    <Badge className="mr-5" badgeContent={length} color="primary">
+      <NotificationsIcon color="action" />
+    </Badge>
+  );
 }

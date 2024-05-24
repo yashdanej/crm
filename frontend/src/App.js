@@ -7,6 +7,9 @@ import { useEffect } from 'react';
 import Lead from './components/dashboard/lead/Lead';
 import { logout } from './store/slices/UserSlice';
 import Users from './components/dashboard/users/Users';
+import { BACKEND } from './utils/Utils';
+import io from 'socket.io-client';
+import { getUserNotification, setupSocket } from './store/slices/Notification';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -16,6 +19,25 @@ function App() {
   useEffect(() => {
     !isLoggedIn && navigate("/login");
   }, [isLoggedIn]);
+  // socket
+  let getUser = JSON.parse(localStorage.getItem("user"));
+  useEffect(() => {
+    const socketIo = io(BACKEND, {
+      withCredentials: true,
+    });
+    socketIo.emit("setup", getUser);
+    socketIo.on("connection", () => {
+      console.log("connected socket");
+    });
+    socketIo.on("notification received", (notification) => {
+      console.log("notification", notification);
+      dispatch(getUserNotification([notification]));
+    });
+    dispatch(setupSocket(socketIo));
+    return () => {
+      socketIo.disconnect();
+    }
+  }, [getUser, dispatch]);
   return (
     <div>
       <Routes>
