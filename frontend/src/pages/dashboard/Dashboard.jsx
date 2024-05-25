@@ -10,9 +10,11 @@ import Profile from './Profile';
 import { MenuPopupState, SimpleBadge, api } from '../../utils/Utils';
 import { getUserNotification } from '../../store/slices/Notification';
 import { MenuPopup } from './MenuPopup';
+import useDropdown from '../../components/useDropdown';
 
 const Dashboard = ({children}) => {
   const [openSidebarToggle, setOpenSidebarToggle] = useState(false);
+  const { openStates, toggleDropdown } = useDropdown();
   const isLoggedIn = useSelector(state => state.isLoggedIn);
     const dispatch = useDispatch();
   useEffect(() => {
@@ -139,6 +141,29 @@ const Dashboard = ({children}) => {
   }
     let getUser = JSON.parse(localStorage.getItem("user"));
 
+    const menu = [
+      {
+        title: "Setup",
+        items: [
+          { href: '/setup/status', label: 'Status' },
+          { href: '/setup/sources', label: 'Sources' },
+          { href: '/setup/agents', label: 'Agents' },
+          { href: '/setup/typeofwork', label: 'Type Of Work' },
+          { href: '/setup/profileofclient', label: 'Profile Of Client' },
+        ]
+      },
+      {
+        title: "Orders",
+        items: [
+          { href: '#', label: 'Agents' },
+          { href: '#', label: 'Status' },
+          { href: '#', label: 'Sources' },
+          { href: '#', label: 'Type Of Work' },
+          { href: '#', label: 'Profile Of Client' },
+        ]
+      }
+    ]
+
   return (
     <div className=''>
       <div className="fixed left-0 top-0 w-64 h-full bg-gray-900 p-4 z-50 sidebar-menu transition-transform">
@@ -163,36 +188,36 @@ const Dashboard = ({children}) => {
                     <span className="text-sm">Leads</span>
                 </Link>
             </li>
-            <li className="mb-1 group">
-                <a href="#" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100 sidebar-dropdown-toggle">
-                    <i className="ri-instance-line mr-3 text-lg"></i>
-                    <span className="text-sm">Orders</span>
-                    <i className="ri-arrow-right-s-line ml-auto group-[.selected]:rotate-90"></i>
-                </a>
-                <ul className="pl-7 mt-2 hidden group-[.selected]:block">
-                    <li className="mb-4">
-                        <a href="#" className="text-gray-300 text-sm flex items-center hover:text-gray-100 before:contents-[''] before:w-1 before:h-1 before:rounded-full before:bg-gray-300 before:mr-3">Active order</a>
-                    </li> 
-                    <li className="mb-4">
-                        <a href="#" className="text-gray-300 text-sm flex items-center hover:text-gray-100 before:contents-[''] before:w-1 before:h-1 before:rounded-full before:bg-gray-300 before:mr-3">Completed order</a>
-                    </li> 
-                    <li className="mb-4">
-                        <a href="#" className="text-gray-300 text-sm flex items-center hover:text-gray-100 before:contents-[''] before:w-1 before:h-1 before:rounded-full before:bg-gray-300 before:mr-3">Canceled order</a>
-                    </li> 
+              {menu.map((item, index) => {
+                return (
+                  <li className="mb-1 group" key={index}>
+                    <button
+                      onClick={() => toggleDropdown(index)}
+                      className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md"
+                    >
+                      <i className="ri-instance-line mr-3 text-lg"></i>
+                      <span className="text-sm">{item.title}</span>
+                      <i
+                        className={`ri-arrow-right-s-line ml-auto transition-transform ${
+                          openStates[index] ? 'rotate-90' : ''
+                        }`}
+                      ></i>
+                    </button>
+                    <ul className={`pl-7 mt-2 ${openStates[index] ? 'block' : 'hidden'}`}>
+                      {item.items.map((subItem, subIndex) => (
+                        <li key=  {subIndex} className="mb-4">
+                          <Link
+                            to={subItem.href}
+                            className="text-gray-300 text-sm flex items-center hover:text-gray-100 before:content-[''] before:w-1 before:h-1 before:rounded-full before:bg-gray-300 before:mr-3"
+                            >
+                            {subItem.label}
+                      </Link>
+                      </li>
+                  ))}
                 </ul>
-            </li>
-            <li className="mb-1 group">
-                <a href="#" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100 sidebar-dropdown-toggle">
-                    <i className="ri-flashlight-line mr-3 text-lg"></i>
-                    <span className="text-sm">Services</span>
-                    <i className="ri-arrow-right-s-line ml-auto group-[.selected]:rotate-90"></i>
-                </a>
-                <ul className="pl-7 mt-2 hidden group-[.selected]:block">
-                    <li className="mb-4">
-                        <a href="#" className="text-gray-300 text-sm flex items-center hover:text-gray-100 before:contents-[''] before:w-1 before:h-1 before:rounded-full before:bg-gray-300 before:mr-3">Manage services</a>
-                    </li>
-                </ul>
-            </li>
+              </li>
+            );
+          })}
             <li className="mb-1 group">
                 <a href="#" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
                     <i className="ri-settings-2-line mr-3 text-lg"></i>

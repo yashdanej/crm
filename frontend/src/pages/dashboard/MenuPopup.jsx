@@ -30,7 +30,7 @@ export function MenuPopup() {
     });
     
   }, [dispatch]);
-  const cli = () => {
+  const Push = () => {
     console.log("hello 222-----------");
     addNotification({
       title: "New notification received",
@@ -46,7 +46,7 @@ export function MenuPopup() {
         console.log("notification received", notification);
         console.log("in2", notification);
         dispatch(getUserNotification(notification));
-        cli();
+        Push();
         let audio = new Audio("/notification.wav")
         try {
           const start = () => {

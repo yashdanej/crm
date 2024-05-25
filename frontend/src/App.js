@@ -11,6 +11,11 @@ import { BACKEND } from './utils/Utils';
 import io from 'socket.io-client';
 import { getUserNotification, setupSocket } from './store/slices/Notification';
 import addNotification from "react-push-notification";
+import Status from './components/dashboard/setup/status/Status';
+import Sources from './components/dashboard/setup/sources/Sources';
+import Agents from './components/dashboard/setup/agents/Agents';
+import TypeOfWork from './components/dashboard/setup/typeofwork/TypeOfWork';
+import ProfileOfClient from './components/dashboard/setup/ProfileOfClient.jsx/ProfileOfClient';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -45,6 +50,11 @@ function App() {
         <Route exact path="/signup" element={<Auth path="signup" />} />
         <Route exact path="/superadmin/users" element={<Dashboard><Users /></Dashboard>} />
         <Route exact path="/admin/leads" element={<Dashboard><Lead /></Dashboard>} />
+        <Route exact path="/setup/status" element={<Dashboard><Status /></Dashboard>} />
+        <Route exact path="/setup/sources" element={<Dashboard><Sources /></Dashboard>} />
+        <Route exact path="/setup/agents" element={<Dashboard><Agents /></Dashboard>} />
+        <Route exact path="/setup/typeofwork" element={<Dashboard><TypeOfWork /></Dashboard>} />
+        <Route exact path="/setup/profileofclient" element={<Dashboard><ProfileOfClient /></Dashboard>} />
       </Routes>
     </div>
   );
