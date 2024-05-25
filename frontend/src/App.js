@@ -15,9 +15,11 @@ function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
+  console.log("location", location);
   console.log('isLoggedIn', isLoggedIn);
   useEffect(() => {
-    !isLoggedIn && navigate("/login");
+      !isLoggedIn ? navigate("/login"): navigate(location.pathname);
   }, [isLoggedIn]);
   // socket
   let getUser = JSON.parse(localStorage.getItem("user"));
@@ -29,15 +31,11 @@ function App() {
     socketIo.on("connection", () => {
       console.log("connected socket");
     });
-    socketIo.on("notification received", (notification) => {
-      console.log("notification", notification);
-      dispatch(getUserNotification([notification]));
-    });
     dispatch(setupSocket(socketIo));
     return () => {
       socketIo.disconnect();
     }
-  }, [getUser, dispatch]);
+  }, [dispatch, getUser]);
   return (
     <div>
       <Routes>

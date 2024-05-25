@@ -12,6 +12,8 @@ import io from 'socket.io-client';
 import { useState } from 'react';
 
 export function MenuPopup() {
+  const notification = useSelector(state => state.notification.notification);
+  const assignedData = useSelector(state => state.assigned.assignedData);
   const socket = useSelector(state => state.notification.socket);
   let getUser = JSON.parse(localStorage.getItem("user"));
   const dispatch = useDispatch();
@@ -24,16 +26,23 @@ export function MenuPopup() {
     .catch((err) => {
       console.log("err in notification", err);
     });
-    if (socket) {
-      socket.on("notification received", (notification) => {
-        console.log();
-        dispatch(getUserNotification(notification));
-      });
-    }
-  }, [socket, dispatch, getUser]);
-  const notification = useSelector(state => state.notification.notification);
-  const assignedData = useSelector(state => state.assigned.assignedData);
+    
+  }, [dispatch]);
 
+  useEffect(() => {
+    if (socket) {
+      const handleNotification = (notification) => {
+        console.log("notification received", notification);
+        dispatch(getUserNotification(notification));
+      };
+  
+      socket.on("notification received", handleNotification);
+  
+      return () => {
+        socket.off("notification received", handleNotification);
+      };
+    }
+  }, [socket, dispatch])
   
   return (
     <PopupState variant="popover" popupId="demo-popup-menu">
