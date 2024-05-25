@@ -35,22 +35,22 @@ const TypeOfWorkTable = () => {
     console.log("assignedData", assignedData);
   return (
     <div className='setup w-full h-[70vh] overflow-auto'>
-        <table class="table-fill">
+        <table className="table-fill">
             <thead>
                 <tr>
-                    <th class="text-left">ID</th>
-                    <th class="text-left">NAME</th>
-                    <th class="text-left">ADDED BY</th>
+                    <th className="text-left">ID</th>
+                    <th className="text-left">NAME</th>
+                    <th className="text-left">ADDED BY</th>
                 </tr>
             </thead>
-            <tbody class="table-hover">
+            <tbody className="table-hover">
                 {
                     TypeOfWorkData?.map((item, index) => {
                         return (
                             <tr key={item.id}>
-                                <td class="text-left">{item.id}</td>
-                                <td class="text-left">{item.name}</td>
-                                <td class="text-left">{assignedData?.find(option => option.id === item.addedFrom)?.full_name}</td>
+                                <td className="text-left">{item.id}</td>
+                                <td className="text-left">{item.name}</td>
+                                <td className="text-left">{assignedData?.find(option => option.id === item.addedFrom)?.full_name}</td>
                             </tr>
                         )
                     })

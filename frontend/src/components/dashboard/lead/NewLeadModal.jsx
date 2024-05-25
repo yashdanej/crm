@@ -247,7 +247,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
                       <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Status" />
                         {
                           getUser.role !== 1 &&
-                          <button onClick={() => {setOpenS(true);setFrom("Status")}} class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
+                          <button onClick={() => {setOpenS(true);setFrom("Status")}} className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
                             <ControlPointDuplicateIcon/>
                             
                           </button>
@@ -263,7 +263,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
                       <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Source" />
                       {
                           getUser.role !== 1 &&
-                          <button onClick={() => {setOpenS(true);setFrom("Sources")}} class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
+                          <button onClick={() => {setOpenS(true);setFrom("Sources")}} className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
                             <ControlPointDuplicateIcon/>
                           </button>
                         }
@@ -617,9 +617,9 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
         <div className='p-10'>
           <p className='text-gray-500 font-bold text-xl'>Bulk Action</p>
           <hr className='my-6' />
-          <div class="flex items-center mb-4">
-              <input onChange={(e) => handleSelectLost(e)} checked={lost} id="default-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
-              <label for="default-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Mark as lost</label>
+          <div className="flex items-center mb-4">
+              <input onChange={(e) => handleSelectLost(e)} checked={lost} id="default-checkbox" type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+              <label for="default-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Mark as lost</label>
           </div>
           <div className="mb-4">
           <label htmlFor="lastcontact-datepicker" className="block text-sm font-medium text-gray-700">Last Contact</label>
