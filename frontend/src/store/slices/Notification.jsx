@@ -9,10 +9,10 @@ const notificationSlice = createSlice({
     reducers: {
         getUserNotification(state, action){
             console.log("...state, action.payload", state.notification);
-            if(state.notification.length === 0){
+            if(state?.notification?.length === 0 || state.notification === undefined){
                 state.notification = action.payload;
             }else{
-                state.notification.push(action.payload);
+                state.notification?.push(action.payload);
             }
             console.log("state, action.payload", state.notification);
         },

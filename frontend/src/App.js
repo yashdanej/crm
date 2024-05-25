@@ -10,6 +10,7 @@ import Users from './components/dashboard/users/Users';
 import { BACKEND } from './utils/Utils';
 import io from 'socket.io-client';
 import { getUserNotification, setupSocket } from './store/slices/Notification';
+import addNotification from "react-push-notification";
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -19,7 +20,7 @@ function App() {
   console.log("location", location);
   console.log('isLoggedIn', isLoggedIn);
   useEffect(() => {
-      !isLoggedIn ? navigate("/login"): navigate(location.pathname);
+      !isLoggedIn && navigate("/login");
   }, [isLoggedIn]);
   // socket
   let getUser = JSON.parse(localStorage.getItem("user"));
@@ -36,6 +37,7 @@ function App() {
       socketIo.disconnect();
     }
   }, [dispatch, getUser]);
+  
   return (
     <div>
       <Routes>
@@ -46,6 +48,6 @@ function App() {
       </Routes>
     </div>
   );
-}
+} 
 
 export default App;

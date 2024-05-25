@@ -48,12 +48,12 @@ io.on("connection", (socket) => {
     // connecting to socket server
     socket.on("setup", (userData) => {
         console.log("userData", userData);
-        socket.join(userData.id);
+        socket.join(userData?.id);
         socket.emit("connected");
     });
 
     socket.on("newnotification", (newNotificationReceived) => {
         console.log("newNotificationReceived", newNotificationReceived);
-        socket.in(newNotificationReceived.receiveuser_id).emit("notification received", newNotificationReceived);
+        socket.in(newNotificationReceived?.receiveuser_id).emit("notification received", newNotificationReceived);
     })
 });

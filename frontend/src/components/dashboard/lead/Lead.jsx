@@ -16,6 +16,7 @@ import ArrowCircleLeftOutlinedIcon from '@mui/icons-material/ArrowCircleLeftOutl
 import LeadsKanaban from './kanbanBoard/LeadsKanaban';
 import { getUserNotification } from '../../../store/slices/Notification';
 import io from 'socket.io-client';
+import addNotification from "react-push-notification";
 
 const Lead = () => {
   const leadData = useSelector((state) => state.leads.leadData);
@@ -282,7 +283,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
   useEffect(() => {
     getLeads(); // Fetch leads whenever statusQuery, sourceQuery, or assignedQuery changes
   }, [statusQuery, sourceQuery, assignedQuery]);
-  
+ 
   return (
     <div className="p-6">
       {
