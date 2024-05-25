@@ -34,7 +34,6 @@ const StatusTable = () => {
                     <th className="text-left">NAME</th>
                     <th className="text-left">COLOR</th>
                     <th className="text-left">ADDED BY</th>
-                    <th className="text-left">DELETE</th>
                 </tr>
             </thead>
             <tbody className="table-hover">
@@ -46,12 +45,10 @@ const StatusTable = () => {
                                 <td className="text-left">{item.name}</td>
                                 <td className="text-left">{item.color}</td>
                                 <td className="text-left">{assignedData?.find(option => option.id === item.addedfrom)?.full_name}</td>
-                                <td className="text-left">Delete</td>
                             </tr>
                         )
                     })
                 }
-                
             </tbody>
         </table>
     </div>

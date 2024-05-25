@@ -13,6 +13,15 @@ const AgentsTable = () => {
         text: '',
         color: ''
     });
+    const getAllAgents = () => {
+        api("/agents/getallagents", "get", false, false, true)
+        .then((res) => {
+            dispatch(getAgents(res.data.data));
+        })
+        .catch((err) => {
+            console.log("error in getallagents", err);
+        })
+    }
     const dispatch = useDispatch();
     useEffect(() => {
         api("/lead/getusers", "get", false, false, true)
@@ -22,17 +31,20 @@ const AgentsTable = () => {
         .catch((err) => {
             console.log("error in fetchAssigned", err);
         })
-        api("/agents/getallagents", "get", false, false, true)
-        .then((res) => {
-            dispatch(getAgents(res.data.data));
-        })
-        .catch((err) => {
-            console.log("error in getallagents", err);
-        })
     }, []);
     const assignedData = useSelector(state => state.assigned.assignedData);
     const agentsData = useSelector(state => state.setup.agents);
     console.log("assignedData", assignedData);
+    const handleDelete = (id) => {
+        api(`/agents/deleteagent/${id}`, "delete", false, false, true)
+        .then((res) => {
+            console.log("res in delete", res);
+            getAllAgents();
+        })
+        .catch((err) => {
+            console.log("err in delete", err);
+        })
+    }
   return (
     <div className='setup w-full h-[70vh] overflow-auto'>
         <table className="table-fill">
@@ -41,6 +53,7 @@ const AgentsTable = () => {
                     <th className="text-left">ID</th>
                     <th className="text-left">NAME</th>
                     <th className="text-left">ADDED BY</th>
+                    <th className="text-left">DELETE</th>
                 </tr>
             </thead>
             <tbody className="table-hover">
@@ -51,6 +64,7 @@ const AgentsTable = () => {
                                 <td className="text-left">{item.id}</td>
                                 <td className="text-left">{item.name}</td>
                                 <td className="text-left">{assignedData?.find(option => option.id === item.addedfrom)?.full_name}</td>
+                                <td className="text-left cursor-pointer" onClick={() => handleDelete(item.id)}>Delete</td>
                             </tr>
                         )
                     })
