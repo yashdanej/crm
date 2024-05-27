@@ -23,9 +23,9 @@ export default function DropDown2({ leadData, lead, setLead, from }) {
         console.log('value', value);
         let selectedOption;
         if(from === "Assigned"){
-            selectedOption = options.find(option => option.full_name === value);
+            selectedOption = options?.find(option => option.full_name === value);
         }else{
-            selectedOption = options.find(option => option.name === value);
+            selectedOption = options?.find(option => option.name === value);
         }
         console.log('selectedOption', selectedOption);
         setLead(prevLead => ({
@@ -38,15 +38,15 @@ export default function DropDown2({ leadData, lead, setLead, from }) {
         console.log('options in', options);
         console.log('leadData', leadData);
         if (from === "Status") {
-            const selected = options.find(option => option.id === lead?.status);
+            const selected = options?.find(option => option.id === lead?.status);
             console.log("selected status", selected);
             return selected ? selected.name : null;
         } else if (from === "Source") {
-            const selected = options.find(option => option.id === lead?.source);
+            const selected = options?.find(option => option.id === lead?.source);
             console.log("selected source", selected);
             return selected ? selected.name : null;
         } else if (from === "Assigned") {
-            const selected = options.find(option => option.id === lead?.assigned);
+            const selected = options?.find(option => option.id === lead?.assigned);
             console.log("selected assigned", selected);
             return selected ? selected.full_name : null;
         }
@@ -58,7 +58,7 @@ export default function DropDown2({ leadData, lead, setLead, from }) {
             id="combo-box-demo"
             name={from}
             onChange={handleChangeStatusSourceAssigned}
-            options={options.map(item => from === "Assigned" ? item.full_name : item.name)}
+            options={options?.map(item => from === "Assigned" ? item.full_name : item.name)}
             value={getSelectedValue()}
             sx={{ width: 300 }}
             renderInput={(params) => <TextField {...params} label={from} />}

@@ -190,9 +190,9 @@ const Dashboard = ({children}) => {
                 </Link>
             </li>
               {getUser?.role !== 1 && menu.map((item, index) => {
-                console.log("item.href", item);
+                console.log('location.pathname.startsWith("/setup")', location.pathname.startsWith("/setup"));
                 return (
-                  <li className={`mb-1 group ${location.pathname === item.href && "active"}`} key={index}>
+                  <li className={`mb-1 group ${location.pathname.startsWith("/setup") && "active"}`} key={index}>
                     <button
                       onClick={() => toggleDropdown(index)}
                       className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md"
@@ -207,7 +207,7 @@ const Dashboard = ({children}) => {
                     </button>
                     <ul className={`pl-7 mt-2 ${openStates[index] ? 'block' : 'hidden'}`}>
                       {item.items.map((subItem, subIndex) => (
-                        <li key=  {subIndex} className="mb-4">
+                        <li key={subIndex} className={`mb-4 ${location.pathname === subItem.href && "active"}`}>
                           <Link
                             to={subItem.href}
                             className="text-gray-300 text-sm flex items-center hover:text-gray-100 before:content-[''] before:w-1 before:h-1 before:rounded-full before:bg-gray-300 before:mr-3"

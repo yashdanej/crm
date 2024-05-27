@@ -65,26 +65,36 @@ export function MenuPopup() {
     }
   }, [socket, dispatch])
   console.log("notification", notification);
+  const onSeenNotification = (id) => {
+    api(`/notification/seen/${id}`, "patch", false, false, true)
+    .then((res) => {
+      console.log("notification passed", res);
+      getNotification();
+    })
+    .catch((err) => {
+      console.log("err in notification", err);
+    })
+  }
   return (
     <>
     <Notifications/>
     <PopupState variant="popover" popupId="demo-popup-menu">
       {(popupState) => (
         <React.Fragment>
-          <Badge className="mr-5 cursor-pointer" badgeContent={notification && notification?.length-1} color="primary" {...bindTrigger(popupState)}>
+          <Badge className="mr-5 cursor-pointer" badgeContent={notification && notification?.length} color="primary" {...bindTrigger(popupState)}>
             <NotificationsIcon color="action" />
           </Badge>
           { notification &&
             notification?.length>0 &&
-          <Menu {...bindMenu(popupState)}>
-            {
-              notification?.map((item, index) => {
-                if(notification?.length - 1 === index) return;
-                return (
-                  <MenuItem key={item.id}>{assignedData.find(option => option.id === item?.senderuser_id)?.full_name} assigned a lead to {assignedData.find(option => option.id === item?.receiveuser_id)?.full_name}</MenuItem>
-                )
-              })
-            }
+            <Menu {...bindMenu(popupState)}>
+            {notification && notification.length > 0 && (
+              notification.map((item) => (
+                <div className="flex menu-item-wrapper" key={item.id}>
+                  <MenuItem>{assignedData.find(option => option.id === item?.senderuser_id)?.full_name} assigned a lead to {assignedData.find(option => option.id === item?.receiveuser_id)?.full_name}</MenuItem>
+                  <input type="radio" onChange={() => onSeenNotification(item.id)} />
+                </div>
+              ))
+            )}
           </Menu>
           }
         </React.Fragment>

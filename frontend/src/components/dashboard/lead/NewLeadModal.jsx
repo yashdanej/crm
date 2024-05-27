@@ -297,7 +297,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
               <p className='text-xs font-semibold mb-1 text-black'>Select Agent*</p>
               <select id="agent" name="agent" value={lead?.agent} onChange={(e) => {changeText(e, setLead, lead)}} className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
                 <option>Agents</option>
-                {agentsData.map(item => (
+                {agentsData?.map(item => (
                   <option key={item.id} value={item.id}>{item.name}</option>
                 ))}
               </select>
