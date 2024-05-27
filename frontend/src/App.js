@@ -34,7 +34,7 @@ function App() {
         navigate("/login");
       }
     } else {
-      if (pathname === "/login" || pathname === "/signup") {
+      if (pathname === "/login" || pathname === "/signup" || pathname === "/") {
         navigate("/admin/leads");
       }
     }
