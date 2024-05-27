@@ -6,7 +6,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const PORT = 8000;
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:3000',  // i am doing this because of cookie request
+    origin: 'http://65.0.30.99:3000',  // i am doing this because of cookie request
     credentials: true,
 }));
 app.use(express.json());
@@ -38,7 +38,7 @@ const server =  app.listen(PORT, () => {
 const io = require("socket.io")(server, {
     pingTimeout: 60000,
     cors: {
-        origin: "http://localhost:3000",
+        origin: "http://65.0.30.99:3000",
         credentials: true
     }
 });
