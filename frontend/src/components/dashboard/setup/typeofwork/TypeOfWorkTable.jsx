@@ -7,7 +7,7 @@ import { getAssigned, getSource } from '../../../../store/slices/LeadSlices';
 import '../table.css';
 import { getTypeOfWork } from '../../../../store/slices/SetupSlices';
 
-const TypeOfWorkTable = () => {
+const TypeOfWorkTable = ({handleEdit}) => {
     const [snackAlert, setSnackAlert] = useState(false); // popup success or error
     const [snackbarProperty, setSnackbarProperty] = useState({ // popup success or error text
         text: '',
@@ -53,6 +53,7 @@ const TypeOfWorkTable = () => {
                     <th className="text-left">ID</th>
                     <th className="text-left">NAME</th>
                     <th className="text-left">ADDED BY</th>
+                    <th className="text-left">EDIT</th>
                     <th className="text-left">DELETE</th>
                 </tr>
             </thead>
@@ -64,6 +65,7 @@ const TypeOfWorkTable = () => {
                                 <td className="text-left">{item.id}</td>
                                 <td className="text-left">{item.name}</td>
                                 <td className="text-left">{assignedData?.find(option => option.id === item.addedFrom)?.full_name}</td>
+                                <td className="text-left cursor-pointer" onClick={() => handleEdit(item.id)}>Edit</td>
                                 <td className="text-left cursor-pointer" onClick={() => handleDelete(item.id)}>Delete</td>
                             </tr>
                         )

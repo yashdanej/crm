@@ -7,7 +7,7 @@ import { getAssigned } from '../../../../store/slices/LeadSlices';
 import '../table.css';
 import { getAgents } from '../../../../store/slices/SetupSlices';
 
-const AgentsTable = () => {
+const AgentsTable = ({handleEdit}) => {
     const [snackAlert, setSnackAlert] = useState(false); // popup success or error
     const [snackbarProperty, setSnackbarProperty] = useState({ // popup success or error text
         text: '',
@@ -45,6 +45,7 @@ const AgentsTable = () => {
             console.log("err in delete", err);
         })
     }
+    
   return (
     <div className='setup w-full h-[70vh] overflow-auto'>
         <table className="table-fill">
@@ -53,6 +54,7 @@ const AgentsTable = () => {
                     <th className="text-left">ID</th>
                     <th className="text-left">NAME</th>
                     <th className="text-left">ADDED BY</th>
+                    <th className="text-left">EDIT</th>
                     <th className="text-left">DELETE</th>
                 </tr>
             </thead>
@@ -64,6 +66,7 @@ const AgentsTable = () => {
                                 <td className="text-left">{item.id}</td>
                                 <td className="text-left">{item.name}</td>
                                 <td className="text-left">{assignedData?.find(option => option.id === item.addedfrom)?.full_name}</td>
+                                <td className="text-left cursor-pointer" onClick={() => handleEdit(item.id)}>Edit</td>
                                 <td className="text-left cursor-pointer" onClick={() => handleDelete(item.id)}>Delete</td>
                             </tr>
                         )

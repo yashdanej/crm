@@ -10,7 +10,6 @@ const Tags = ({ data, onRemove }) => {
 };
 
 export default function InputTags({ lead, setLead, tagss }) {
-    console.log("leadssssleadssss", lead);
   const [tags, setTags] = useState(tagss ? tagss.split(',') : []);
   const tagRef = useRef();
 

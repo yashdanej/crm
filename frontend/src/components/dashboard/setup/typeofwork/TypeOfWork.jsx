@@ -9,19 +9,35 @@ import { getTypeOfWork } from '../../../../store/slices/SetupSlices';
 const TypeOfWork = () => {
     const [name, setName] = useState("");
     const [err, setErr] = useState("");
+    const [editAgentId, setEditAgentId] = useState(null); // New state for tracking edit
     const handleStatusSubmit = (e) => {
         e.preventDefault();
         if(name.trim() === ""){
             setErr("Please fill out this field.");
             return;
         }
-        api("/lead/addtypeofwork", "post", {name: name}, false, true)
-        .then((res) => {
-            fetchTypeData();
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+        if (editAgentId) {
+            // Update existing agent
+            api(`/lead/updatetypeofwork/${editAgentId}`, "patch", { name: name }, false, true)
+            .then((res) => {
+                setName("");
+                setEditAgentId(null);
+                fetchTypeData();
+            })
+            .catch((err) => {
+                console.log("Error updating agent:", err);
+            });
+        } else {
+            api("/lead/addtypeofwork", "post", {name: name}, false, true)
+            .then((res) => {
+                setName("");
+                fetchTypeData();
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+        }
+        
     }
 
     const dispatch = useDispatch();
@@ -35,7 +51,20 @@ const TypeOfWork = () => {
             console.log("err in fetchTypeData");
         })
     }
-
+    const handleEdit = (id) => {
+        api(`/lead/gettypeofwork/${id}`, "get", false, false, true)
+        .then((res) => {
+            setName(res.data.data[0]?.name);
+            setEditAgentId(id); // Set the ID of the agent being edited
+        })
+        .catch((err) => {
+            console.log("Error in handleEdit", err);
+        })
+    }
+    const cancelEdit = () => {
+        setEditAgentId(null);
+        setName("");
+    }
     useEffect(() => {
         fetchTypeData();
     }, []);
@@ -49,14 +78,20 @@ const TypeOfWork = () => {
                         <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-first-name">
                             Type of work name
                         </label>
-                        <input onChange={(e) => setName(e.target.value)} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" id="grid-first-name" type="text" name='name' placeholder="Jane"/>
+                        <input onChange={(e) => setName(e.target.value)} value={name} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" id="grid-first-name" type="text" name='name' placeholder="Jane"/>
                         <p className="text-red-500 text-xs italic">{err}</p>
                     </div>
-                    <button onClick={handleStatusSubmit} className='px-10 p-4 bg-gray-900 text-white mx-3'>Submit</button>
+                    <button onClick={handleStatusSubmit} className='px-10 p-4 bg-gray-900 text-white mx-3'>{editAgentId?"Update":"Submit"}</button>
+                    {
+                        editAgentId && 
+                        <button onClick={cancelEdit} type="submit" className='px-10 p-4 bg-gray-900 text-white mx-3'>
+                            Cancel Edit
+                        </button>
+                    }
                 </div>
             </form>
             <div className='my-6'>
-                <TypeOfWorkTable/>
+                <TypeOfWorkTable handleEdit={handleEdit} />
             </div>
         </div>
     </div>

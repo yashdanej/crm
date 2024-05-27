@@ -25,6 +25,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import axios from 'axios';
+import { getAgents } from '../../../store/slices/SetupSlices';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -38,7 +39,9 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
     const statusDatas = useSelector(state => state.status.statusData);
     const sourceDatas = useSelector(state => state.source.sourceData);
     const assignedDatas = useSelector(state => state.assigned.assignedData);
-    
+    const typeOfWorkData = useSelector(state => state.setup.typeOfWork);
+    const profileOfClientData = useSelector(state => state.setup.profileOfClient);
+    const agentsData = useSelector(state => state.setup.agents);
     const [lost, setLost] = useState(false);
     const [lastcontact, setLastContact] = useState(null);
     const [is_public, setIs_Public] = useState(false);
@@ -82,7 +85,9 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
           assigned: leadData[0]?.assigned,
           name: leadData[0]?.name,
           address: leadData[0]?.address,
-          position: leadData[0]?.title,
+          profileofclient: profileOfClientData?.find(option => option.id == leadData[0]?.profileofclient)?.id,
+          typeofwork: typeOfWorkData?.find(option => option.id == leadData[0]?.typeofwork)?.id,
+          agent: agentsData?.find(option => option.id == leadData[0]?.agent)?.id,
           tags: leadData[0]?.tags,
           city: leadData[0]?.city,
           email: leadData[0]?.email,
@@ -102,7 +107,6 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
     const statusData = useSelector((state) => state.status.statusData);
     const sourceData = useSelector((state) => state.source.sourceData);
     const assignedData = useSelector((state) => state.assigned.assignedData);
-
    
     let pathname;
     pathname = "/lead/getstatus";
@@ -224,6 +228,18 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
         setLead((prevLead) => ({ ...prevLead, state, city: province, country: country.short_name }));
       }
     };
+    useEffect(() => {
+      const fetchAgentsData = () => {
+        api("/agents/getallagents", "get", false, false, true)
+        .then((res) => {
+            dispatch(getAgents(res.data.data));
+        })
+        .catch((err) => {
+            console.log("err in fetchAgentsData", err);
+        })
+    }
+    fetchAgentsData();
+  }, [])
   return (
     <React.Fragment>
       {
@@ -269,11 +285,24 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
                         }
                     </div>
                 </div>
+                <div></div>
                 <div>
                 <p className='text-xs font-semibold mb-1 text-black'>Assigned*</p>
                     <DropDown2 leadData={leadData[0]} lead={lead} setLead={setLead} from="Assigned" />
                 </div>
             </div>
+            {
+              lead?.source == 3 &&
+            <div>
+              <p className='text-xs font-semibold mb-1 text-black'>Select Agent*</p>
+              <select id="agent" name="agent" value={lead?.agent} onChange={(e) => {changeText(e, setLead, lead)}} className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
+                <option>Agents</option>
+                {agentsData.map(item => (
+                  <option key={item.id} value={item.id}>{item.name}</option>
+                ))}
+              </select>
+            </div>
+            }
             <div>
               <InputTags lead={lead} setLead={setLead} tagss={leadData[0]?.tags} />
             </div>
@@ -290,10 +319,41 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
                 </div>
                 <div className='sm:flex block gap-8'>
                     <div className='w-full'>
-                        <label htmlFor="position" className="mb-2 text-sm text-start text-grey-900">Position (optional)</label>
-                        <input id="position" type="text" value={lead?.position} onChange={(e) => {changeText(e, setLead, lead)}} name="position" placeholder="Enter your position" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
+                        {/* <select name="" id="" >
+                          {
+                            typeOfWorkData.map((item) => {
+                              return (
+                                <option value={item.id}>{item.name}</option>
+                              )
+                            })
+                          }
+                        </select> */}
+                        <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">Type Of Work (optional)</label>
+                        <select id="typeofwork" name="typeofwork" value={lead?.typeofwork} onChange={(e) => {changeText(e, setLead, lead)}} className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
+                          <option>Type Of Work</option>
+                          {typeOfWorkData.map(item => (
+                            <option key={item.id} value={item.id}>{item.name}</option>
+                          ))}
+                        </select>
                     </div>
-                   
+                    <div className='w-full'>
+                        {/* <select name="" id="" >
+                          {
+                            typeOfWorkData.map((item) => {
+                              return (
+                                <option value={item.id}>{item.name}</option>
+                              )
+                            })
+                          }
+                        </select> */}
+                        <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">Profile Of Client (optional)</label>
+                        <select id="profileofclient" name="profileofclient" value={lead?.profileofclient} onChange={(e) => {changeText(e, setLead, lead)}} className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
+                          <option>Profile Of Client</option>
+                          {profileOfClientData.map(item => (
+                            <option key={item.id} value={item.id}>{item.name}</option>
+                          ))}
+                        </select>
+                    </div>
                     <div className='w-full'>
                     <label htmlFor="zip" className="mb-2 text-sm text-start text-grey-900">Zip Code (optional)</label>
                     <input
@@ -498,8 +558,12 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
                     <p className='text-[14px]'>{lead?.name}</p>
                   </div>
                   <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Position</p>
-                    <p className='text-[14px]'>{lead?.position}</p>
+                    <p className='text-[14px] text-slate-800 font-bold'>Type Of Work</p>
+                    <p className='text-[14px]'>{typeOfWorkData?.find(option => option.id == lead?.typeofwork)?.name}</p>
+                  </div>
+                  <div className='my-1'>
+                    <p className='text-[14px] text-slate-800 font-bold'>Profile Of Client</p>
+                    <p className='text-[14px]'>{profileOfClientData?.find(option => option.id == lead?.profileofclient)?.name}</p>
                   </div>
                   <div className='my-1'>
                     <p className='text-[14px] text-slate-800 font-bold'>Email Address</p>

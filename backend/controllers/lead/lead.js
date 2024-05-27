@@ -4,8 +4,8 @@ const querystring = require('querystring');
 const url = require('url');
 
 exports.NewLead = async (req, res, next) => {
-    let { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
-    console.log(status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public);
+    let { status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
+    console.log(status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public);
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         console.log('userAddedFrom', getUser);
@@ -66,7 +66,9 @@ exports.NewLead = async (req, res, next) => {
                 name,
                 address,
                 tags,
-                title: position,
+                profileofclient,
+                typeofwork,
+                agent,
                 city,
                 email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public,
                 addedfrom: getUser,
@@ -352,7 +354,7 @@ exports.StatusChange = async (req, res, next) => {
 
 exports.UpdateLead = async (req, res, next) => {
     const leadId = req.params.id;
-    const { status, source, assigned, name, address, position, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
+    const { status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         const updateFields = [];
@@ -467,9 +469,17 @@ exports.UpdateLead = async (req, res, next) => {
             updateFields.push("address = ?");
             queryParams.push(address);
         }
-        if (position !== undefined) {
-            updateFields.push("title = ?");
-            queryParams.push(position);
+        if (profileofclient !== undefined) {
+            updateFields.push("profileofclient = ?");
+            queryParams.push(profileofclient);
+        }
+        if (typeofwork !== undefined) {
+            updateFields.push("typeofwork = ?");
+            queryParams.push(typeofwork);
+        }
+        if (agent !== undefined) {
+            updateFields.push("agent = ?");
+            queryParams.push(agent);
         }
         if (tags !== undefined) {
             updateFields.push("tags = ?");

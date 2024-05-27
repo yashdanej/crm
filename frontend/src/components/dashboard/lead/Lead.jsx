@@ -42,7 +42,9 @@ const Lead = () => {
     assigned: null,
     name: "",
     address: "",
-    position: "",
+    profileofclient: null,
+    typeofwork: null,
+    agent: null,
     tags: null,
     city: "",
     email: "",
@@ -87,7 +89,9 @@ const Lead = () => {
       assigned: null,
       name: "",
       address: "",
-      position: "",
+      profileofclient: null,
+      typeofwork: null,
+      agent: null,
       tags: null,
       city: "",
       email: "",
@@ -117,7 +121,9 @@ const Lead = () => {
       assigned: null,
       name: "",
       address: "",
-      position: "",
+      profileofclient: null,
+      typeofwork: null,
+      agent: null,
       tags: null,
       city: "",
       email: "",
@@ -194,6 +200,13 @@ const countriesData = useSelector((state) => state.countries.countriesData);
       }));
       setSnackAlert(true);
       return;
+    }else if(lead.source == 3 && (lead.agent == null || lead.agent == "null" || lead.agent == undefined)){
+      setSnackbarProperty(prevState => ({
+        ...prevState,
+        text: "If you select Refference in source then Agent field is required!",
+        color: "danger"
+      }));
+      setSnackAlert(true);
     } else {
       console.log("leadData lead", leadData);
       const pathname = leadData.length > 0 ? `/lead/updatelead/${leadData[0].id}` : "/lead/newlead";

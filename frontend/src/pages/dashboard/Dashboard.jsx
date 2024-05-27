@@ -4,11 +4,11 @@ import Sidebar from '../../components/dashboard/Sidebar'
 import './dashboard.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/slices/UserSlice';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import Profile from './Profile';
 import { MenuPopupState, SimpleBadge, api } from '../../utils/Utils';
-import { getUserNotification } from '../../store/slices/Notification';
+import { getUserNotification, removeNotification } from '../../store/slices/Notification';
 import { MenuPopup } from './MenuPopup';
 import useDropdown from '../../components/useDropdown';
 
@@ -135,6 +135,7 @@ const Dashboard = ({children}) => {
   const navigate = useNavigate();
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(removeNotification());
     Cookies.remove("access_token");
     localStorage.removeItem("user");
     !isLoggedIn && navigate('/login');
@@ -163,7 +164,7 @@ const Dashboard = ({children}) => {
         ]
       }
     ]
-
+    const location = useLocation();
   return (
     <div className=''>
       <div className="fixed left-0 top-0 w-64 h-full bg-gray-900 p-4 z-50 sidebar-menu transition-transform">
@@ -174,7 +175,7 @@ const Dashboard = ({children}) => {
         <ul className="mt-4">
             {
                 getUser?.role === 3 && (
-                    <li className="mb-1 group active">
+                    <li className={`mb-1 group ${location.pathname === "/superadmin/users" && "active"}`}>
                         <Link to="/superadmin/users" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
                             <i className="ri-home-2-line mr-3 text-lg"></i>
                             <span className="text-sm">User</span>
@@ -182,15 +183,16 @@ const Dashboard = ({children}) => {
                     </li>
                 )
             }
-            <li className="mb-1 group active">
+            <li className={`mb-1 group ${location.pathname === "/admin/leads" && "active"}`}>
                 <Link to="/admin/leads" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
                     <i className="ri-home-2-line mr-3 text-lg"></i>
                     <span className="text-sm">Leads</span>
                 </Link>
             </li>
-              {menu.map((item, index) => {
+              {getUser?.role !== 1 && menu.map((item, index) => {
+                console.log("item.href", item);
                 return (
-                  <li className="mb-1 group" key={index}>
+                  <li className={`mb-1 group ${location.pathname === item.href && "active"}`} key={index}>
                     <button
                       onClick={() => toggleDropdown(index)}
                       className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md"
@@ -218,12 +220,12 @@ const Dashboard = ({children}) => {
               </li>
             );
           })}
-            <li className="mb-1 group">
+            {/* <li className="mb-1 group">
                 <a href="#" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
                     <i className="ri-settings-2-line mr-3 text-lg"></i>
                     <span className="text-sm">Settings</span>
                 </a>
-            </li>
+            </li> */}
         </ul>
     </div>
     <div className="fixed top-0 left-0 w-full h-full bg-black/50 z-40 md:hidden sidebar-overlay"></div>

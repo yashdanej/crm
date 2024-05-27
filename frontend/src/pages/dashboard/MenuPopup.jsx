@@ -4,7 +4,7 @@ import MenuItem from '@mui/material/MenuItem';
 import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 import { useDispatch, useSelector } from "react-redux";
 import { BACKEND, BACKEND_URL, api } from '../../utils/Utils';
-import { getUserNotification } from '../../store/slices/Notification';
+import { getUserNotification, removeNotification } from '../../store/slices/Notification';
 import { useEffect } from 'react';
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -19,16 +19,19 @@ export function MenuPopup() {
   const socket = useSelector(state => state.notification.socket);
   let getUser = JSON.parse(localStorage.getItem("user"));
   const dispatch = useDispatch();
-  useEffect(() => {
+  const getNotification = () => {
     api("/notification/getusernotification", "get", false, false, true)
     .then((res) => {
       console.log("res fron notification", res);
+      removeNotification();
       dispatch(getUserNotification(res.data.data));
     })
     .catch((err) => {
       console.log("err in notification", err);
     });
-    
+  }
+  useEffect(() => {
+    getNotification();
   }, [dispatch]);
   const Push = () => {
     console.log("hello 222-----------");
@@ -43,9 +46,7 @@ export function MenuPopup() {
   useEffect(() => {
     if (socket) {
       const handleNotification = (notification) => {
-        console.log("notification received", notification);
-        console.log("in2", notification);
-        dispatch(getUserNotification(notification));
+        getNotification();
         Push();
         let audio = new Audio("/notification.wav")
         try {
@@ -78,8 +79,6 @@ export function MenuPopup() {
           <Menu {...bindMenu(popupState)}>
             {
               notification?.map((item, index) => {
-                console.log("notification?.length", notification?.length);
-                console.log("index", index);
                 if(notification?.length - 1 === index) return;
                 return (
                   <MenuItem key={item.id}>{assignedData.find(option => option.id === item?.senderuser_id)?.full_name} assigned a lead to {assignedData.find(option => option.id === item?.receiveuser_id)?.full_name}</MenuItem>
