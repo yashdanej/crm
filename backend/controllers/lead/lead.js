@@ -2,12 +2,13 @@ const db = require("../../db");
 const { verifyToken } = require("../../middleware/verifyToken");
 const querystring = require('querystring');
 const url = require('url');
+const { SendMail } = require("../utils/sendmail");
 
 exports.NewLead = async (req, res, next) => {
     let { status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
     console.log(status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public);
     try {
-        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const getUser = await verifyToken(req, res, next);
         console.log('userAddedFrom', getUser);
         const userAssigned = await new Promise((resolve, reject) => {
             db.query("select * from users where id = ?", [assigned], (err, result) => {
@@ -71,7 +72,7 @@ exports.NewLead = async (req, res, next) => {
                 agent,
                 city,
                 email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public,
-                addedfrom: getUser,
+                addedfrom: getUser.id,
                 dateadded: new Date(),
                 lastcontact: new Date()
             }, (err, result) => {
@@ -85,9 +86,23 @@ exports.NewLead = async (req, res, next) => {
             });
         });
         console.log('newLead', newLead);
-        if(newLead.affectedRows === 1){
-            return res.status(200).json({ success: true, message: "Lead added successfully" })
-        }else{
+        if (newLead.affectedRows === 1) {
+            if (email) {
+                let data = {
+                    full_name: userAssigned.full_name,
+                    name,
+                    company,
+                    phonenumber,
+                    assigned_by: getUser.full_name
+                };
+                const mailResult = await SendMail(data, email, "lead");
+
+                if (!mailResult.success) {
+                    return res.status(500).json({ success: false, message: "Error sending email" });
+                }
+            }
+            return res.status(200).json({ success: true, message: "Lead added successfully" });
+        } else {
             return res.status(400).json({ success: false, message: "Error NewLead" });
         }
     } catch (error) {

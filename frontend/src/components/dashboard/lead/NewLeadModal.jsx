@@ -372,6 +372,7 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
                 <div className='sm:flex block gap-8'>
                 <div className='w-full'>
                   <label htmlFor="email" className="mb-2 text-sm text-start text-grey-900">Email{getUser.role === 1 ? "*" : " (optional)"}</label>
+                  <span className='text-xs text-red-500'> &nbsp; Recommended for sending mail</span>
                   <input
                     id="email"
                     type="email"

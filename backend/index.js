@@ -18,11 +18,13 @@ const authRouter = require("./routes/auth/authRouter");
 const leadRouter = require("./routes/lead/leadRouter");
 const agentRouter = require("./routes/agents/agentRouter");
 const notificationRouter = require("./routes/notification/notificationRoute");
+const utilRouter = require("./routes/utils/router");
 
 app.use('/api/v1', authRouter);
 app.use('/api/v1/lead', leadRouter);
 app.use('/api/v1/agents', agentRouter);
 app.use('/api/v1/notification', notificationRouter);
+app.use('/api/v1/util', utilRouter);
 
 app.use('/api/v1/zipcode', createProxyMiddleware({
     target: 'http://www.postalpincode.in',
@@ -39,8 +41,8 @@ const server =  app.listen(PORT, () => {
 const io = require("socket.io")(server, {
     pingTimeout: 60000,
     cors: {
-        // origin: "http://localhost:3000",
-        origin: "http://65.0.30.99",
+        origin: "http://localhost:3000",
+        // origin: "http://65.0.30.99",
         credentials: true
     }
 });

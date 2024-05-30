@@ -4,7 +4,7 @@ const leadController = require('../../controllers/lead/lead');
 const { verifyToken } = require('../../middleware/verifyToken');
 
 router
-    .post("/newlead", verifyToken, leadController.NewLead)
+    .post("/newlead", verifyToken, leadController.NewLead) // email, whatsapp
     .get("/getleads", verifyToken, leadController.GetLead)
     .get("/viewlead/:id", verifyToken, leadController.ViewLead)
     .get("/getcountries", verifyToken, leadController.GetCountries)
@@ -14,10 +14,10 @@ router
     .post("/addsources", verifyToken, leadController.AddSource)
     .get("/getusers/:id?", verifyToken, leadController.GetUsers)
     .get("/leadssearch", verifyToken, leadController.LeadsSearch)
-    .patch("/statuschange", verifyToken, leadController.StatusChange)
-    .patch("/updatelead/:id", verifyToken, leadController.UpdateLead)
+    .patch("/statuschange", verifyToken, leadController.StatusChange) // email, whatsapp
+    .patch("/updatelead/:id", verifyToken, leadController.UpdateLead) // email, whatsapp
     .get("/kanbanview", verifyToken, leadController.KanbanView)
-    .patch("/bulkaction", verifyToken, leadController.BulkAction)
+    .patch("/bulkaction", verifyToken, leadController.BulkAction) // email, whatsapp
 
     // Customization - ProfileOfClient
     .post("/addprofileofclient", verifyToken, leadController.AddProfileOfClient)
