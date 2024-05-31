@@ -18,6 +18,7 @@ router
     .patch("/updatelead/:id", verifyToken, leadController.UpdateLead) // email, whatsapp
     .get("/kanbanview", verifyToken, leadController.KanbanView)
     .patch("/bulkaction", verifyToken, leadController.BulkAction) // email, whatsapp
+    .post("/convert/:leadid", verifyToken, leadController.ConvertToCustomer) // email, whatsapp
 
     // Customization - ProfileOfClient
     .post("/addprofileofclient", verifyToken, leadController.AddProfileOfClient)

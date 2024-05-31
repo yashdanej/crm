@@ -2,13 +2,12 @@ const db = require("../../db");
 const { verifyToken } = require("../../middleware/verifyToken");
 const querystring = require('querystring');
 const url = require('url');
-const { SendMail } = require("../utils/sendmail");
 
 exports.NewLead = async (req, res, next) => {
     let { status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
     console.log(status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public);
     try {
-        const getUser = await verifyToken(req, res, next);
+        const getUser = await verifyToken(req, res, next, verifyUser=true);
         console.log('userAddedFrom', getUser);
         const userAssigned = await new Promise((resolve, reject) => {
             db.query("select * from users where id = ?", [assigned], (err, result) => {
@@ -26,7 +25,6 @@ exports.NewLead = async (req, res, next) => {
             });
         });
         console.log('userAssigned', userAssigned);
-
         const userSource = await new Promise((resolve, reject) => {
             db.query("select * from tblleads_sources where id = ?", [source], (err, result) => {
                 if(err){
@@ -42,7 +40,6 @@ exports.NewLead = async (req, res, next) => {
             });
         });
         console.log('userSource', userSource);
-
         const userStatus = await new Promise((resolve, reject) => {
             db.query("select * from tblleads_status where id = ?", [status], (err, result) => {
                 if(err){
@@ -72,7 +69,7 @@ exports.NewLead = async (req, res, next) => {
                 agent,
                 city,
                 email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public,
-                addedfrom: getUser.id,
+                addedfrom: getUser,
                 dateadded: new Date(),
                 lastcontact: new Date()
             }, (err, result) => {
@@ -86,23 +83,9 @@ exports.NewLead = async (req, res, next) => {
             });
         });
         console.log('newLead', newLead);
-        if (newLead.affectedRows === 1) {
-            if (email) {
-                let data = {
-                    full_name: userAssigned.full_name,
-                    name,
-                    company,
-                    phonenumber,
-                    assigned_by: getUser.full_name
-                };
-                const mailResult = await SendMail(data, email, "lead");
-
-                if (!mailResult.success) {
-                    return res.status(500).json({ success: false, message: "Error sending email" });
-                }
-            }
-            return res.status(200).json({ success: true, message: "Lead added successfully" });
-        } else {
+        if(newLead.affectedRows === 1){
+            return res.status(200).json({ success: true, message: "Lead added successfully" })
+        }else{
             return res.status(400).json({ success: false, message: "Error NewLead" });
         }
     } catch (error) {
@@ -1265,5 +1248,70 @@ exports.DeleteTypeOfWork = async (req, res, next) => {
     } catch (error) {
         console.error("Error deleteTypeOfWork:", error);
         return res.status(400).json({ success: false, message: "Error deleteTypeOfWork", error: error });
+    }
+}
+
+exports.ConvertToCustomer = async (req, res, next) => {
+    try {
+        const id = req.params.leadid;
+        if(!id){
+            return res.status(400).json({ success: false, message: "id not provided" });
+        }
+        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const viewLead = await new Promise((resolve, reject) => {
+            db.query("select * from tblleads where id = ?", [id], (err, result) => {
+                if(err){
+                    console.log("error in ViewLead", err);
+                    reject("error in ViewLead");
+                }else{
+                    console.log('result', result);
+                    resolve(result[0]);
+                }   
+            });
+        });
+        await new Promise((resolve, reject) => {
+            db.query("update tblleads set date_converted = ? where id = ?", [new Date(), id], (err, result) => {
+                if(err){
+                    console.log("error in ConvertToCustomer", err);
+                    reject("error in ConvertToCustomer");
+                }else{
+                    console.log('result', result);
+                    resolve(result[0]);
+                }   
+            });
+        });
+        console.log("viewLead", viewLead);
+        const newCustomer = await new Promise((resolve, reject) => {
+            db.query("insert into tbl_customer set ?", {
+                company: viewLead.company,
+                primary_contact: viewLead.name,
+                email: viewLead.email,
+                phone: viewLead.phonenumber,
+                website: viewLead.website,
+                default_language: viewLead.default_language,
+                address: viewLead.address,
+                city: viewLead.city,
+                state: viewLead.state,
+                zip: viewLead.zip,
+                country: viewLead.country,
+                addedfrom: getUser
+            }, (err, result) => {
+                if(err){
+                    console.log("error in ConvertToCustomer", err);
+                    reject("error in ConvertToCustomer");
+                }else{
+                    resolve(result);
+                }
+            });
+        })
+        console.log('Customer', newCustomer);
+        if(newCustomer.affectedRows === 1){
+            return res.status(200).json({ success: true, message: "Lead converted successfully" })
+        }else{
+            return res.status(400).json({ success: false, message: "Error in convertion" });
+        }
+    } catch (error) {
+        console.error("Error ConvertToCustomer:", error);
+        return res.status(400).json({ success: false, message: "Error ConvertToCustomer", error: error });
     }
 }

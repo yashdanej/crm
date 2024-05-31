@@ -31,7 +31,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
 });
 
-export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction, handleCloseView, view, lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
+export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBulkAction, bulkAction, handleCloseView, view, lead, setLead, handleClose, open, onHandleNewLeadClick, getLeads}) {
     const leadIds = useSelector(state => state.leads.leadIds);
     const [openS, setOpenS] = useState(false);
     const [from, setFrom] = useState("");
@@ -239,7 +239,8 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
         })
     }
     fetchAgentsData();
-  }, [])
+  }, []);
+
   return (
     <React.Fragment>
       {
@@ -664,7 +665,10 @@ export default function NewLeadModal({getDropdownData, setBulkAction, bulkAction
               </div>
               <div className='my-1'>
                 <p className='bg-slate-200 font-semibold my-3'>Latest Activity</p>
-                <p className='text-[14px]'><span className='font-bold'>{assignedDatas.find(option => option.id == leadData[0]?.addedfrom)?.full_name}</span> - {assignedDatas.find(option => option.id == leadData[0]?.addedfrom)?.full_name} assigned to {assignedDatas.find(option => option.id == leadData[0]?.assigned)?.full_name}</p>
+                <div className='flex justify-between'>
+                  <p className='text-[14px]'><span className='font-bold'>{assignedDatas.find(option => option.id == leadData[0]?.addedfrom)?.full_name}</span> - {assignedDatas.find(option => option.id == leadData[0]?.addedfrom)?.full_name} assigned to {assignedDatas.find(option => option.id == leadData[0]?.assigned)?.full_name}</p>
+                  <button onClick={() => ConvertToCustomer(leadData[0]?.id)} className='p-4 px-8 bg-blue-700 text-white font-bold rounded-xl pointer'>Convert To Customer</button>
+                </div>
               </div>
             </div>
           </Dialog>

@@ -214,7 +214,35 @@ const countriesData = useSelector((state) => state.countries.countriesData);
       api(pathname, method, lead, false, true)
         .then((res) => {
           console.log("res from newLead", res);
-          handleClose();
+          setSnackbarProperty(prevState => ({
+            ...prevState,
+            text: res?.data?.message,
+            color: "success"
+          }));
+          setSnackAlert(true);
+          if(lead.email !== ""){
+            const mailData = {
+              assigned: lead.assigned,
+              email: lead.email,
+              name: lead.name,
+              company: lead.company,
+              phonenumber: lead.phonenumber,
+              from: pathname==="/lead/newlead"?"lead":"leadupdate"
+            }
+          console.log("mailData", mailData);
+            api("/util/sendmail", "post", mailData, false, true)
+              .then((res) => {
+                if (socket) {
+                  socket.emit("sendmail", res.data);
+                }
+              })
+              .catch((err) => {
+                console.log("err from sendmail", err);
+              })
+              .finally(() => {
+                console.log("Completed");
+              });
+          }
           api(`/notification/addnotification/${lead.assigned}`, "post", {type: "leadassign"}, false, true)
             .then((res) => {
               if (socket) {
@@ -222,18 +250,14 @@ const countriesData = useSelector((state) => state.countries.countriesData);
               }
             })
             .catch((err) => {
-              console.log("err from newLead", err);
+              console.log("err from notification", err);
             })
             .finally(() => {
               console.log("Completed");
             });
           getLeads();
-          setSnackbarProperty(prevState => ({
-            ...prevState,
-            text: res?.data?.message,
-            color: "success"
-          }));
-          setSnackAlert(true);
+          
+          handleClose();
         })
         .catch((err) => {
           console.log("err from newLead", err);
@@ -243,6 +267,21 @@ const countriesData = useSelector((state) => state.countries.countriesData);
         });
     }
   };
+
+  const ConvertToCustomer = (id) => {
+    api(`/lead/convert/${id}`, "post", false, false, true)
+    .then((res) => {
+      setSnackbarProperty(prevState => ({
+        ...prevState,
+        text: res?.data?.message,
+        color: "success"
+      }));
+      setSnackAlert(true);
+    })
+    .catch((err) => {
+      console.log("err from ConvertToCustomer", err);
+    })
+  }
 
   const onSearchLead = (e) => {
     e.preventDefault();
@@ -396,7 +435,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
         ):<LeadsKanaban/>
       }
       {
-      ( bulkAction || open) && <NewLeadModal getDropdownData={getDropdownData} getLeads={getLeads} setBulkAction={setBulkAction} bulkAction={bulkAction} handleCloseView={handleCloseView} view={view} onHandleNewLeadClick={onHandleNewLeadClick} lead={lead} setLead={setLead} handleClose={handleClose} open={open} />
+      ( bulkAction || open) && <NewLeadModal ConvertToCustomer={ConvertToCustomer} getDropdownData={getDropdownData} getLeads={getLeads} setBulkAction={setBulkAction} bulkAction={bulkAction} handleCloseView={handleCloseView} view={view} onHandleNewLeadClick={onHandleNewLeadClick} lead={lead} setLead={setLead} handleClose={handleClose} open={open} />
       }
     </div>
   );
