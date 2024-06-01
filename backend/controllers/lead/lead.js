@@ -2,6 +2,7 @@ const db = require("../../db");
 const { verifyToken } = require("../../middleware/verifyToken");
 const querystring = require('querystring');
 const url = require('url');
+const { Activity_log } = require("../utils/util");
 
 exports.NewLead = async (req, res, next) => {
     let { status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
@@ -82,6 +83,12 @@ exports.NewLead = async (req, res, next) => {
                 }
             });
         });
+
+        // adding in activity log
+        req.body.description = `Created lead [${newLead.insertId}] and assigned to [${userAssigned.full_name}] - [${userAssigned.email}]`;
+        req.body.leadid = newLead.insertId;
+        await Activity_log(req, res, next);
+        
         console.log('newLead', newLead);
         if(newLead.affectedRows === 1){
             return res.status(200).json({ success: true, message: "Lead added successfully" })
@@ -103,7 +110,7 @@ exports.GetLead = async (req, res, next) => {
 
         const getUser = await verifyToken(req, res, next, true);
 
-        let query = "SELECT * FROM tblleads WHERE 1 = 1";
+        let query = "SELECT * FROM tblleads WHERE 1 = 1 and date_converted IS NULL";
         let queryParams = [];
 
         if (Object.keys(parsedQueryString).length > 0) {
@@ -340,6 +347,14 @@ exports.StatusChange = async (req, res, next) => {
         });
         console.log('statusChange', statusChange);
         if(statusChange.changedRows === 1){
+            // adding activity log
+            const oldStatusId = await getStatusIdAndReceiveName(currentStatus);
+            const newStatusId = await getStatusIdAndReceiveName(newStatus);
+            req.body.description = `Changed status from [${oldStatusId.name}] to [${newStatusId.name}] of lead id: [${user}]`;
+            req.body.leadid = user;
+
+            await Activity_log(req, res, next);
+
             return res.status(200).json({ success: true, message: "Status changed successfully" });
         }else{
             return res.status(200).json({ success: false, message: "Nothing changed!" });
@@ -348,6 +363,21 @@ exports.StatusChange = async (req, res, next) => {
         console.error("Error in statusChange:", error);
         return res.status(400).json({ success: false, message: "Error in statusChange", error: error });
     }
+}
+
+const getStatusIdAndReceiveName = async (id) => {
+    const getStatus = await new Promise((resolve, reject) => {
+        db.query("select * from tblleads_status where id = ?", [id], (err, result) => {
+            if (err) {
+                console.error("Error selecting status:", err);
+                reject(err);
+            } else {
+                console.log('status fetched successfully', result);
+                resolve(result[0]);
+            }
+        });
+    });
+    return getStatus;
 }
 
 exports.UpdateLead = async (req, res, next) => {
@@ -554,6 +584,12 @@ exports.UpdateLead = async (req, res, next) => {
         });
 
         if (updateLead.affectedRows === 1) {
+
+            // adding activity log
+            req.body.description = `Updated lead [${leadId}]`;
+            req.body.leadid = leadId;
+            await Activity_log(req, res, next);
+
             return res.status(200).json({ success: true, message: "Lead updated successfully" });
         } else {
             return res.status(400).json({ success: false, message: "Error updating lead" });
@@ -595,6 +631,10 @@ exports.AddStatus = async (req, res, next) => {
                     }
                 });
             });
+            
+            // adding in activity log
+            req.body.description = `Added new status name [${name}]`;
+            await Activity_log(req, res, next);
 
             return res.status(200).json({ success: true, message: "Status added successfully" });
         }
@@ -633,6 +673,9 @@ exports.AddSource = async (req, res, next) => {
                     }
                 });
             });
+            req.body.description = `Added new source name [${name}]`;
+            await Activity_log(req, res, next);
+            
             return res.status(200).json({success: true, message: "Source added successfully"});
         }
     } catch (error) {
@@ -813,6 +856,9 @@ exports.BulkAction = async (req, res, next) => {
                 });
             });
         });
+        // adding activity log
+        req.body.description = `Bulk action on lead ids [${leadids}]`;
+        await Activity_log(req, res, next);
 
         const results = await Promise.all(updatePromises);
         return res.status(200).json({ success: true, message: "Bulk action success", results });
@@ -872,6 +918,11 @@ exports.AddProfileOfClient = async (req, res, next) => {
                         }
                     });
                 })
+
+                // added activity log
+                req.body.description = `Added new profile of client [${newClientProfile.result.insertId}] `;
+                await Activity_log(req, res, next);
+
                 return res.status(200).json({success: true, message: "Client profile added successfully"});
             }else{
                 console.error("Error in AddProfileOfClient:", error);
@@ -980,6 +1031,11 @@ exports.UpdateProfileOfClient = async (req, res, next) => {
                         }
                     });
                 })
+
+                // added activity log
+                req.body.description = `Updated profile of client [${id}] `;
+                await Activity_log(req, res, next);
+
                 return res.status(200).json({success: true, message: "Client profile updated successfully"});
             }else{
                 console.error("Error in UpdateProfileOfClient:", error);
@@ -1027,6 +1083,8 @@ exports.DeleteProfileOfClient = async (req, res, next) => {
         });
         console.log("deleteProfileOfClient", deleteProfileOfClient);
         if(deleteProfileOfClient.affectedRows == 1){
+            req.body.description = `Deleted profile of client [${id}] `;
+            await Activity_log(req, res, next);
             return res.status(200).json({ success: true, message: "Prfile client deleted successfully" })
         }else{
             return res.status(200).json({ success: true, message: "No profile client found" });
@@ -1087,6 +1145,11 @@ exports.AddTypeOfWork = async (req, res, next) => {
                         }
                     });
                 })
+
+                // added activity log
+                req.body.description = `Added new type of work [${newTypeOfWork.result.insertId}] `;
+                await Activity_log(req, res, next);
+
                 return res.status(200).json({success: true, message: "Type of work added successfully"});
             }else{
                 console.error("Error in newTypeOfWork:", error);
@@ -1195,6 +1258,11 @@ exports.UpdateTypeOfWork = async (req, res, next) => {
                         }
                     });
                 });
+
+                // adding activity log
+                req.body.description = `Updated type of work [${id}]`;
+                await Activity_log(req, res, next);
+
                 return res.status(200).json({success: true, message: "Type of work updated successfully"});
             }else{
                 console.error("Error in updateTypeOfWork:", error);
@@ -1241,6 +1309,11 @@ exports.DeleteTypeOfWork = async (req, res, next) => {
         });
         console.log("deleteTypeOfWork", deleteTypeOfWork);
         if(deleteTypeOfWork.affectedRows == 1){
+
+            // adding activity log
+            req.body.description = `Deleted type of work [${id}]`;
+            await Activity_log(req, res, next);
+
             return res.status(200).json({ success: true, message: "Type of work deleted successfully" })
         }else{
             return res.status(200).json({ success: true, message: "Type of work profile found" });
@@ -1306,6 +1379,11 @@ exports.ConvertToCustomer = async (req, res, next) => {
         })
         console.log('Customer', newCustomer);
         if(newCustomer.affectedRows === 1){
+            
+            // adding activity log
+            req.body.description = `Lead id: [${id}] converted to customer. Customer id: [${newCustomer.insertId}]`;
+            await Activity_log(req, res, next);
+
             return res.status(200).json({ success: true, message: "Lead converted successfully" })
         }else{
             return res.status(400).json({ success: false, message: "Error in convertion" });

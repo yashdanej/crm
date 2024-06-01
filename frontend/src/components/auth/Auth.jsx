@@ -51,6 +51,16 @@ const Auth = ({path}) => {
         dispatch(login());
         Cookies.set('access_token', res.data.token, { expires: 7 });
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        
+        // adding in activity log
+        api("/util/activity_log", "post", {description: "User Logged in"}, false, true)
+        .then((res) => {
+          console.log("res from logging in", res);
+        })
+        .catch((err) => {
+          console.log("err in logging in");
+        });
+
         navigate('/admin/leads');
         console.log("json parse", JSON.parse(localStorage.getItem("user")));
       }else{

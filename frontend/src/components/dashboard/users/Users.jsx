@@ -46,6 +46,16 @@ const Users = () => {
             setSnackAlert(true);
         })
     }
+    // activity log
+  useEffect(() => {
+    api("/util/activity_log", "post", false, false, true)
+    .then((res) => {
+      console.log("res", res);
+    })
+    .catch((err) => {
+      console.log("err in activity log");
+    });
+  }, []);
   return (
     <div className='bg-white rounded-lg shadow-md p-6 m-6'>
         {

@@ -146,3 +146,128 @@ exports.SendWhatsappMessage = async (req, res, next) => {
         return res.status(400).json({success: false, message: "WhatsApp message sent failed!"})
     }
 }
+
+exports.Activity_log = async (req, res, next) => {
+    try {
+        let ipAddress;
+
+        if (req.headers['x-forwarded-for']) {
+            // 'x-forwarded-for' header can contain a comma-separated list of IP addresses
+            ipAddress = req.headers['x-forwarded-for'].split(',').pop().trim();
+        } else {
+            ipAddress = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || (req.connection.socket ? req.connection.socket.remoteAddress : null);
+        }
+        const getUser = await verifyToken(req, res, next, true);
+        console.log("getUser", getUser);
+        let description;
+        if(req.body && req.body.description && req.body.description != ""){
+            description = req.body.description
+        }else{
+            description = "Online"
+        }
+        const getMyUser = await new Promise((resolve, reject) => {
+            db.query("select * from users where id = ?", [getUser], (err, result) => {
+                if(err){
+                    console.log("error in newActivity", err);
+                    reject("error in newActivity");
+                }else{
+                    console.log('result', result);
+                    resolve(result[0]);
+                }
+            });
+        })
+        const data = {
+            userId: getMyUser.id,
+            full_name: getMyUser.full_name,
+            email: getMyUser.email,
+            ip: ipAddress,
+            description
+        }
+        if(req.body.leadid){
+            data.leadid = req.body.leadid;
+        }
+        const newActivity = await new Promise((resolve, reject) => {
+            db.query("insert into activity_log set ?", data, (err, result) => {
+                if(err){
+                    console.log("error in newActivity", err);
+                    reject("error in newActivity");
+                }else{
+                    console.log('result', result);
+                    resolve(result);
+                }
+            });
+        });
+        if(req.body && req.body.description && req.body.description != ""){
+            return;
+        }else{
+            if(newActivity.affectedRows === 1){
+                return res.status(200).json({ success: true, message: "Activity added successfully" })
+            }else{
+                return res.status(400).json({ success: false, message: "Error newActivity" });
+            }
+        }
+    } catch (error) {
+        return res.status(500).json({success: false, message: `Error newActivity, ${error}`});
+    }
+};
+
+// getting each user activity
+exports.UserActivity = async (req, res, next) => {
+    try {
+        const userid = req.params.userid;
+        const getUser = await new Promise((resolve, reject) => {
+            db.query("select * from users where id = ?", [userid], (err, result) => {
+                if(err){
+                    console.log("error in getUser", err);
+                    reject("error in getUser");
+                }else{
+                    console.log('result', result);
+                    resolve(result);
+                }
+            });
+        });
+        const getUserActivity = await new Promise((resolve, reject) => {
+            db.query("select * from activity_log where userId = ?", [userid], (err, result) => {
+                if(err){
+                    console.log("error in getUserActivity", err);
+                    reject("error in getUserActivity");
+                }else{
+                    console.log('result', result);
+                    resolve(result);
+                }
+            });
+        });
+        console.log("getUserActivity", getUserActivity);
+        if(getUserActivity?.length && getUserActivity?.length>0){
+            return res.status(200).json({ success: true, message: "User activity fetched successfully", user: getUser, data: getUserActivity })
+        }else{
+            return res.status(200).json({ success: true, message: "No user activity found", user: getUser, data: getUserActivity })
+        }
+    } catch (error) {
+        return res.status(500).json({success: false, message: `Error getUserActivity, ${error}`});
+    }
+}
+
+exports.LeadActivity = async (req, res, next) => {
+    try {
+        const leadid = req.params.leadid;
+        const getLeadActivity = await new Promise((resolve, reject) => {
+            db.query("select * from activity_log where leadid = ?", [leadid], (err, result) => {
+                if(err){
+                    console.log("error in getLeadActivity", err);
+                    reject("error in getLeadActivity");
+                }else{
+                    console.log('result', result);
+                    resolve(result);
+                }
+            });
+        });
+        if(getLeadActivity?.length && getLeadActivity?.length>0){
+            return res.status(200).json({ success: true, message: "Lead activity fetched successfully", data: getLeadActivity })
+        }else{
+            return res.status(200).json({ success: true, message: "No lead activity found", data: getLeadActivity })
+        }
+    } catch (error) {
+        return res.status(500).json({success: false, message: `Error getLeadActivity, ${error}`});
+    }
+}

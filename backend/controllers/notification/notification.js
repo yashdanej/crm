@@ -1,5 +1,6 @@
 const db = require("../../db");
 const { verifyToken } = require("../../middleware/verifyToken");
+const { Activity_log } = require("../utils/util");
 
 exports.AddNotification = async (req, res, next) => {
     try {
@@ -127,6 +128,11 @@ exports.SeenNotification = async (req, res, next) => {
                 }   
             });
         });
+
+        // adding activity log
+        req.body.description = `Notification seen`;
+        await Activity_log(req, res, next);
+
         return res.status(200).json({success: true, message: "Notification seen successful"});
     } catch (error) {
         console.error("Error seenNotification:", error);

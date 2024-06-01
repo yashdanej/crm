@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require('cookie-parser');
 const { createProxyMiddleware } = require('http-proxy-middleware');
-
 const PORT = 3001;
 const app = express();
 app.use(cors({
@@ -20,6 +19,7 @@ const agentRouter = require("./routes/agents/agentRouter");
 const notificationRouter = require("./routes/notification/notificationRoute");
 const utilRouter = require("./routes/utils/router");
 
+app.set('trust proxy', true); // for getting ip address even if proxy
 app.use('/api/v1', authRouter);
 app.use('/api/v1/lead', leadRouter);
 app.use('/api/v1/agents', agentRouter);

@@ -277,6 +277,8 @@ const countriesData = useSelector((state) => state.countries.countriesData);
         color: "success"
       }));
       setSnackAlert(true);
+      handleClose();
+      getLeads();
     })
     .catch((err) => {
       console.log("err from ConvertToCustomer", err);
@@ -335,7 +337,17 @@ const countriesData = useSelector((state) => state.countries.countriesData);
   useEffect(() => {
     getLeads(); // Fetch leads whenever statusQuery, sourceQuery, or assignedQuery changes
   }, [statusQuery, sourceQuery, assignedQuery]);
- 
+  
+ // activity log
+ useEffect(() => {
+  api("/util/activity_log", "post", false, false, true)
+  .then((res) => {
+    console.log("res", res);
+  })
+  .catch((err) => {
+    console.log("err in activity log");
+  });
+}, []);
   return (
     <div className="p-6">
       {

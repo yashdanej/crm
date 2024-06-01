@@ -1,5 +1,6 @@
 const db = require("../../db");
 const { verifyToken } = require("../../middleware/verifyToken");
+const { Activity_log } = require("../utils/util");
 
 exports.AddAgent = async (req, res, next) => {
     try {
@@ -45,7 +46,12 @@ exports.AddAgent = async (req, res, next) => {
                             resolve({ success: true, result });
                         }
                     });
-                })
+                });
+                
+                // adding activity log
+                req.body.description = `Added agent [${newAgent.result.insertId}]`;
+                await Activity_log(req, res, next);
+                
                 return res.status(200).json({success: true, message: "Agent added successfully"});
             }else{
                 console.error("Error in newAgent:", error);
@@ -151,6 +157,11 @@ exports.UpdateAgent = async (req, res, next) => {
                         }
                     });
                 })
+
+                // adding activity log
+                req.body.description = `Updated agent [${id}]`;
+                await Activity_log(req, res, next);
+
                 return res.status(200).json({success: true, message: "Agent updated successfully"});
             }else{
                 console.error("Error in updateAgent:", error);
@@ -196,6 +207,11 @@ exports.DeleteAgent = async (req, res, next) => {
         });
         console.log("deleteAgent", deleteAgent);
         if(deleteAgent.affectedRows == 1){
+
+            // adding activity log
+            req.body.description = `Deleted agent [${id}]`;
+            await Activity_log(req, res, next);
+
             return res.status(200).json({ success: true, message: "Agent deleted successfully" })
         }else{
             return res.status(200).json({ success: true, message: "No agent found" });

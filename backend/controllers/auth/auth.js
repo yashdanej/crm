@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const db = require("../../db");
 const jwt = require("jsonwebtoken");
 const { verifyToken } = require("../../middleware/verifyToken");
+const { Activity_log } = require("../utils/util");
 
 exports.Signup = async (req, res) => {
     const { email, user_password, full_name } = req.body;
@@ -36,7 +37,7 @@ exports.Signup = async (req, res) => {
     }
 };
 
-exports.Login = async (req, res) => {
+exports.Login = async (req, res, next) => {
     const { email, user_password } = req.body;
     console.log(email, user_password);
     try {
@@ -59,9 +60,10 @@ exports.Login = async (req, res) => {
             }else{
                 const token = jwt.sign({id: user.id, email: user.email, full_name: user.full_name}, "g[hc+7^:{%&s<vGPM5sT_Zyash_p_d/4;&f!;umN");
                 const {user_password, ...otherDetails} = user;
-                return res.cookie("access_token", token, {
+                res.cookie("access_token", token, {
                     httpOnly: true
-                }).status(200).json({user: otherDetails, token});
+                });
+                return res.status(200).json({user: otherDetails, token});
             }
         }
     } catch (error) {
@@ -100,6 +102,9 @@ exports.UpdateRole = async (req, res, next) => {
                     }
                 });
             });
+            const oldRole = await getRoles(getSelectedUser.role);
+            console.log("oldRole", oldRole);
+            let string = `You updated the role of [${getSelectedUser.id}] - [${getSelectedUser.full_name}] - [${getSelectedUser.email}] from [${oldRole.name}] to`
             let role = getSelectedUser.role === 2 ? 1 : 2
             const updateRole = await new Promise((resolve, reject) => {
                 db.query("update users set role = ? where id = ?", [role, id], (err, result) => {
@@ -112,9 +117,27 @@ exports.UpdateRole = async (req, res, next) => {
                     }
                 });
             });
+            const newRole = await getRoles(role);
+            req.body.description = `${string} [${newRole.name}]`;
+            await Activity_log(req, res, next);
             return res.status(200).json({success: true, message: "Role updated successfully"})
         }
     } catch (error) {
         console.log("error in UpdateRole");
     }
+}
+
+const getRoles = async (id) => {
+    const getroles = await new Promise((resolve, reject) => {
+        db.query("select * from tblroles where id = ?", [id], (err, result) => {
+            if (err) {
+                console.error("Error selecting user role:", err);
+                reject(err);
+            } else {
+                console.log('Role updated successfully', result);
+                resolve(result[0]);
+            }
+        });
+    });
+    return getroles;
 }

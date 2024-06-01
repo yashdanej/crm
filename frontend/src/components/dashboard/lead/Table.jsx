@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { getAllLeads, getLead, leadIdSelect } from '../../../store/slices/LeadSlices'
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import { Link } from 'react-router-dom'
 
 const Table = ({ handleOpenView, getLeads, handleClickOpen }) => {
     const leadsData = useSelector((state) => state.leads.leadsData);
@@ -157,7 +158,7 @@ const Table = ({ handleOpenView, getLeads, handleClickOpen }) => {
                                         </span>
                                     </td>
                                     <td className="py-2 px-4 border-b border-b-gray-50">
-                                        <span className="text-[13px] font-medium text-gray-400">{selectedItem(item, assignedData, "Assigned")}</span>
+                                        <Link to={`/activity_log/${item.assigned}`}><span className="text-[13px] font-medium text-gray-400">{selectedItem(item, assignedData, "Assigned")}</span></Link>
                                     </td>
                                     <td className="py-2 px-4 border-b border-b-gray-50">
                                         <span className="inline-block p-1 rounded bg-emerald-500/10 font-medium text-[12px] leading-none"

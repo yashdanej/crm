@@ -18,6 +18,7 @@ import TypeOfWork from './components/dashboard/setup/typeofwork/TypeOfWork';
 import ProfileOfClient from './components/dashboard/setup/ProfileOfClient.jsx/ProfileOfClient';
 import { getProfileOfClient, getTypeOfWork } from './store/slices/SetupSlices';
 import ProtectedRoute from './utils/ProtectedRoute';
+import ActiveUser from './components/dashboard/activityLog/ActivityUser';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -73,6 +74,17 @@ function App() {
       });
   }, [dispatch]);
 
+  // activity log
+  useEffect(() => {
+    api("/util/activity_log", "post", false, false)
+    .then((res) => {
+      console.log("res", res);
+    })
+    .catch((err) => {
+      console.log("err in activity log");
+    });
+  });
+
   return (
     <div>
       <Routes>
@@ -89,6 +101,7 @@ function App() {
           }
         />
         <Route exact path="/admin/leads" element={<Dashboard><Lead /></Dashboard>} />
+        <Route path="activity_log/:userid" element={<Dashboard><ActiveUser /></Dashboard>} />
         <Route 
           path="/setup/*" 
           element={

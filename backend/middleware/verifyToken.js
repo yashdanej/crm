@@ -18,7 +18,7 @@ exports.verifyToken = (req, res, next, verifyUser=false) => {
                 req.user = user;
                 if(!verifyUser){
                     next();
-                    resolve();
+                    resolve(req.user);
                 }else{
                     resolve(req.user.id);
                 }

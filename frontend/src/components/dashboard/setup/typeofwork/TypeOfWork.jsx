@@ -68,6 +68,16 @@ const TypeOfWork = () => {
     useEffect(() => {
         fetchTypeData();
     }, []);
+    // activity log
+  useEffect(() => {
+    api("/util/activity_log", "post", false, false, true)
+    .then((res) => {
+      console.log("res", res);
+    })
+    .catch((err) => {
+      console.log("err in activity log");
+    });
+  }, []);
   return (
     <div className='m-6'>
         <h1 className='text-3xl font-bold bg-gray-900 text-white p-5'>Type Of Work Master</h1>
