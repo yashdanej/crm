@@ -76,7 +76,7 @@ function App() {
 
   // activity log
   useEffect(() => {
-    api("/util/activity_log", "post", false, false)
+    api("/util/last_active", "patch", false, false)
     .then((res) => {
       console.log("res", res);
     })

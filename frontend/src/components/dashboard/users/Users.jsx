@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import SnackbarWithDecorators, { api } from '../../../utils/Utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAssigned } from '../../../store/slices/LeadSlices';
+import { Link } from 'react-router-dom';
 
 const Users = () => {
     const [snackAlert, setSnackAlert] = useState(false); // popup success or error
@@ -48,7 +49,7 @@ const Users = () => {
     }
     // activity log
   useEffect(() => {
-    api("/util/activity_log", "post", false, false, true)
+    api("/util/last_active", "patch", false, false, true)
     .then((res) => {
       console.log("res", res);
     })
@@ -78,13 +79,13 @@ const Users = () => {
                         return (
                             <tr key={item?.id}>
                                 <td className="py-2 px-4 border-b border-b-gray-50">
-                                    <span className="text-[13px] font-medium text-gray-400">{item?.id}</span>
+                                <Link to={`/activity_log/${item?.id}`}><span className="text-[13px] font-medium text-gray-400">{item?.id}</span></Link>
                                 </td>
                                 <td className="py-2 px-4 border-b border-b-gray-50">
-                                    <span className="text-[13px] font-medium text-gray-400">{item?.full_name}</span>
+                                <Link to={`/activity_log/${item?.id}`}><span className="text-[13px] font-medium text-gray-400">{item?.full_name}</span></Link>
                                 </td>
                                 <td className="py-2 px-4 border-b border-b-gray-50">
-                                    <span className="text-[13px] font-medium text-gray-400">{item?.email}</span>
+                                <Link to={`/activity_log/${item?.id}`}><span className="text-[13px] font-medium text-gray-400">{item?.email}</span></Link>
                                 </td>
                                 <label className="inline-flex items-center cursor-pointer my-2">
                                     <input onChange={() => onSwitch(item?.id)} checked={item.role === 2} type="checkbox" value="" className="sr-only peer"/>

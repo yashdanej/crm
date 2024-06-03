@@ -72,7 +72,7 @@ const Agents = () => {
     }, []);
 // activity log
 useEffect(() => {
-    api("/util/activity_log", "post", false, false, true)
+    api("/util/last_active", "patch", false, false, true)
     .then((res) => {
       console.log("res", res);
     })

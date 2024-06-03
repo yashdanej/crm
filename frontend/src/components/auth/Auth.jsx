@@ -53,7 +53,7 @@ const Auth = ({path}) => {
         localStorage.setItem("user", JSON.stringify(res.data.user));
         
         // adding in activity log
-        api("/util/activity_log", "post", {description: "User Logged in"}, false, true)
+        api("/util/last_active", "patch", {description: "User Logged in"}, false, true)
         .then((res) => {
           console.log("res from logging in", res);
         })

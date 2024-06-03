@@ -9,5 +9,7 @@ router
     .post("/activity_log", verifyToken, mailController.Activity_log)
     .get("/user_activity/:userid", verifyToken, mailController.UserActivity)
     .get("/lead_activity/:leadid", verifyToken, mailController.LeadActivity)
+    .patch("/last_active", verifyToken, mailController.LastActive)
+    .get("/last_active/:userid", verifyToken, mailController.GetLastActive)
 
 module.exports = router;

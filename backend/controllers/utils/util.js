@@ -227,7 +227,7 @@ exports.UserActivity = async (req, res, next) => {
             });
         });
         const getUserActivity = await new Promise((resolve, reject) => {
-            db.query("select * from activity_log where userId = ?", [userid], (err, result) => {
+            db.query("select * from activity_log where userId = ? order by id DESC", [userid], (err, result) => {
                 if(err){
                     console.log("error in getUserActivity", err);
                     reject("error in getUserActivity");
@@ -238,8 +238,10 @@ exports.UserActivity = async (req, res, next) => {
             });
         });
         console.log("getUserActivity", getUserActivity);
+        const last_active = this.displayTimeOfPost(getUserActivity[0].last_active);
+        console.log("");
         if(getUserActivity?.length && getUserActivity?.length>0){
-            return res.status(200).json({ success: true, message: "User activity fetched successfully", user: getUser, data: getUserActivity })
+            return res.status(200).json({ success: true, message: "User activity fetched successfully", user: getUser, data: getUserActivity, last_active: last_active })
         }else{
             return res.status(200).json({ success: true, message: "No user activity found", user: getUser, data: getUserActivity })
         }
@@ -271,3 +273,113 @@ exports.LeadActivity = async (req, res, next) => {
         return res.status(500).json({success: false, message: `Error getLeadActivity, ${error}`});
     }
 }
+
+exports.LastActive = async (req, res, next) => {
+    try {
+        const getUser = await verifyToken(req, res, next, true);
+        const IsUserInIsActive =  await new Promise((resolve, reject) => {
+            db.query("select * from is_active where userid = ?", [getUser], (err, result) => {
+                if(err){
+                    console.log("error in Last_Active", err);
+                    reject("error in Last_Active");
+                }else{
+                    console.log('result', result);
+                    resolve(result);
+                }
+            });
+        });
+        console.log("IsUserInIsActive", IsUserInIsActive);;
+        if(IsUserInIsActive.length > 0){
+            await new Promise((resolve, reject) => {
+                db.query("update is_active set last_active = ? where userid = ?", [new Date(), getUser], (err, result) => {
+                    if(err){
+                        console.log("error in Last_Active", err);
+                        reject("error in Last_Active");
+                    }else{
+                        console.log('result', result);
+                        resolve(result);
+                    }
+                });
+            });
+        }else{
+            const myUser = await new Promise((resolve, reject) => {
+                db.query("select * from users where id = ?", [getUser], (err, result) => {
+                    if(err){
+                        console.log("error in Last_Active", err);
+                        reject("error in Last_Active");
+                    }else{
+                        console.log('myUser', result);
+                        resolve(result[0]);
+                    }
+                });
+            });
+            await new Promise((resolve, reject) => {
+                db.query("INSERT INTO is_active SET ?", { userid: getUser, full_name: myUser.full_name, email: myUser.email, last_active: new Date() }, (err, result) => {
+                    if(err){
+                        console.error("Error inserting is_active:", err);
+                        reject(err);
+                        return res.status(400).json({ success: false, message: "Error inserting is_active", error: err });
+                    }else{
+                        resolve(result)
+                    }
+                });
+            });
+        }
+        return res.status(200).json({ success: true, message: "Last active updated successfully" })
+    } catch (error) {
+        return res.status(500).json({success: false, message: `Error Last_Active, ${error}`});
+    }
+}
+
+exports.GetLastActive = async (req, res, next) => {
+    try {
+        const userid = req.params.userid;
+        const getLastActive = await new Promise((resolve, reject) => {
+            db.query("select * from is_active where userid = ?", [userid], (err, result) => {
+                if(err){
+                    console.log("error in getLastActive", err);
+                    reject("error in getLastActive");
+                }else{
+                    console.log('result', result);
+                    resolve(result);
+                }
+            });
+        });
+        if(getLastActive?.length && getLastActive?.length>0){
+            const last_Active = this.displayTimeOfPost(getLastActive[0].last_active);
+            return res.status(200).json({ success: true, message: "Last active fetched successfully", data: getLastActive, last_Active: last_Active })
+        }else{
+            return res.status(200).json({ success: true, message: "No last activity found", data: getLastActive })
+        }
+    } catch (error) {
+        return res.status(500).json({success: false, message: `Error getLastActive, ${error}`});
+    }
+}
+
+exports.displayTimeOfPost = (ele) => {
+    const createdDate = new Date(ele);
+    const currentDate = new Date();
+    // Calculate the time difference in milliseconds
+    let timeDifference = currentDate.getTime() - createdDate.getTime();
+  
+    // Function to calculate the time difference in minutes, hours, days, weeks, or years
+    const getTimeDifferenceString = () => {
+      if (timeDifference < 60 * 1000) { // Less than 1 minute
+        return "Just now";
+      } else if (timeDifference < 60 * 60 * 1000) { // Less than 1 hour
+        return `${Math.floor(timeDifference / (60 * 1000))} minutes ago`;
+      } else if (timeDifference < 24 * 60 * 60 * 1000) { // Less than 1 day
+        return `${Math.floor(timeDifference / (60 * 60 * 1000))} hours ago`;
+      } else if (timeDifference < 7 * 24 * 60 * 60 * 1000) { // Less than 1 week
+        const daysAgo = Math.floor(timeDifference / (24 * 60 * 60 * 1000));
+        return daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
+      } else if (timeDifference < 365 * 24 * 60 * 60 * 1000) { // Less than 1 year
+        const weeksAgo = Math.floor(timeDifference / (7 * 24 * 60 * 60 * 1000));
+        return weeksAgo === 1 ? '1 week ago' : `${weeksAgo} weeks ago`;
+      } else { // More than 1 year
+        const yearsAgo = Math.floor(timeDifference / (365 * 24 * 60 * 60 * 1000));
+        return yearsAgo === 1 ? '1 year ago' : `${yearsAgo} years ago`;
+      }
+    };
+    return getTimeDifferenceString();
+  }

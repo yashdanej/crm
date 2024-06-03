@@ -27,6 +27,12 @@ exports.Signup = async (req, res) => {
                     console.error("Error inserting user:", err);
                     return res.status(400).json({ success: false, message: "Error inserting user", error: err });
                 }
+                db.query("INSERT INTO is_active SET ?", { userid: result.insertId, full_name: full_name, email: email, last_active: new Date() }, (err, result) => {
+                    if(err){
+                        console.error("Error inserting is_active:", err);
+                        return res.status(400).json({ success: false, message: "Error inserting user", error: err });
+                    }
+                });
                 console.log("User inserted:", result);
                 return res.status(200).json({ success: true, message: "User signed up successfully" });
             });
