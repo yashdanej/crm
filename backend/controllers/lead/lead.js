@@ -584,10 +584,14 @@ exports.UpdateLead = async (req, res, next) => {
         });
 
         if (updateLead.affectedRows === 1) {
-
             // adding activity log
-            req.body.description = `Updated lead [${leadId}]`;
-            req.body.leadid = leadId;
+            if(assigned !== undefined){
+                req.body.description = `Assigned to [${userAssigned.full_name}]`;
+                req.body.leadid = leadId;
+            }else{
+                req.body.description = `Updated lead [${leadId}]`;
+                req.body.leadid = leadId;
+            }
             await Activity_log(req, res, next);
 
             return res.status(200).json({ success: true, message: "Lead updated successfully" });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { api, displayTime } from '../../../utils/Utils';
+import { api, displayTimeOfPost } from '../../../utils/Utils';
 
 const ActiveUser = () => {
   const [userObj, setUserObj] = useState([]);
@@ -52,7 +52,7 @@ const ActiveUser = () => {
             userObj && userObj.data ? userObj.data.map((item) => {
               return (
                 <div className='text-[14px] p-5 bg-gray-50 border'>
-                  <p className='text-slate-600 font-semibold'>{item.last_active.split("T")[0]} - {displayTime(item.last_active)}</p>
+                  <p className='text-slate-600 font-semibold'>{item.last_active.split("T")[0]} - {displayTimeOfPost(item.last_active)}</p>
                   <p className='text-slate-600'>{item.description}</p>
                 </div>
               )

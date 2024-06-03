@@ -26,6 +26,13 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import axios from 'axios';
 import { getAgents } from '../../../store/slices/SetupSlices';
+import Profile from './view/Profile';
+import Proposals from './view/Proposals';
+import Tasks from './view/Tasks';
+import Attachments from './view/Attachments';
+import Reminders from './view/Reminders';
+import Notes from './view/Notes';
+import ActivityLog from './view/ActivityLog';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -49,7 +56,7 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
     const [selectStatus, setSelectStatus] = useState(null);
     const [selectSource, setSelectSource] = useState(null);
     const [selectAssigned, setSelectAssigned] = useState(null);
-    
+    const [selectedView, setSelectedView] = useState("Profile");
     const countriesData = useSelector((state) => state.countries.countriesData);
     const dispatch = useDispatch();
     const handleDateChange = (date) => {
@@ -552,124 +559,25 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
           >
             <div className='p-8'>
               <p>#{leadData[0]?.id} {lead?.name}</p>
-              <div className='flex justify-between my-4'>
-                <div className='w-[25%]'>
-                  <p className='bg-slate-200 font-semibold my-2'>Lead Information</p>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Name</p>
-                    <p className='text-[14px]'>{lead?.name}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Type Of Work</p>
-                    <p className='text-[14px]'>{typeOfWorkData?.find(option => option.id == lead?.typeofwork)?.name}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Profile Of Client</p>
-                    <p className='text-[14px]'>{profileOfClientData?.find(option => option.id == lead?.profileofclient)?.name}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Email Address</p>
-                    <p className='text-[14px]'>{lead?.email}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Website</p>
-                    <p className='text-[14px]'>{lead?.website}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Name</p>
-                    <p className='text-[14px]'>{lead?.phonenumber}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Lead value</p>
-                    <p className='text-[14px]'>{lead?.lead_value}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Company</p>
-                    <p className='text-[14px]'>{lead?.company}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Address</p>
-                    <p className='text-[14px]'>{lead?.address}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>City</p>
-                    <p className='text-[14px]'>{lead?.city}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>State</p>
-                    <p className='text-[14px]'>{lead?.state}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Country</p>
-                    <p className='text-[14px]'>{lead?.country}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Zip Code</p>
-                    <p className='text-[14px]'>{lead?.zip}</p>
-                  </div>
-                  
-                </div>
-                <div className='w-[25%]'>
-                  <p className='bg-slate-200 font-semibold my-2'>General Information</p>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Status</p>
-                    <p className='text-[14px]'>{selectedItem(leadData[0], statusData, "Status")}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Source</p>
-                    <p className='text-[14px]'>{selectedItem(leadData[0], sourceData, "Source")}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Default Language</p>
-                    <p className='text-[14px]'>{lead?.default_language}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Assigned</p>
-                    <p className='text-[14px]'>{selectedItem(leadData[0], assignedData, "Assigned")}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Tags</p>
-                    <p className='text-[14px]'>
-                      {
-                        leadData[0]?.tags &&
-                        <Stack direction="row" spacing={1}>
-                        {leadData[0]?.tags.split(",").map((tag) => {
-                            return (
-                                    <Chip label={tag} variant="outlined" />
-                                )
-                            })
-                        }
-                        </Stack>
-                      }
-                    </p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Created</p>
-                    <p className='text-[14px]'>{displayTimeOfPost(leadData[0]?.dateadded)}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Last Contacted</p>
-                    <p className='text-[14px]'>{displayTimeOfPost(leadData[0]?.lastcontact)}</p>
-                  </div>
-                  <div className='my-1'>
-                    <p className='text-[14px] text-slate-800 font-bold'>Public</p>
-                    <p className='text-[14px]'>{leadData[0]?.is_public}</p>
-                  </div>
-                </div>
-                <div>
-                </div>
+              <div className='flex items-center my-2 text-slate-600 gap-10'>
+                <p className={`cursor-pointer ${selectedView === "Profile" && "p-2 px-7 rounded-lg bg-blue-600 text-white"}`} onClick={() => setSelectedView("Profile")}>Profile</p>
+                <p className={`cursor-pointer ${selectedView === "Proposals" && "p-2 px-7 rounded-lg bg-blue-600 text-white"}`} onClick={() => setSelectedView("Proposals")}>Proposals</p>
+                <p className={`cursor-pointer ${selectedView === "Tasks" && "p-2 px-7 rounded-lg bg-blue-600 text-white"}`} onClick={() => setSelectedView("Tasks")}>Tasks</p>
+                <p className={`cursor-pointer ${selectedView === "Attachments" && "p-2 px-7 rounded-lg bg-blue-600 text-white"}`} onClick={() => setSelectedView("Attachments")}>Attachments</p>
+                <p className={`cursor-pointer ${selectedView === "Reminders" && "p-2 px-7 rounded-lg bg-blue-600 text-white"}`} onClick={() => setSelectedView("Reminders")}>Reminders</p>
+                <p className={`cursor-pointer ${selectedView === "Notes" && "p-2 px-7 rounded-lg bg-blue-600 text-white"}`} onClick={() => setSelectedView("Notes")}>Notes</p>
+                <p className={`cursor-pointer ${selectedView === "Activity Log" && "p-2 px-7 rounded-lg bg-blue-600 text-white"}`} onClick={() => setSelectedView("Activity Log")}>Activity Log</p>
               </div>
-              <div className='my-1'>
-                <p className='text-[14px] text-slate-800 font-bold'>Description</p>
-                <p className='text-[14px]'>{lead?.description}</p>
-              </div>
-              <div className='my-1'>
-                <p className='bg-slate-200 font-semibold my-3'>Latest Activity</p>
-                <div className='flex justify-between'>
-                  <p className='text-[14px]'><span className='font-bold'>{assignedDatas.find(option => option.id == leadData[0]?.addedfrom)?.full_name}</span> - {assignedDatas.find(option => option.id == leadData[0]?.addedfrom)?.full_name} assigned to {assignedDatas.find(option => option.id == leadData[0]?.assigned)?.full_name}</p>
-                  <button onClick={() => ConvertToCustomer(leadData[0]?.id)} className='p-4 px-8 bg-blue-700 text-white font-bold rounded-xl pointer'>Convert To Customer</button>
-                </div>
-              </div>
+              {
+                selectedView === "Profile"?<Profile lead={lead} leadData={leadData} ConvertToCustomer={ConvertToCustomer} />:
+                selectedView === "Proposals"?<Proposals/>:
+                selectedView === "Tasks"?<Tasks/>:
+                selectedView === "Attachments"?<Attachments/>:
+                selectedView === "Reminders"?<Reminders/>:
+                selectedView === "Notes"?<Notes/>:
+                <ActivityLog/>
+              }
+              
             </div>
           </Dialog>
           </>
