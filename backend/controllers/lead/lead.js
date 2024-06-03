@@ -335,7 +335,7 @@ exports.StatusChange = async (req, res, next) => {
         const {currentStatus, newStatus, user} = parsed_queryString;
         console.log(currentStatus, newStatus, user);
         const statusChange = await new Promise((resolve, reject) => {
-            db.query("update tblleads set last_lead_status = ?, last_status_change = ?, status = ? where id = ?", [currentStatus, new Date(), newStatus, user], (err, result) => {
+            db.query("update tblleads set last_lead_status = ?, last_status_change = ?, status = ?, lastcontact = ? where id = ?", [currentStatus, new Date(), newStatus, new Date(), user], (err, result) => {
                 if (err) {
                     console.error("Error in statusChange query:", err);
                     reject(err);
@@ -561,11 +561,11 @@ exports.UpdateLead = async (req, res, next) => {
             updateFields.push("is_public = ?");
             queryParams.push(is_public);
         }
-
+        updateFields.push("lastcontact = ?");
+        queryParams.push(new Date());
         if (updateFields.length === 0) {
             return res.status(400).json({ success: false, message: "No fields to update" });
         }
-
         // Construct the SQL update query
         const updateQuery = `UPDATE tblleads SET ${updateFields.join(', ')} WHERE id = ?`;
         queryParams.push(leadId);
@@ -825,7 +825,11 @@ exports.BulkAction = async (req, res, next) => {
                 console.log('lastcontact', lastcontact);
                 fields.push("lastcontact = ?");
                 values.push(lastcontact);
+            }else{
+                fields.push("lastcontact = ?");
+                values.push(new Date());
             }
+            console.log("lastcontact", lastcontact);
             if (assigned !== null) {
                 fields.push("assigned = ?");
                 values.push(assigned);
@@ -843,7 +847,6 @@ exports.BulkAction = async (req, res, next) => {
             if (fields.length === 0) {
                 return Promise.resolve({ success: false, message: `No values to update for ID ${id}` });
             }
-
             values.push(id);
 
             const query = `UPDATE tblleads SET ${fields.join(", ")} WHERE id = ?`;
@@ -1347,7 +1350,7 @@ exports.ConvertToCustomer = async (req, res, next) => {
             });
         });
         await new Promise((resolve, reject) => {
-            db.query("update tblleads set date_converted = ? where id = ?", [new Date(), id], (err, result) => {
+            db.query("update tblleads set date_converted = ?, lastcontact = ? where id = ?", [new Date(), new Date(), id], (err, result) => {
                 if(err){
                     console.log("error in ConvertToCustomer", err);
                     reject("error in ConvertToCustomer");

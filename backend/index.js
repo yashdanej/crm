@@ -2,8 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require('cookie-parser');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const schedule = require('node-schedule');
 const PORT = 3001;
 const app = express();
+
 app.use(cors({
     origin: 'http://localhost:3000',  // i am doing this because of cookie request
     // origin: 'http://65.0.30.99',  // i am doing this because of cookie request
@@ -33,6 +35,14 @@ app.use('/api/v1/zipcode', createProxyMiddleware({
       '^/api/v1/zipcode': '/api/pincode', // correctly rewrite the path
     },
 }));
+
+schedule.scheduleJob('0 0 * * *', async () => {
+    try {
+        
+    } catch (error) {
+        console.error('Error processing birthdays:', error);
+    }
+});
 
 const server =  app.listen(PORT, () => {
     console.log("Server started");
