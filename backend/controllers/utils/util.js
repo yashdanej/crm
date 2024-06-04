@@ -4,7 +4,7 @@ const axios = require("axios");
 const db = require("../../db");
 
 exports.MailSend = (req, res, next) => {
-    const { assigned, email, name, company, phonenumber, from } = req.body;
+    const { assigned, sendmail, email, name, company, phonenumber, from } = req.body;
 
     try {
         // Verify the token and get the user details
@@ -75,7 +75,7 @@ exports.MailSend = (req, res, next) => {
 
                         const mailOptions = {
                             from: "yashdanej2004@gmail.com",
-                            to: email,
+                            to: sendmail,
                             subject: subject,
                             html: html,
                         };
@@ -382,4 +382,119 @@ exports.displayTimeOfPost = (ele) => {
       }
     };
     return getTimeDifferenceString();
-  }
+}
+
+
+// Custom field start
+exports.GetAllTables = async (req, res, next) => {
+    try {
+        const getAllTables = await new Promise((resolve, reject) => {
+            db.query("show tables", (err, result) => {
+                if(err){
+                    console.log("error in getAllTables", err);
+                    reject("error in getAllTables");
+                }else{
+                    resolve(result);
+                }   
+            });
+        });
+        if(getAllTables.length>0){
+            return res.status(200).json({ success: true, message: "Tables fetched successfully", data: getAllTables })
+        }else{
+            return res.status(200).json({ success: true, message: "No tables found" });
+        }
+    } catch (error) {
+        console.error("Error getAllTables:", error);
+        return res.status(400).json({ success: false, message: "Error getAllTables", error: error });
+    }
+}
+
+exports.CustomField = async (req, res, next) => {
+    try {
+        let { table, field, type, default_value, options, order, bs_column, disalow_client_to_edit, only_admin, required, show_on_table, show_on_client_portal } = req.body;
+        if(type == "select" || type == "multi_select" || type == "checkbox"){
+            if(!options || options == undefined || options == "" || options == null){
+                return res.status(200).json({success: false, message: "If you select SELECT OR MULTI SELECT OR CHECKBOX then you must have to add options"});
+            }
+        }else{
+            options = null;
+        }
+        if(!order){
+            order = 0
+        }
+        if(required == null){
+            required = 0
+        }
+        if(only_admin == null){
+            only_admin = 0
+        }
+        if(show_on_table == null){
+            show_on_table = 0
+        }
+        if(show_on_client_portal == null){
+            show_on_client_portal = 0
+        }
+        if(disalow_client_to_edit == null){
+            disalow_client_to_edit = 0
+        }
+        await new Promise((resolve, reject) => {
+            db.query(`insert into tblcustomfields set ?`, {
+                fieldto: table,
+                name: field,
+                slug: `${table}_${field}`,
+                required,
+                type,
+                options,
+                field_order: order,
+                only_admin,
+                show_on_table,
+                show_on_client_portal,
+                disalow_client_to_edit,
+                bs_column,
+                default_value
+            }, (err, result) => {
+                if(err) return reject(err);
+                resolve(result);
+            })
+        });
+        return res.status(200).json({ success: true, message: 'Column added successfully' });
+
+    } catch (error) {
+        console.error(`Error in CustomField: ${error}`);
+        return res.status(500).json({ success: false, message: `Error CustomField, ${error}` });
+    }
+};
+
+exports.CustomFieldValue = async (refid, fieldid, fieldto, column_value) => {
+    try {
+        await new Promise((resolve, reject) => {
+            db.query("insert into tblcustomfieldsvalues set ?", {
+                refid,
+                fieldid,
+                fieldto,
+                column_value
+            }, (err, result) => {
+                if(err) return reject(err);
+                resolve(result);
+            });
+        });
+        console.log("added");
+    } catch (error) {
+        console.error(`Error in CustomField: ${error}`);
+    }
+};
+
+exports.getColumn = async (table_name) => {
+    try {
+        const columnExistOrNot = await new Promise((resolve, reject) => {
+            db.query("select * from tblcustomfields where fieldto = ?", [table_name], (err, result) => {
+                if(err) return reject(err);
+                resolve(result);
+            });
+        });
+        console.log("columnExistOrNot", columnExistOrNot);
+        return columnExistOrNot;
+    } catch (error) {
+        console.error(`Error in CustomField: ${error}`);
+    }
+}

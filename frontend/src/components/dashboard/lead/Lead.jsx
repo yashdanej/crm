@@ -225,6 +225,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
           if(lead.email !== ""){
             const mailData = {
               assigned: lead.assigned,
+              sendmail: userData?.find(option => option.id === lead.assigned)?.email,
               email: lead.email,
               name: lead.name,
               company: lead.company,

@@ -12,4 +12,9 @@ router
     .patch("/last_active", verifyToken, mailController.LastActive)
     .get("/last_active/:userid", verifyToken, mailController.GetLastActive)
 
+    // custom fields
+    .get("/get_tables", verifyToken, mailController.GetAllTables) // get all tables
+    .patch("/custom_field", verifyToken, mailController.CustomField) // add column
+    .patch("/add_custom_value", verifyToken, mailController.CustomField) // add column
+
 module.exports = router;

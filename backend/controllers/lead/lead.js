@@ -2,7 +2,7 @@ const db = require("../../db");
 const { verifyToken } = require("../../middleware/verifyToken");
 const querystring = require('querystring');
 const url = require('url');
-const { Activity_log } = require("../utils/util");
+const { Activity_log, getColumn, CustomFieldValue } = require("../utils/util");
 
 exports.NewLead = async (req, res, next) => {
     let { status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
@@ -89,9 +89,30 @@ exports.NewLead = async (req, res, next) => {
         req.body.leadid = newLead.insertId;
         await Activity_log(req, res, next);
         
-        console.log('newLead', newLead);
+        // adding custom column
         if(newLead.affectedRows === 1){
-            return res.status(200).json({ success: true, message: "Lead added successfully" })
+            const Column = await getColumn("tblleads");
+            console.log("Column", Column);
+            let missingFields = [];
+            if (Column.length > 0) {
+                for (const element of Column) {
+                    if (element.required) {
+                        const value = req.body[element.name];
+                        console.log("value", value);
+                        if (!value || value == undefined) {
+                            missingFields.push(`Give value to custom field ${element.name}`);
+                        } else {
+                            await CustomFieldValue(newLead.insertId, element.id, element.fieldto, value);
+                        }
+                    }
+                }
+            }
+
+            if (missingFields.length > 0) {
+                return res.status(400).json({ success: false, message: missingFields.join(", ") });
+            } else {
+                return res.status(200).json({ success: true, message: "Lead added successfully" });
+            }
         }else{
             return res.status(400).json({ success: false, message: "Error NewLead" });
         }
@@ -586,7 +607,7 @@ exports.UpdateLead = async (req, res, next) => {
         if (updateLead.affectedRows === 1) {
             // adding activity log
             if(assigned !== undefined){
-                req.body.description = `Assigned to [${userAssigned.full_name}]`;
+                req.body.description = `Lead updated and assigned to [${userAssigned.full_name}]`;
                 req.body.leadid = leadId;
             }else{
                 req.body.description = `Updated lead [${leadId}]`;
