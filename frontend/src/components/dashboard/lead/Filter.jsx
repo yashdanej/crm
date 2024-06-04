@@ -32,7 +32,7 @@ export default function Filter({ setStatusQuery }) {
           sx={{ minWidth: 200 }}
         >
           {
-            statusData.map((item) => {
+            statusData?.map((item) => {
               return (
                 <Option key={item.id} value={item.id}>{item.name}</Option>
               );

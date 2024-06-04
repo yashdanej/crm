@@ -25,7 +25,7 @@ const Table = ({ handleOpenView, getLeads, handleClickOpen }) => {
 
     useEffect(() => {
         if (selectAll) {
-            setSelectedLeads(leadsData.map(lead => lead.id));
+            setSelectedLeads(leadsData?.map(lead => lead.id));
         } else {
             setSelectedLeads([]);
         }
@@ -148,7 +148,7 @@ const Table = ({ handleOpenView, getLeads, handleClickOpen }) => {
                                             {
                                                 item.tags &&
                                                 <Stack direction="row" spacing={1}>
-                                                    {item.tags.split(",").map((tag) => {
+                                                    {item.tags.split(",")?.map((tag) => {
                                                         return (
                                                             <Chip label={tag} variant="outlined" />
                                                         )

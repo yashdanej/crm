@@ -22,10 +22,10 @@ export default function DropDown({ from, onChange }) {
       >
         {
           from === "Source" ?
-            sourceData.map((item) => (
+            sourceData?.map((item) => (
               <Option key={item.id} value={item.id}>{item.name}</Option>
             )) :
-            assignedData.map((item) => (
+            assignedData?.map((item) => (
               <Option key={item.id} value={item.id}>{item.full_name}</Option>
             ))
         }

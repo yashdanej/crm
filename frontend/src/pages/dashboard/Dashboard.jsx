@@ -206,7 +206,7 @@ const Dashboard = ({children}) => {
                       ></i>
                     </button>
                     <ul className={`pl-7 mt-2 ${openStates[index] ? 'block' : 'hidden'}`}>
-                      {item.items.map((subItem, subIndex) => (
+                      {item?.items?.map((subItem, subIndex) => (
                         <li key={subIndex} className={`mb-4 ${location.pathname === subItem.href && "active"}`}>
                           <Link
                             to={subItem.href}

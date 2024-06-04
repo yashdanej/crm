@@ -327,37 +327,19 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
                 </div>
                 <div className='sm:flex block gap-8'>
                     <div className='w-full'>
-                        {/* <select name="" id="" >
-                          {
-                            typeOfWorkData.map((item) => {
-                              return (
-                                <option value={item.id}>{item.name}</option>
-                              )
-                            })
-                          }
-                        </select> */}
                         <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">Type Of Work (optional)</label>
                         <select id="typeofwork" name="typeofwork" value={lead?.typeofwork} onChange={(e) => {changeText(e, setLead, lead)}} className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
                           <option>Type Of Work</option>
-                          {typeOfWorkData.map(item => (
+                          {typeOfWorkData?.map(item => (
                             <option key={item.id} value={item.id}>{item.name}</option>
                           ))}
                         </select>
                     </div>
                     <div className='w-full'>
-                        {/* <select name="" id="" >
-                          {
-                            typeOfWorkData.map((item) => {
-                              return (
-                                <option value={item.id}>{item.name}</option>
-                              )
-                            })
-                          }
-                        </select> */}
                         <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">Profile Of Client (optional)</label>
                         <select id="profileofclient" name="profileofclient" value={lead?.profileofclient} onChange={(e) => {changeText(e, setLead, lead)}} className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
                           <option>Profile Of Client</option>
-                          {profileOfClientData.map(item => (
+                          {profileOfClientData?.map(item => (
                             <option key={item.id} value={item.id}>{item.name}</option>
                           ))}
                         </select>
@@ -486,7 +468,7 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
               <label htmlFor="country" className="mb-2 text-sm text-start text-grey-900">System Language (optional)</label>
               <select id="default_language" name="default_language" value={lead?.default_language} onChange={(e) => {changeText(e, setLead, lead)}} className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl">
                 <option>Select default language</option>
-                {languages.map(language => (
+                {languages?.map(language => (
                   <option key={language} value={language}>{language}</option>
                 ))}
               </select>

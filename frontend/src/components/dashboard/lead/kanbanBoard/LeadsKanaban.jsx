@@ -68,7 +68,7 @@ const LeadsKanaban = () => {
           color={snackbarProperty.color}
         />
       )}
-      {statusData && statusData.map((statusObj, index) => (
+      {statusData && statusData?.map((statusObj, index) => (
         <div
           key={statusObj.id}
           onDrop={(e) => handleDrop(e, statusObj.id)}

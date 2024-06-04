@@ -111,10 +111,10 @@ exports.MailSend = (req, res, next) => {
 };
 
 exports.SendWhatsappMessage = async (req, res, next) => {
-    const { full_name, name, company, email, phone, source, assigned } = req.body;
+    const { full_name, name, company, email, sendphone, leadphone, source, assigned } = req.body;
     try {
         const authToken = 'U2FsdGVkX1/ug0OBB0k7o4i/C2fLQsC26whfAOfewPWDHATb0kdL+QElsbtYMiNQVH8PdYc3PpS+TG4P6S6dMACPuoX49vhOnirOfCPMtNy7//x+w9Jk8boA4nOCzTpfar6mPF/wExPqByo7EdjoF+UWqZrCB6iIYd2PRjIU1t1z3WNyUAhSk1t/zKMRvVgU';
-        const sendTo = `91${phone}`; // Replace with the recipient's WhatsApp number
+        const sendTo = `91${sendphone}`; // Replace with the recipient's WhatsApp number
         const originWebsite = 'https://myinvented.com/';
         const templateName = 'crm';
         const language = 'en';
@@ -130,7 +130,7 @@ exports.SendWhatsappMessage = async (req, res, next) => {
         formData.append('data[1]', name);
         formData.append('data[2]', company);
         formData.append('data[3]', email);
-        formData.append('data[4]', phone);
+        formData.append('data[4]', leadphone);
         formData.append('data[5]', source);
         formData.append('data[6]', assigned);
         console.log("formdata", formData);

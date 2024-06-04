@@ -5,7 +5,7 @@ const { verifyToken } = require("../../middleware/verifyToken");
 const { Activity_log } = require("../utils/util");
 
 exports.Signup = async (req, res) => {
-    const { email, user_password, full_name } = req.body;
+    const { email, user_password, full_name, phonenumber } = req.body;
     const salt = bcrypt.genSaltSync(10);
     const hash_password = bcrypt.hashSync(user_password, salt);
     try {
@@ -22,7 +22,7 @@ exports.Signup = async (req, res) => {
             }
 
             // If email doesn't exist, insert new user
-            db.query("INSERT INTO users SET ?", { email, full_name, user_password: hash_password }, (err, result) => {
+            db.query("INSERT INTO users SET ?", { email, full_name, user_password: hash_password, phone: phonenumber }, (err, result) => {
                 if(err){
                     console.error("Error inserting user:", err);
                     return res.status(400).json({ success: false, message: "Error inserting user", error: err });

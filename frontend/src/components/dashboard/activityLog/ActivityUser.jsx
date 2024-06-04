@@ -49,7 +49,7 @@ const ActiveUser = () => {
         </div>
         <div className='my-3 p-10 rounded-xl w-full min:h-full max:h-[50vh] overflow-auto bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]'>
           {
-            userObj && userObj.data ? userObj.data.map((item) => {
+            userObj && userObj.data ? userObj.data?.map((item) => {
               return (
                 <div className='text-[14px] p-5 bg-gray-50 border'>
                   <p className='text-slate-600 font-semibold'>{item.last_active.split("T")[0]} - {displayTimeOfPost(item.last_active)}</p>

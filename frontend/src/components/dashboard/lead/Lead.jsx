@@ -22,7 +22,9 @@ const Lead = () => {
   const leadData = useSelector((state) => state.leads.leadData);
   const checkLeadIdSelected = useSelector(state => state.leads.leadIds);
   const leadsStatus = useSelector(state => state.leads.leadsByStatus);
+  const userData = useSelector(state => state.assigned.assignedData);
   const getAllStatus = useSelector(state => state.status.statusData);
+  const sourceData = useSelector(state => state.source.sourceData);
   const [open, setOpen] = useState(false);
   const [bulkAction, setBulkAction] = useState(false);
   const [searchTxt, setSearchTxt] = useState("");
@@ -230,7 +232,31 @@ const countriesData = useSelector((state) => state.countries.countriesData);
               from: pathname==="/lead/newlead"?"lead":"leadupdate"
             }
           console.log("mailData", mailData);
+              // email message
             api("/util/sendmail", "post", mailData, false, true)
+              .then((res) => {
+                if (socket) {
+                  socket.emit("sendmail", res.data);
+                }
+              })
+              .catch((err) => {
+                console.log("err from sendmail", err);
+              })
+              .finally(() => {
+                console.log("Completed");
+              });
+              // whatsapp message
+              const whatsappdata = {
+                full_name: userData?.find(option => option.id === lead.assigned)?.full_name,
+                name: lead?.name,
+                company: lead?.company,
+                email: lead?.email,
+                sendphone: userData?.find(option => option.id === lead.assigned)?.phone,
+                leadphone: lead?.phonenumber,
+                source: sourceData?.find(option => option.id === lead.assigned)?.name,
+                assigned: getUser?.full_name
+              };
+              api("/util/whatsapp", "post", whatsappdata, false, true)
               .then((res) => {
                 if (socket) {
                   socket.emit("sendmail", res.data);
@@ -383,7 +409,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
             <p className='font-bold text-xl text-slate-600'>Leads Summary</p>
             <div className="flex flex-wrap justify-between my-6">
               {
-                Object.keys(leadsStatus).map((statusKey) => {
+                Object.keys(leadsStatus)?.map((statusKey) => {
                   console.log("statusKey", statusKey);
                   return (
                     <span className={`font-bold text-slate-600`} key={statusKey}>{leadsStatus[statusKey].length}<span style={{color: `${getAllStatus?.find(option => option.id == statusKey)?.color}`}}> {getAllStatus.find(option => option.id == statusKey)?.name}</span> </span>
