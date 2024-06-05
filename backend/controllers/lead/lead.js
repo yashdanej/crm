@@ -91,10 +91,10 @@ exports.NewLead = async (req, res, next) => {
         
         // adding custom column
         if(newLead.affectedRows === 1){
-            const Column = await getColumn("tblleads");
+            const Column = await getColumn(req, res, next, "tblleads");
             console.log("Column", Column);
             let missingFields = [];
-            if (Column.length > 0) {
+            if (Column != undefined && Column && Column.length > 0) {
                 for (const element of Column) {
                     if (element.required) {
                         const value = req.body[element.name];
@@ -102,14 +102,16 @@ exports.NewLead = async (req, res, next) => {
                         if (!value || value == undefined) {
                             missingFields.push(`Give value to custom field ${element.name}`);
                         } else {
-                            await CustomFieldValue(newLead.insertId, element.id, element.fieldto, value);
+                            await CustomFieldValue(req, res, next, newLead.insertId, element.id, element.fieldto, value);
                         }
                     }
                 }
             }
 
             if (missingFields.length > 0) {
-                return res.status(400).json({ success: false, message: missingFields.join(", ") });
+                req.body.id = newLead.insertId;
+                await this.DeleteLead(req, res, next);
+                return res.status(200).json({ success: false, message: missingFields.join(", ") });
             } else {
                 return res.status(200).json({ success: true, message: "Lead added successfully" });
             }
@@ -122,6 +124,58 @@ exports.NewLead = async (req, res, next) => {
     }
 }
 
+exports.DeleteLead = async (req, res, next) => {
+    try {
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
+        const id = req.params.id?req.params.id:req.body.id;
+        if(!id){
+            return res.status(400).json({ success: false, message: "No id provided" });
+        }
+        const DeleteLead = await new Promise((resolve, reject) => {
+            db.query("delete from tblleads where id = ?", [id], (err, result) => {
+                if(err){
+                    console.log("error in DeleteLead", err);
+                    reject("error in DeleteLead");
+                }else{
+                    resolve(result);
+                }   
+            });
+        });
+        console.log("DeleteLead", DeleteLead);
+        if(DeleteLead.affectedRows == 1){
+            req.body.description = `Deleted lead [${id}] `;
+            await Activity_log(req, res, next);
+            if(req.body.id){
+                return
+            }else{
+                return res.status(200).json({ success: true, message: "Lead deleted successfully" })
+            }
+        }else{
+            if(req.body.id){
+                return
+            }else{
+                return res.status(200).json({ success: true, message: "No lead found" });
+            }
+        }
+    } catch (error) {
+        console.error("Error DeleteLead:", error);
+        return res.status(400).json({ success: false, message: "Error DeleteProfileOfClient", error: error });
+    }
+}
 exports.GetLead = async (req, res, next) => {
     try {
         const parsedUrl = url.parse(req.url);

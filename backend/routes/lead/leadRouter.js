@@ -5,6 +5,7 @@ const { verifyToken } = require('../../middleware/verifyToken');
 
 router
     .post("/newlead", verifyToken, leadController.NewLead) // email, whatsapp, // done
+    .delete("/deletelead/:id?", verifyToken, leadController.DeleteLead) // email, whatsapp, // done
     .get("/getleads", verifyToken, leadController.GetLead)
     .get("/viewlead/:id", verifyToken, leadController.ViewLead)
     .get("/getcountries", verifyToken, leadController.GetCountries)

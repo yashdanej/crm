@@ -151,6 +151,7 @@ const Dashboard = ({children}) => {
           { href: '/setup/agents', label: 'Agents' },
           { href: '/setup/typeofwork', label: 'Type Of Work' },
           { href: '/setup/profileofclient', label: 'Profile Of Client' },
+          { href: '/setup/custom_field', label: 'Custom Fields' },
         ]
       },
       {

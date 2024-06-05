@@ -19,6 +19,8 @@ import ProfileOfClient from './components/dashboard/setup/ProfileOfClient.jsx/Pr
 import { getProfileOfClient, getTypeOfWork } from './store/slices/SetupSlices';
 import ProtectedRoute from './utils/ProtectedRoute';
 import ActiveUser from './components/dashboard/activityLog/ActivityUser';
+import CustomField from './components/dashboard/setup/customField/CustomField';
+import CustomFieldAdd from './components/dashboard/setup/customField/CustomFieldAdd';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -112,6 +114,8 @@ function App() {
                 <Route path="agents" element={<Dashboard><Agents /></Dashboard>} />
                 <Route path="typeofwork" element={<Dashboard><TypeOfWork /></Dashboard>} />
                 <Route path="profileofclient" element={<Dashboard><ProfileOfClient /></Dashboard>} />
+                <Route path="custom_field" element={<Dashboard><CustomField /></Dashboard>} />
+                <Route path="custom_field/add" element={<Dashboard><CustomFieldAdd /></Dashboard>} />
               </Routes>
             </ProtectedRoute>
           }

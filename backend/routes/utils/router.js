@@ -15,6 +15,7 @@ router
     // custom fields
     .get("/get_tables", verifyToken, mailController.GetAllTables) // get all tables
     .patch("/custom_field", verifyToken, mailController.CustomField) // add column
-    .patch("/add_custom_value", verifyToken, mailController.CustomField) // add column
+    .patch("/add_custom_value", verifyToken, mailController.CustomFieldValue) // add column
+    .get("/get_custom_fields/:table?", verifyToken, mailController.GetCustomFields) // add column
 
 module.exports = router;

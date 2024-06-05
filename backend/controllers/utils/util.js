@@ -388,6 +388,21 @@ exports.displayTimeOfPost = (ele) => {
 // Custom field start
 exports.GetAllTables = async (req, res, next) => {
     try {
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
         const getAllTables = await new Promise((resolve, reject) => {
             db.query("show tables", (err, result) => {
                 if(err){
@@ -411,7 +426,22 @@ exports.GetAllTables = async (req, res, next) => {
 
 exports.CustomField = async (req, res, next) => {
     try {
-        let { table, field, type, default_value, options, order, bs_column, disalow_client_to_edit, only_admin, required, show_on_table, show_on_client_portal } = req.body;
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
+        let { fieldto, name, type, default_value, options, field_order, bs_column, disalow_client_to_edit, only_admin, required, show_on_table, show_on_client_portal } = req.body;
         if(type == "select" || type == "multi_select" || type == "checkbox"){
             if(!options || options == undefined || options == "" || options == null){
                 return res.status(200).json({success: false, message: "If you select SELECT OR MULTI SELECT OR CHECKBOX then you must have to add options"});
@@ -419,8 +449,11 @@ exports.CustomField = async (req, res, next) => {
         }else{
             options = null;
         }
-        if(!order){
-            order = 0
+        if(!default_value){
+            default_value = null;
+        }
+        if(!field_order){
+            field_order = 0
         }
         if(required == null){
             required = 0
@@ -437,15 +470,17 @@ exports.CustomField = async (req, res, next) => {
         if(disalow_client_to_edit == null){
             disalow_client_to_edit = 0
         }
+        field_order = parseInt(field_order);
+        bs_column = parseInt(bs_column);
         await new Promise((resolve, reject) => {
             db.query(`insert into tblcustomfields set ?`, {
-                fieldto: table,
-                name: field,
-                slug: `${table}_${field}`,
+                fieldto,
+                name,
+                slug: `${fieldto}_${name}`,
                 required,
                 type,
                 options,
-                field_order: order,
+                field_order,
                 only_admin,
                 show_on_table,
                 show_on_client_portal,
@@ -465,8 +500,23 @@ exports.CustomField = async (req, res, next) => {
     }
 };
 
-exports.CustomFieldValue = async (refid, fieldid, fieldto, column_value) => {
+exports.CustomFieldValue = async (req, res, next, refid, fieldid, fieldto, column_value) => {
     try {
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
         await new Promise((resolve, reject) => {
             db.query("insert into tblcustomfieldsvalues set ?", {
                 refid,
@@ -484,17 +534,79 @@ exports.CustomFieldValue = async (refid, fieldid, fieldto, column_value) => {
     }
 };
 
-exports.getColumn = async (table_name) => {
+exports.getColumn = async (req, res, next, table_name) => {
     try {
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
         const columnExistOrNot = await new Promise((resolve, reject) => {
             db.query("select * from tblcustomfields where fieldto = ?", [table_name], (err, result) => {
                 if(err) return reject(err);
+                console.log("result to", result);
                 resolve(result);
             });
         });
         console.log("columnExistOrNot", columnExistOrNot);
         return columnExistOrNot;
     } catch (error) {
-        console.error(`Error in CustomField: ${error}`);
+        console.error(`Error in getColumn: ${error}`);
+    }
+}
+
+exports.GetCustomFields = async (req, res, next) => {
+    try {
+        const getUser = await verifyToken(req, res, next, verifyUser = true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+
+        if (getSelectedUser.role === 1) {
+            return res.status(400).json({ success: false, message: "Permission denied" });
+        }
+
+        let table = "";
+        if(req.params.table){
+            table = req.params.table;
+        }
+        let query = table!=""?"select * from tblcustomfields where fieldto = ?":"select * from tblcustomfields where 1=1";
+        let params = table!=""?[table]:[];
+
+        const getCustomFields = await new Promise((resolve, reject) => {
+            db.query(query, [params], (err, result) => {
+                if(err){
+                    console.log("error in getCustomFields", err);
+                    reject("error in getCustomFields");
+                }else{
+                    resolve(result);
+                }   
+            });
+        });
+        if(getCustomFields.length>0){
+            return res.status(200).json({ success: true, message: "Custom fields fetched successfully", data: getCustomFields })
+        }else{
+            return res.status(200).json({ success: true, message: "No custom fields found" });
+        }
+    } catch (error) {
+        console.error("Error getCustomFields:", error);
+        return res.status(400).json({ success: false, message: "Error getCustomFields", error: error });
     }
 }

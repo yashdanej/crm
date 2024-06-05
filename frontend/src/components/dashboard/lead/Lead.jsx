@@ -17,8 +17,11 @@ import LeadsKanaban from './kanbanBoard/LeadsKanaban';
 import { getUserNotification } from '../../../store/slices/Notification';
 import io from 'socket.io-client';
 import addNotification from "react-push-notification";
+import { fetchCustomFields } from '../../../store/slices/SetupSlices';
 
 const Lead = () => {
+  // custom field
+  const customFieldsData = useSelector(state => state.setup.customFields);
   const leadData = useSelector((state) => state.leads.leadData);
   const checkLeadIdSelected = useSelector(state => state.leads.leadIds);
   const leadsStatus = useSelector(state => state.leads.leadsByStatus);
@@ -216,78 +219,94 @@ const countriesData = useSelector((state) => state.countries.countriesData);
       api(pathname, method, lead, false, true)
         .then((res) => {
           console.log("res from newLead", res);
-          setSnackbarProperty(prevState => ({
-            ...prevState,
-            text: res?.data?.message,
-            color: "success"
-          }));
-          setSnackAlert(true);
-          if(lead.email !== ""){
-            const mailData = {
-              assigned: lead.assigned,
-              sendmail: userData?.find(option => option.id === lead.assigned)?.email,
-              email: lead.email,
-              name: lead.name,
-              company: lead.company,
-              phonenumber: lead.phonenumber,
-              from: pathname==="/lead/newlead"?"lead":"leadupdate"
-            }
-          console.log("mailData", mailData);
-              // email message
-            api("/util/sendmail", "post", mailData, false, true)
-              .then((res) => {
-                if (socket) {
-                  socket.emit("sendmail", res.data);
-                }
-              })
-              .catch((err) => {
-                console.log("err from sendmail", err);
-              })
-              .finally(() => {
-                console.log("Completed");
-              });
-              // whatsapp message
-              const whatsappdata = {
-                full_name: userData?.find(option => option.id === lead.assigned)?.full_name,
-                name: lead?.name,
-                company: lead?.company,
-                email: lead?.email,
-                sendphone: userData?.find(option => option.id === lead.assigned)?.phone,
-                leadphone: lead?.phonenumber,
-                source: sourceData?.find(option => option.id === lead.assigned)?.name,
-                assigned: getUser?.full_name
-              };
-              api("/util/whatsapp", "post", whatsappdata, false, true)
-              .then((res) => {
-                if (socket) {
-                  socket.emit("sendmail", res.data);
-                }
-              })
-              .catch((err) => {
-                console.log("err from sendmail", err);
-              })
-              .finally(() => {
-                console.log("Completed");
-              });
-          }
-          api(`/notification/addnotification/${lead.assigned}`, "post", {type: "leadassign"}, false, true)
-            .then((res) => {
-              if (socket) {
-                socket.emit("newnotification", res.data.data);
+          if(res?.data?.success === true){
+            setSnackbarProperty(prevState => ({
+              ...prevState,
+              text: res?.data?.message,
+              color: "success"
+            }));
+            setSnackAlert(true);
+            if(lead.email !== ""){
+              const mailData = {
+                assigned: lead.assigned,
+                sendmail: userData?.find(option => option.id === lead.assigned)?.email,
+                email: lead.email,
+                name: lead.name,
+                company: lead.company,
+                phonenumber: lead.phonenumber,
+                from: pathname==="/lead/newlead"?"lead":"leadupdate"
               }
-            })
-            .catch((err) => {
-              console.log("err from notification", err);
-            })
-            .finally(() => {
-              console.log("Completed");
-            });
-          getLeads();
-          
-          handleClose();
+            console.log("mailData", mailData);
+                // email message
+              api("/util/sendmail", "post", mailData, false, true)
+                .then((res) => {
+                  if (socket) {
+                    socket.emit("sendmail", res.data);
+                  }
+                })
+                .catch((err) => {
+                  console.log("err from sendmail", err);
+                })
+                .finally(() => {
+                  console.log("Completed");
+                });
+                // whatsapp message
+                const whatsappdata = {
+                  full_name: userData?.find(option => option.id === lead.assigned)?.full_name,
+                  name: lead?.name,
+                  company: lead?.company,
+                  email: lead?.email,
+                  sendphone: userData?.find(option => option.id === lead.assigned)?.phone,
+                  leadphone: lead?.phonenumber,
+                  source: sourceData?.find(option => option.id === lead.assigned)?.name,
+                  assigned: getUser?.full_name
+                };
+                api("/util/whatsapp", "post", whatsappdata, false, true)
+                .then((res) => {
+                  if (socket) {
+                    socket.emit("sendmail", res.data);
+                  }
+                })
+                .catch((err) => {
+                  console.log("err from sendmail", err);
+                })
+                .finally(() => {
+                  console.log("Completed");
+                });
+            }
+            api(`/notification/addnotification/${lead.assigned}`, "post", {type: "leadassign"}, false, true)
+              .then((res) => {
+                if (socket) {
+                  socket.emit("newnotification", res.data.data);
+                }
+              })
+              .catch((err) => {
+                console.log("err from notification", err);
+              })
+              .finally(() => {
+                console.log("Completed");
+              });
+            getLeads();
+            handleClose();
+          }else{
+            console.log("in else so----------------");
+            console.log("res.data.message--------", res);
+            setSnackbarProperty(prevState => ({
+              ...prevState,
+              text: res?.data?.message,
+              color: "danger"
+            }));
+            setSnackAlert(true);
+          }
         })
         .catch((err) => {
           console.log("err from newLead", err);
+          setSnackbarProperty(prevState => ({
+            ...prevState,
+            text: err,
+            color: "danger"
+          }));
+          setSnackAlert(true);
         })
         .finally(() => {
           console.log("Completed");
@@ -375,6 +394,11 @@ const countriesData = useSelector((state) => state.countries.countriesData);
     console.log("err in activity log");
   });
 }, []);
+
+  // custom fields
+  useEffect(() => {
+    dispatch(fetchCustomFields("tblleads"))
+  }, []);
   return (
     <div className="p-6">
       {

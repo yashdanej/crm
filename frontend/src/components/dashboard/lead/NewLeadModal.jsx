@@ -25,7 +25,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import axios from 'axios';
-import { getAgents } from '../../../store/slices/SetupSlices';
+import { fetchCustomFields, getAgents } from '../../../store/slices/SetupSlices';
 import Profile from './view/Profile';
 import Proposals from './view/Proposals';
 import Tasks from './view/Tasks';
@@ -33,6 +33,7 @@ import Attachments from './view/Attachments';
 import Reminders from './view/Reminders';
 import Notes from './view/Notes';
 import ActivityLog from './view/ActivityLog';
+import { ChromePicker } from 'react-color';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -58,6 +59,10 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
     const [selectAssigned, setSelectAssigned] = useState(null);
     const [selectedView, setSelectedView] = useState("Profile");
     const countriesData = useSelector((state) => state.countries.countriesData);
+
+    // custom field
+    const customFieldsData = useSelector(state => state.setup.customFields);
+
     const dispatch = useDispatch();
     const handleDateChange = (date) => {
       setLastContact(date ? dayjs(date).format('MM/DD/YYYY') : null);
@@ -247,6 +252,31 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
     }
     fetchAgentsData();
   }, []);
+
+  const typeForCustomField = (type) => {
+    if(type === "input"){
+      return "text";
+    }else if(type === "number"){
+      return "number";
+    }else if(type === "textarea"){
+      return "textarea";
+      }else if(type === "date_picker"){
+        return "date";
+      }else if(type === "datetime_picker"){
+      return "datetime-local";
+    }else if(type === "color_picker"){
+      return "color";
+    }
+  }
+
+  const handleColorChange = (color, name) => {
+    setLead({ ...lead, [name]: color.hex });
+  };
+
+  const multipleSelectChange = (event) => {
+    const selectedOptions = Array.from(event.target.selectedOptions, option => option.value);
+    setLead({ ...lead, [event.target.name]: selectedOptions.join(",") });
+  };
 
   return (
     <React.Fragment>
@@ -497,7 +527,76 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
               <textarea id="description" name="description" value={lead?.description} onChange={(e) => {changeText(e, setLead, lead)}} placeholder="Description" rows="4" className="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-7 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"/>
             </div>
           </div>
-          <div className='sm:flex block gap-8'>
+          {/* custom fields */}
+          <p className='mb-2 font-semibold text-slate-600'>Custom fields:</p>
+          {customFieldsData?.data && customFieldsData?.data.length === 0 && <p>No fields found</p>}
+          <div className='flex flex-wrap gap-4 justify-between'>
+            {
+              customFieldsData?.data?.map((item) => {
+                if(item.type === "select"){
+                  return (
+                  <div className='w-[48%]'>
+                    <label for="message" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
+                    <select name={item.name} onChange={(event) => changeText(event, setLead, lead)} id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <option></option>
+                        {
+                            item.options.split(",").map((item2) => {
+                                return (
+                                    <option value={item2}>{item2}</option>
+                                )
+                            })
+                        }
+                    </select>
+                  </div>
+                  )
+                }else if(item.type === "multi_select"){
+                  return(
+                    <div className='w-[48%]'>
+                    <label for="message" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name} <span className='text-xs'>(To select multiple values hold CTRL)</span></label>
+                    <select multiple name={item.name} onChange={multipleSelectChange} id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <option></option>
+                        {
+                            item.options.split(",").map((item2) => {
+                                return (
+                                    <option value={item2}>{item2}</option>
+                                )
+                            })
+                        }
+                    </select>
+                  </div>
+                  )
+                }else if(item.type === "checkbox"){
+                  return (
+                    <div className='w-[48%] flex items-center'>
+                      <input name={item.name} onChange={(event) => setLead({...lead, [item.name]: event.target.checked})} id="link-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                      <label for="link-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"><span className='text-red-600'>{item.required ? "* " : ""}</span>{item.name}</label>
+                    </div>
+                  )
+                }else if(item.type === "color_picker"){
+                  return (
+                    <div className='w-[48%] my-3'>
+                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        <span className='text-red-600'>{item.required ? "* " : ""}</span>{item.name}
+                      </label>
+                      <ChromePicker
+                        color={lead[item.name] || (item.default_value ? item.default_value : "#000000")}
+                        onChangeComplete={(color) => handleColorChange(color, item.name)}
+                      />
+                    </div>
+                  )
+                }
+                else{
+                  return (
+                    <div className='w-[48%]'>
+                        <label for="message" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
+                        <input name={item.name} onChange={(event) => changeText(event, setLead, lead)} type={typeForCustomField(item.type)} id="first_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required={item.required} />
+                    </div>
+                  )
+                }
+              })
+            }
+          </div>
+          <div className='sm:flex block gap-8 my-3'>
                 <div className="flex items-center">
                     <input 
                         type="checkbox" 
