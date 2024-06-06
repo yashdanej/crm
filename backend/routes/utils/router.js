@@ -14,8 +14,12 @@ router
 
     // custom fields
     .get("/get_tables", verifyToken, mailController.GetAllTables) // get all tables
-    .patch("/custom_field", verifyToken, mailController.CustomField) // add column
-    .patch("/add_custom_value", verifyToken, mailController.CustomFieldValue) // add column
-    .get("/get_custom_fields/:table?", verifyToken, mailController.GetCustomFields) // add column
+    .patch("/custom_field", verifyToken, mailController.CustomField) // add custom field
+    .patch("/add_custom_value", verifyToken, mailController.CustomFieldValue) // add value
+    .get("/get_custom_fields/:active?/:table?", verifyToken, mailController.GetCustomFields) // get custom fields and with table also
+    .patch("/change_custom_field_active/:fieldid", verifyToken, mailController.ChangeCustomFieldActive) // get custom fields and with table also
+    .delete("/delete_custom_field/:fieldid", verifyToken, mailController.DeleteCustomField) // get custom fields and with table also
+    .get("/get_custom_field/:fieldid", verifyToken, mailController.EditCustomField) // get custom fields and with table also
+    .patch("/update_custom_field/:fieldid", verifyToken, mailController.UpdateCustomField) // get custom fields and with table also
 
 module.exports = router;

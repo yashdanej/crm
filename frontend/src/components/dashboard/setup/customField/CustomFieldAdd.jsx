@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Select, Option } from "@material-tailwind/react";
 import { useDispatch, useSelector } from 'react-redux';
-import { addCustomField, fetchTablesData } from '../../../../store/slices/SetupSlices';
+import { addCustomField, fetchTablesData, resetCustomField, updateCustomField } from '../../../../store/slices/SetupSlices';
 import SnackbarWithDecorators, { changeText } from '../../../../utils/Utils';
 
 const CustomFieldAdd = () => {
@@ -10,6 +10,8 @@ const CustomFieldAdd = () => {
         text: '',
         color: ''
     });
+    const fieldData = useSelector(state => state.setup.customFields.field);
+    console.log("fieldData", fieldData);
     const tablesData = useSelector(state => state.setup.customFields.tables);
     const [customField, setCustomField] = useState({
         fieldto: "",
@@ -25,6 +27,31 @@ const CustomFieldAdd = () => {
         show_on_table: false,
         show_on_client_portal: false
     });
+    useEffect(() => {
+        if (fieldData.data) {
+            setCustomField({
+                fieldto: fieldData.data.fieldto,
+                name: fieldData.data.name,
+                type: fieldData.data.type,
+                bs_column: fieldData.data.bs_column,
+                default_value: fieldData.data.default_value,
+                options: fieldData.data.options,
+                field_order: fieldData.data.field_order,
+                disalow_client_to_edit: fieldData.data.disalow_client_to_edit,
+                only_admin: fieldData.data.only_admin,
+                required: fieldData.data.required,
+                show_on_table: fieldData.data.show_on_table,
+                show_on_client_portal: fieldData.data.show_on_client_portal
+            });
+        }
+        
+    }, [fieldData]);
+    useEffect(() => {
+        return () => {
+            console.log("Unmounted----------------------");
+            dispatch(resetCustomField());
+        }
+    }, [])
     const resetValue = () => {
         setCustomField({
             fieldto: "",
@@ -40,6 +67,7 @@ const CustomFieldAdd = () => {
             show_on_table: false,
             show_on_client_portal: false
         });
+        dispatch(resetCustomField());
     }
     const dispatch = useDispatch();
     const handleCustomFieldAdd = () => {
@@ -54,10 +82,15 @@ const CustomFieldAdd = () => {
                     return;
                 }
             }
+            if(fieldData.data === null){
+                dispatch(addCustomField(customField));
+            }else{
+                console.log("fieldData?.data?.id", fieldData?.data);
+                dispatch(updateCustomField({id: fieldData?.data?.id, data: customField}));
+            }
             resetValue();
-            dispatch(addCustomField(customField));
             setSnackbarProperty({
-                text: "Custom field added successfully!",
+                text: fieldData.data === null?"Custom field added successfully!":"Custom field updated successfully!",
                 color: "success"
             });
             setSnackAlert(true);
@@ -88,12 +121,12 @@ const CustomFieldAdd = () => {
                 <div className='p-6'>
                     <div className='my-3'>
                         <label for="countries" class="block mb-2 text-sm font-medium text-gray-900"><span className='text-red-500'>* </span>Field Belongs to</label>
-                        <select value={customField?.fieldto} name='fieldto' onChange={(event) => changeText(event, setCustomField, customField)} id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <select disabled={fieldData?.data !== null ? true : false} value={customField?.fieldto} name='fieldto' onChange={(event) => changeText(event, setCustomField, customField)} id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             <option>Nothing selected</option>
                             {
                                 tablesData?.data?.map((item) => {
                                     return (
-                                        <option className='uppercase' value={item.Tables_in_crmdb}>{item.Tables_in_crmdb}</option>
+                                        <option selected={customField?.fieldto} className='uppercase' value={item.Tables_in_crmdb}>{item.Tables_in_crmdb}</option>
                                     )
                                 })
                             }
@@ -107,18 +140,18 @@ const CustomFieldAdd = () => {
 
                     <div className='my-3'>
                     <label for="countries" class="block mb-2 text-sm font-medium text-gray-900"><span className='text-red-500'>* </span>Type</label>
-                        <select name='type' onChange={(event) => changeText(event, setCustomField, customField)} id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <select disabled={fieldData?.data !== null ? true : false} name='type' onChange={(event) => changeText(event, setCustomField, customField)} id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             <option></option>
-                            <option value="input">Input</option>
-                            <option value="number">Number</option>
-                            <option value="textarea">Textarea</option>
-                            <option value="select">Select</option>
-                            <option value="multi_select">Multi Select</option>
-                            <option value="checkbox">Checkbox</option>
-                            <option value="date_picker">Date Picker</option>
-                            <option value="datetime_picker">Datetime Picker</option>
-                            <option value="color_picker">Color Picker</option>
-                            <option value="hyperlink">Hyperlink</option>
+                            <option selected={customField?.type === "input"} value="input">Input</option>
+                            <option selected={customField?.type === "number"} value="number">Number</option>
+                            <option selected={customField?.type === "textarea"} value="textarea">Textarea</option>
+                            <option selected={customField?.type === "select"} value="select">Select</option>
+                            <option selected={customField?.type === "multi_select"} value="multi_select">Multi Select</option>
+                            <option selected={customField?.type === "checkbox"} value="checkbox">Checkbox</option>
+                            <option selected={customField?.type === "date_picker"} value="date_picker">Date Picker</option>
+                            <option selected={customField?.type === "datetime_picker"} value="datetime_picker">Datetime Picker</option>
+                            <option selected={customField?.type === "color_picker"} value="color_picker">Color Picker</option>
+                            <option selected={customField?.type === "hyperlink"} value="hyperlink">Hyperlink</option>
                         </select>
                     </div>
                     {
@@ -183,7 +216,7 @@ const CustomFieldAdd = () => {
                     </div>
                 </div>
                 <div className='bg-slate-100 border px-6 py-2 flex items-center justify-end'>
-                    <button onClick={handleCustomFieldAdd} type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-[9px] me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Add</button>
+                    <button onClick={handleCustomFieldAdd} type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-[9px] me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">{fieldData.data !== null ? "Update":"Add"}</button>
                 </div>
             </div>
         </div>

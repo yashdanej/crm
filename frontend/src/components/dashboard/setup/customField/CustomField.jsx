@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import SnackbarWithDecorators, { api } from '../../../../utils/Utils'
 import { useDispatch, useSelector } from 'react-redux'
-import { addToggleOpenInCustomField, fetchCustomFields } from '../../../../store/slices/SetupSlices';
+import { changeActiveStatus, deleteCustomField, fetchCustomFields, getCustomField } from '../../../../store/slices/SetupSlices';
 import Button from '@mui/joy/Button';
 import Add from '@mui/icons-material/Add';
 import { Link, useNavigate } from 'react-router-dom';
@@ -16,9 +16,24 @@ const CustomField = () => {
     const dispatch = useDispatch();
     const customFieldsData = useSelector(state => state.setup.customFields);
     console.log("customFieldsData", customFieldsData);
+    
+    // active change
+    const handleActiveChange = (id) => {
+        dispatch(changeActiveStatus(id));
+    }
+
+    // delete custom field
+    const handleDeleteField = (id) => {
+        dispatch(deleteCustomField(id));
+    }
     useEffect(() => {
         dispatch(fetchCustomFields());
     }, [])
+
+    const handleEditField = (id) => {
+        dispatch(getCustomField(id));
+        navigate("/setup/custom_field/add");
+    }
 
     if(customFieldsData.isLoading){
         return <p>Loading...</p>
@@ -64,6 +79,9 @@ const CustomField = () => {
                                             </td>
                                             <td className="py-2 px-4 border-b border-b-gray-50">
                                                 <p className="text-[13px] font-medium text-gray-400">{item.name}</p>
+                                                <span onClick={() => handleEditField(item.id)} className='text-xs hover:underline cursor-pointer text-green-950'>Edit </span>
+                                                <span className='text-xs hover:underline cursor-pointer'>/</span>
+                                                <span onClick={() => handleDeleteField(item.id)} className='text-xs hover:underline cursor-pointer text-red-950'> Delete</span>
                                             </td>
                                             <td className="py-2 px-4 border-b border-b-gray-50">
                                                 <span className="text-[13px] font-medium text-gray-400">{item.fieldto}</span>
@@ -75,7 +93,10 @@ const CustomField = () => {
                                                 <span className="text-[13px] font-medium text-gray-400">{item.slug}</span>
                                             </td>
                                             <td className="py-2 px-4 border-b border-b-gray-50">
-                                                <span className="text-[13px] font-medium text-gray-400">{item.active}</span>
+                                            <label class="inline-flex items-center cursor-pointer">
+                                                <input onChange={() => handleActiveChange(item.id)} checked={item.active} type="checkbox" value="" class="sr-only peer"/>
+                                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                            </label>
                                             </td>
                                         </tr>
                                     )

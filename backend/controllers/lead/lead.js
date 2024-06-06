@@ -3,6 +3,7 @@ const { verifyToken } = require("../../middleware/verifyToken");
 const querystring = require('querystring');
 const url = require('url');
 const { Activity_log, getColumn, CustomFieldValue } = require("../utils/util");
+const util = require('util');
 
 exports.NewLead = async (req, res, next) => {
     let { status, source, assigned, name, address, profileofclient, typeofwork, agent, tags, city, email, state, website, country, phonenumber, zip, lead_value, default_language, company, description, priority, is_public } = req.body;
@@ -96,14 +97,12 @@ exports.NewLead = async (req, res, next) => {
             let missingFields = [];
             if (Column != undefined && Column && Column.length > 0) {
                 for (const element of Column) {
-                    if (element.required) {
-                        const value = req.body[element.name];
-                        console.log("value", value);
-                        if (!value || value == undefined) {
-                            missingFields.push(`Give value to custom field ${element.name}`);
-                        } else {
-                            await CustomFieldValue(req, res, next, newLead.insertId, element.id, element.fieldto, value);
-                        }
+                    const value = req.body[element.name];
+                    console.log("value", value);
+                    if (!value || value == undefined) {
+                        missingFields.push(`Give value to custom field ${element.name}`);
+                    } else {
+                        await CustomFieldValue(req, res, next, newLead.insertId, element.id, element.fieldto, value);
                     }
                 }
             }
@@ -646,6 +645,25 @@ exports.UpdateLead = async (req, res, next) => {
         queryParams.push(leadId);
 
         // Execute the update query
+        const Column = await getColumn(req, res, next, "tblleads");
+            console.log("Column", Column);
+            let missingFields = [];
+            if (Column != undefined && Column && Column.length > 0) {
+                for (const element of Column) {
+                    const value = req.body[element.name];
+                    console.log("value", value);
+                    if (!value || value == undefined) {
+                        missingFields.push(`Give value to custom field ${element.name}`);
+                    } else {
+                        await CustomFieldValue(req, res, next, leadId, element.id, element.fieldto, value, "update");
+                    }
+                }
+            }
+
+            if (missingFields.length > 0) {
+                req.body.id = leadId;
+                return res.status(200).json({ success: false, message: missingFields.join(", ") });
+            }
         const updateLead = await new Promise((resolve, reject) => {
             db.query(updateQuery, queryParams, (err, result) => {
                 if (err) {
@@ -657,7 +675,7 @@ exports.UpdateLead = async (req, res, next) => {
                 }
             });
         });
-
+        console.log("updateLead", updateLead);
         if (updateLead.affectedRows === 1) {
             // adding activity log
             if(assigned !== undefined){
@@ -668,8 +686,9 @@ exports.UpdateLead = async (req, res, next) => {
                 req.body.leadid = leadId;
             }
             await Activity_log(req, res, next);
-
-            return res.status(200).json({ success: true, message: "Lead updated successfully" });
+            
+                return res.status(200).json({ success: true, message: "Lead updated successfully" });
+            
         } else {
             return res.status(400).json({ success: false, message: "Error updating lead" });
         }
@@ -1473,5 +1492,24 @@ exports.ConvertToCustomer = async (req, res, next) => {
     } catch (error) {
         console.error("Error ConvertToCustomer:", error);
         return res.status(400).json({ success: false, message: "Error ConvertToCustomer", error: error });
+    }
+}
+
+// custom fields
+exports.CustomFields = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const leadid = req.params.leadid;
+        const getCustomValue = await query("SELECT * FROM tblcustomfieldsvalues WHERE refid = ?", [leadid]);
+        if (!getCustomValue.length) {
+            return res.status(404).json({ success: false, message: "Custom field not found" });
+        }
+
+        console.log("getCustomValue", getCustomValue);
+
+        return res.status(200).json({ success: true, message: "Field fetched successfully", data: getCustomValue });
+    } catch (error) {
+        console.error("Error in CustomFields:", error);
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
 }

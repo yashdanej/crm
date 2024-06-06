@@ -35,4 +35,6 @@ router
     .patch("/updatetypeofwork/:id", verifyToken, leadController.UpdateTypeOfWork) // done
     .delete("/deletetypeofwork/:id", verifyToken, leadController.DeleteTypeOfWork) // done
 
+    .get("/custom_field/:leadid", verifyToken, leadController.CustomFields) // email, whatsapp // done
+
 module.exports = router;

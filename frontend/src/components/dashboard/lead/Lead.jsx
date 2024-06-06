@@ -261,6 +261,7 @@ const countriesData = useSelector((state) => state.countries.countriesData);
                   source: sourceData?.find(option => option.id === lead.assigned)?.name,
                   assigned: getUser?.full_name
                 };
+                console.log("whatsappdata", whatsappdata);
                 api("/util/whatsapp", "post", whatsappdata, false, true)
                 .then((res) => {
                   if (socket) {

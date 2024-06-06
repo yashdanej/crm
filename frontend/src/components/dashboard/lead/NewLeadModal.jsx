@@ -25,7 +25,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import axios from 'axios';
-import { fetchCustomFields, getAgents } from '../../../store/slices/SetupSlices';
+import { fetchCustomFields, getAgents, getLeadCustomField, resetCustomField } from '../../../store/slices/SetupSlices';
 import Profile from './view/Profile';
 import Proposals from './view/Proposals';
 import Tasks from './view/Tasks';
@@ -59,7 +59,6 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
     const [selectAssigned, setSelectAssigned] = useState(null);
     const [selectedView, setSelectedView] = useState("Profile");
     const countriesData = useSelector((state) => state.countries.countriesData);
-
     // custom field
     const customFieldsData = useSelector(state => state.setup.customFields);
 
@@ -90,8 +89,8 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
         dispatch(getLead([]));
     }
     useEffect(() => {
-      if(leadData?.length>0){
-        setLead({
+      if (leadData?.length > 0) {
+        const initialLead = {
           status: leadData[0]?.status,
           source: leadData[0]?.source,
           assigned: leadData[0]?.assigned,
@@ -113,13 +112,32 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
           company: leadData[0]?.company,
           description: leadData[0]?.description,
           is_public: leadData[0]?.is_public
-        })
+        };
+        setLead(initialLead);
+        // Dispatch action to fetch custom field data
+        dispatch(getLeadCustomField(leadData[0]?.id));
       }
     }, [leadData]);
+    useEffect(() => {
+      return () => {
+        dispatch(resetCustomField());
+      }
+    }, []);
+
+    useEffect(() => {
+      if (customFieldsData?.field?.data && leadData?.length > 0) {
+          const updatedLead = { ...lead };
+          customFieldsData?.data?.forEach((item) => {
+              updatedLead[item.name] = customFieldsData?.field?.data?.find(field => field.fieldid === item.id)?.column_value || "";
+          });
+          console.log("updatedLead----------", updatedLead);
+          setLead(updatedLead);
+      }
+  }, [customFieldsData, leadData]);
+  
     const statusData = useSelector((state) => state.status.statusData);
     const sourceData = useSelector((state) => state.source.sourceData);
     const assignedData = useSelector((state) => state.assigned.assignedData);
-   
     let pathname;
     pathname = "/lead/getstatus";
 
@@ -540,9 +558,9 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
                     <select name={item.name} onChange={(event) => changeText(event, setLead, lead)} id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                         <option></option>
                         {
-                            item.options.split(",").map((item2) => {
+                            item?.options.split(",").map((item2) => {
                                 return (
-                                    <option value={item2}>{item2}</option>
+                                    <option selected={lead[item.name]} value={item2}>{item2}</option>
                                 )
                             })
                         }
@@ -558,7 +576,7 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
                         {
                             item.options.split(",").map((item2) => {
                                 return (
-                                    <option value={item2}>{item2}</option>
+                                    <option selected={lead[item.name]} value={item2}>{item2}</option>
                                 )
                             })
                         }
@@ -568,7 +586,7 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
                 }else if(item.type === "checkbox"){
                   return (
                     <div className='w-[48%] flex items-center'>
-                      <input name={item.name} onChange={(event) => setLead({...lead, [item.name]: event.target.checked})} id="link-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                      <input selected={lead[item.name]} name={item.name} onChange={(event) => setLead({...lead, [item.name]: event.target.checked})} id="link-checkbox" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
                       <label for="link-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"><span className='text-red-600'>{item.required ? "* " : ""}</span>{item.name}</label>
                     </div>
                   )
@@ -585,11 +603,18 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
                     </div>
                   )
                 }
-                else{
+                else if(item.type === "textarea"){
+                  return (
+                    <div className='w-[48%] my-3'>
+                      <label for="message" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
+                      <textarea value={lead && lead[item.name]} name={item.name} onChange={(event) => changeText(event, setLead, lead)} id="message" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder='Write here...' required={item.required}></textarea>
+                    </div>
+                  )
+                }else{
                   return (
                     <div className='w-[48%]'>
                         <label for="message" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
-                        <input name={item.name} onChange={(event) => changeText(event, setLead, lead)} type={typeForCustomField(item.type)} id="first_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required={item.required} />
+                        <input value={lead[item.name]} name={item.name} onChange={(event) => changeText(event, setLead, lead)} type={typeForCustomField(item.type)} id="first_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required={item.required} />
                     </div>
                   )
                 }
