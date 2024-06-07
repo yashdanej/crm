@@ -22,6 +22,7 @@ const leadRouter = require("./routes/lead/leadRouter");
 const agentRouter = require("./routes/agents/agentRouter");
 const notificationRouter = require("./routes/notification/notificationRoute");
 const notesRouter = require("./routes/notes/notesRouter");
+const reminderRouter = require("./routes/reminder/reminderRoutes");
 const utilRouter = require("./routes/utils/router");
 const db = require("./db");
 const { MailSend, SendWhatsappMessage } = require("./controllers/utils/util");
@@ -32,6 +33,7 @@ app.use('/api/v1/lead', leadRouter);
 app.use('/api/v1/agents', agentRouter);
 app.use('/api/v1/notification', notificationRouter);
 app.use('/api/v1/notes', notesRouter);
+app.use('/api/v1/reminder', reminderRouter);
 app.use('/api/v1/util', utilRouter);
 
 app.use('/api/v1/zipcode', createProxyMiddleware({

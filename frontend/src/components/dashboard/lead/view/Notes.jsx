@@ -30,7 +30,7 @@ const Notes = () => {
   }
   const handleNoteAdd = () => {
     console.log("note", note);
-    if(note.contacted){
+    if(selected.contacted && !note.date_contacted){
       setSnackbarProperty(prevState => ({
         ...prevState,
         text: "Select date contacted!",
@@ -47,6 +47,10 @@ const Notes = () => {
     }else{
       dispatch(addNote({id: leadData[0]?.id, data: note}));
       resetNote();
+      setSelected({
+        contacted: false,
+        not_contacted: true
+      })
     }
   };
 
@@ -54,21 +58,15 @@ const Notes = () => {
     dispatch(fetchNotes(leadData[0]?.id));
   }, []);
 
-  const handleRadioChange = (contacted) => {
+  const handleRadioChange = () => {
     setSelected({
-      contacted,
-      not_contacted: !contacted,
+      contacted: !selected.contacted,
+      not_contacted: !selected.not_contacted,
     });
-    if (!contacted) {
-      setNote({
-        ...note,
-        date_contacted: null,
-      });
-    }
   };
 
   return (
-    <div className='my-3 p-10 rounded-sm w-full min:h-full max:h-[50vh] overflow-auto bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]'>
+    <div className='my-3 p-4 rounded-sm w-full min:h-full max:h-[50vh] overflow-auto bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]'>
       {
         snackAlert ?
           <SnackbarWithDecorators  snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
@@ -135,7 +133,7 @@ const Notes = () => {
           id="contacted-radio"
           type="radio"
           checked={selected.contacted}
-          onChange={() => handleRadioChange(true)}
+          onChange={() => handleRadioChange()}
           name="contact"
           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
         />
@@ -148,7 +146,7 @@ const Notes = () => {
           id="not-contacted-radio"
           type="radio"
           checked={selected.not_contacted}
-          onChange={() => handleRadioChange(false)}
+          onChange={() => handleRadioChange()}
           name="contact"
           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
         />
@@ -159,7 +157,7 @@ const Notes = () => {
       <hr />
       <div className='flex justify-end mt-4'>
         <button
-          onClick={() => handleNoteAdd(leadData)}
+          onClick={() => handleNoteAdd()}
           type="button"
           className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
         >

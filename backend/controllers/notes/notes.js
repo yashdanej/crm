@@ -20,6 +20,7 @@ exports.addNote = async (req, res, next) => {
     console.log("addingNote", addingNote);
     if(addingNote.affectedRows === 1){
         req.body.description = `Added note in lead id: [${rel_id}] and description: [${description}]${date_contacted && `, date contacted: ${date_contacted}`}`;
+        req.body.leadid = rel_id;
         await Activity_log(req, res, next);
         const noteData = await query("select * from tblnotes where id = ?", [addingNote.insertId]);
         return res.status(200).json({success: true, message: "Note added successfully", data: noteData});
