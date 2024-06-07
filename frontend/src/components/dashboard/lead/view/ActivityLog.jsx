@@ -19,7 +19,7 @@ const ActivityLog = () => {
         userLeadActivity();
     }, [])
   return (
-    <div className='my-3 p-10 rounded-xl w-full min:h-full max:h-[50vh] overflow-auto bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]'>
+    <div className='my-3 p-10 rounded-sm w-full min:h-full max:h-[50vh] overflow-auto bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]'>
         {
         leadUserActivity && leadUserActivity.data?.length > 0 ? leadUserActivity.data.map((item) => {
             return (

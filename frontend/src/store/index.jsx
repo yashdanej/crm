@@ -1,4 +1,5 @@
 import { assignedReducer, countriesReducer, leadsReducer, sourceReducer, statusReducer } from "./slices/LeadSlices";
+import { noteReducer } from "./slices/NoteSlices";
 import { notificationReducer } from "./slices/Notification";
 import { setupReducer } from "./slices/SetupSlices";
 import userSlice from "./slices/UserSlice";
@@ -13,7 +14,8 @@ const store = configureStore({
         countries: countriesReducer,
         leads: leadsReducer,
         notification: notificationReducer,
-        setup: setupReducer
+        setup: setupReducer,
+        note: noteReducer
     }
 });
 
