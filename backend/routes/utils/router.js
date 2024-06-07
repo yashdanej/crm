@@ -18,7 +18,7 @@ router
     .patch("/add_custom_value", verifyToken, mailController.CustomFieldValue) // add value
     .get("/get_custom_fields/:active?/:table?", verifyToken, mailController.GetCustomFields) // get custom fields and with table also
     .patch("/change_custom_field_active/:fieldid", verifyToken, mailController.ChangeCustomFieldActive) // get custom fields and with table also
-    .delete("/delete_custom_field/:fieldid", verifyToken, mailController.DeleteCustomField) // get custom fields and with table also
+    .delete("/delete_custom_field/:fieldid", verifyToken, mailController.DeleteCustomField) // delete custom fields and with table also
     .get("/get_custom_field/:fieldid", verifyToken, mailController.EditCustomField) // get custom fields and with table also
     .patch("/update_custom_field/:fieldid", verifyToken, mailController.UpdateCustomField) // get custom fields and with table also
 

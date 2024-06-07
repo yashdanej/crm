@@ -34,6 +34,16 @@ const CustomField = () => {
         dispatch(getCustomField(id));
         navigate("/setup/custom_field/add");
     }
+    // activity log
+    useEffect(() => {
+        api("/util/last_active", "patch", false, false, true)
+        .then((res) => {
+        console.log("res", res);
+        })
+        .catch((err) => {
+        console.log("err in activity log");
+        });
+    }, []);
 
     if(customFieldsData.isLoading){
         return <p>Loading...</p>

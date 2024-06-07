@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Select, Option } from "@material-tailwind/react";
 import { useDispatch, useSelector } from 'react-redux';
 import { addCustomField, fetchTablesData, resetCustomField, updateCustomField } from '../../../../store/slices/SetupSlices';
-import SnackbarWithDecorators, { changeText } from '../../../../utils/Utils';
+import SnackbarWithDecorators, { api, changeText } from '../../../../utils/Utils';
 
 const CustomFieldAdd = () => {
     const [snackAlert, setSnackAlert] = useState(false); // popup success or error
@@ -108,6 +108,16 @@ const CustomFieldAdd = () => {
     useEffect(() => {
         console.log("customField", customField);
     }, [customField])
+    // activity log
+    useEffect(() => {
+        api("/util/last_active", "patch", false, false, true)
+        .then((res) => {
+        console.log("res", res);
+        })
+        .catch((err) => {
+        console.log("err in activity log");
+        });
+    }, []);
   return (
     <div className='mx-6 my-10'>
         {

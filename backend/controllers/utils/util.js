@@ -654,7 +654,7 @@ exports.ChangeCustomFieldActive = async (req, res, next) => {
         }
 
         const fieldid = req.params.fieldid;
-        const getField = await query("SELECT active FROM tblcustomfields WHERE id = ?", [fieldid]);
+        const getField = await query("SELECT * FROM tblcustomfields WHERE id = ?", [fieldid]);
         if (!getField.length) {
             return res.status(404).json({ success: false, message: "Field not found" });
         }
@@ -662,6 +662,8 @@ exports.ChangeCustomFieldActive = async (req, res, next) => {
         console.log("getField", getField[0]);
 
         await query("UPDATE tblcustomfields SET active = ? WHERE id = ?", [!getField[0].active, fieldid]);
+        req.body.description = `Updated active for id [${getField[0].id}] table [${getField[0].fieldto}], name is [${getField[0].name}], type is [${getField[0].active}]`;
+        await this.Activity_log(req, res, next);
 
         return res.status(200).json({ success: true, message: "Active changed successfully", active: !getField[0].active});
     } catch (error) {
@@ -692,6 +694,8 @@ exports.DeleteCustomField = async (req, res, next) => {
         }
 
         await query("delete from tblcustomfieldsvalues where fieldid = ?", [fieldid]);
+        req.body.description = `Deleted custom field id: [${fieldid}]`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Field deleted successfully" });
     } catch (error) {
         console.error("Error in ChangeCustomFieldActive:", error);
@@ -748,6 +752,8 @@ exports.UpdateCustomField = async (req, res, next) => {
             fieldid
         ]);
         console.log("getField", getField);
+        req.body.description = `Updated tblcustomfields for id [${fieldid}] table [${fieldto}], name is [${name}]`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Custom field updated successfully" });
     } catch (error) {
         console.error("Error in UpdateCustomField:", error);

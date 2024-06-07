@@ -30,6 +30,16 @@ const ActiveUser = () => {
       console.log("err from IsActive", err);
     });
   }
+   // activity log
+ useEffect(() => {
+  api("/util/last_active", "patch", false, false, true)
+  .then((res) => {
+    console.log("res", res);
+  })
+  .catch((err) => {
+    console.log("err in activity log");
+  });
+  }, []);
 
   useEffect(() => {
     userActivity();
