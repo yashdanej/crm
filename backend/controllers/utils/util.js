@@ -504,17 +504,31 @@ exports.CustomField = async (req, res, next) => {
     }
 };
 
-exports.CustomFieldValue = async (req, res, next, refid, fieldid, fieldto, column_value, from) => {
+exports.CustomFieldValue = async (req, res, next, refid, fieldid, fieldto, column_value, fromAction, name) => {
     try {
-        const getUser = await verifyToken(req, res, next, verifyUser = true);
-        if(from === "update"){
-            await new Promise((resolve, reject) => {
-                db.query("update tblcustomfieldsvaluesset set column_value = ? where fieldid = ?", [column_value, fieldid], (err, result) => {
-                    if(err) return reject(err);
+        if (fromAction === "update") {
+            console.log("this is from update------------");
+            const result = await new Promise((resolve, reject) => {
+                db.query("update tblcustomfieldsvalues set column_value = ? where refid = ? and fieldid = ?", [column_value, refid, fieldid], (err, result) => {
+                    if (err) return reject(err);
                     resolve(result);
                 });
             });
-        }else{
+
+            if (result.affectedRows === 0) {
+                await new Promise((resolve, reject) => {
+                    db.query("insert into tblcustomfieldsvalues set ?", {
+                        refid,
+                        fieldid,
+                        fieldto,
+                        column_value
+                    }, (err, result) => {
+                        if (err) return reject(err);
+                        resolve(result);
+                    });
+                });
+            }
+        } else {
             await new Promise((resolve, reject) => {
                 db.query("insert into tblcustomfieldsvalues set ?", {
                     refid,
@@ -522,12 +536,13 @@ exports.CustomFieldValue = async (req, res, next, refid, fieldid, fieldto, colum
                     fieldto,
                     column_value
                 }, (err, result) => {
-                    if(err) return reject(err);
+                    if (err) return reject(err);
                     resolve(result);
                 });
             });
         }
-        req.body.description = `${from === "update"?"Updated":"Inserted"} value in tblcustomfieldsvalues: table is [${fieldto}], name is [${name}], value is [${column_value}]`;
+
+        req.body.description = `${fromAction === "update" ? "Updated" : "Inserted"} value in tblcustomfieldsvalues: table is [${fieldto}], name is [${name}], value is [${column_value}]`;
         await this.Activity_log(req, res, next);
         console.log("added");
     } catch (error) {

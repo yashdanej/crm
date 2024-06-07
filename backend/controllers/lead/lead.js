@@ -156,6 +156,16 @@ exports.DeleteLead = async (req, res, next) => {
         });
         console.log("DeleteLead", DeleteLead);
         if(DeleteLead.affectedRows == 1){
+            await new Promise((resolve, reject) => {
+                db.query("delete from tblcustomfieldsvalues where refid = ?", [id], (err, result) => {
+                    if(err){
+                        console.log("error in tblcustomfieldsvalues", err);
+                        reject("error in tblcustomfieldsvalues");
+                    }else{
+                        resolve(result);
+                    }   
+                });
+            });
             req.body.description = `Deleted lead [${id}] `;
             await Activity_log(req, res, next);
             if(req.body.id){
@@ -175,6 +185,7 @@ exports.DeleteLead = async (req, res, next) => {
         return res.status(400).json({ success: false, message: "Error DeleteProfileOfClient", error: error });
     }
 }
+
 exports.GetLead = async (req, res, next) => {
     try {
         const parsedUrl = url.parse(req.url);
@@ -655,7 +666,8 @@ exports.UpdateLead = async (req, res, next) => {
                     if (!value || value == undefined) {
                         missingFields.push(`Give value to custom field ${element.name}`);
                     } else {
-                        await CustomFieldValue(req, res, next, leadId, element.id, element.fieldto, value, "update");
+                        console.log("in--------------------");
+                        await CustomFieldValue(req, res, next, leadId, element.id, element.fieldto, value, "update", element.name);
                     }
                 }
             }
