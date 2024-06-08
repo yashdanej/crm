@@ -246,7 +246,7 @@ exports.LeadActivity = async (req, res, next) => {
     try {
         const leadid = req.params.leadid;
         const getLeadActivity = await new Promise((resolve, reject) => {
-            db.query("select * from activity_log where leadid = ?", [leadid], (err, result) => {
+            db.query("select * from activity_log where leadid = ? order by id DESC", [leadid], (err, result) => {
                 if(err){
                     console.log("error in getLeadActivity", err);
                     reject("error in getLeadActivity");

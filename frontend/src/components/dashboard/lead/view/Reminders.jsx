@@ -89,8 +89,8 @@ const Reminders = () => {
         />
         </div>
         <div className='my-3'>
-          <label for="message" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>* </span>Set reminder to</label>
-          <select name="staff" onChange={(e) => changeText(e, setReminder, reminder)} id="countries" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+          <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>* </span>Set reminder to</label>
+          <select name="staff" onChange={(e) => changeText(e, setReminder, reminder)} id="countries" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
               <option></option>
               {
                 userData && userData.length > 0 &&
@@ -103,7 +103,7 @@ const Reminders = () => {
           </select>
         </div>
         <div className='my-3'>
-          <label for="message" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>* </span>Description</label>
+          <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>* </span>Description</label>
           <textarea
           name='description'
           value={reminder.description}
@@ -115,9 +115,9 @@ const Reminders = () => {
         ></textarea>
         </div>
         {/* <div className='my-3'>
-          <div class="flex items-center mb-4">
-            <input name="notify_by_email" checked={reminder.notify_by_email} onChange={(e) => setReminder({...reminder, notify_by_email: e.target.checked})} id="default-checkbox" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
-            <label for="default-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Send also an email for this reminder</label>
+          <div className="flex items-center mb-4">
+            <input name="notify_by_email" checked={reminder.notify_by_email} onChange={(e) => setReminder({...reminder, notify_by_email: e.target.checked})} id="default-checkbox" type="checkbox" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+            <label for="default-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Send also an email for this reminder</label>
           </div>
         </div> */}
         <hr />
