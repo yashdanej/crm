@@ -25,6 +25,7 @@ const notesRouter = require("./routes/notes/notesRouter");
 const reminderRouter = require("./routes/reminder/reminderRoutes");
 const attachmentRouter = require("./routes/attachment/attachmentRouter");
 const utilRouter = require("./routes/utils/router");
+const developerRouter = require("./routes/developer/developerRoutes");
 const db = require("./db");
 const { MailSend, SendWhatsappMessage } = require("./controllers/utils/util");
 
@@ -37,6 +38,7 @@ app.use('/api/v1/notes', notesRouter);
 app.use('/api/v1/reminder', reminderRouter);
 app.use('/api/v1/attachment', attachmentRouter);
 app.use('/api/v1/util', utilRouter);
+app.use('/api/v1/developer', developerRouter);
 
 app.use('/api/v1/zipcode', createProxyMiddleware({
     target: 'http://www.postalpincode.in',

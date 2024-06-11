@@ -478,7 +478,9 @@ exports.CustomField = async (req, res, next) => {
                 show_on_client_portal,
                 disalow_client_to_edit,
                 bs_column,
-                default_value
+                default_value,
+                addfrom: getUser,
+                company_id: getSelectedUser.company_id
             }, (err, result) => {
                 if(err) return reject(err);
                 resolve(result);
@@ -554,12 +556,8 @@ exports.getColumn = async (req, res, next, table_name) => {
                 }
             });
         });
-
-        if (getSelectedUser.role === 1) {
-            return res.status(400).json({ success: false, message: "Permission denied" });
-        }
         const columnExistOrNot = await new Promise((resolve, reject) => {
-            db.query("select * from tblcustomfields where fieldto = ?", [table_name], (err, result) => {
+            db.query("select * from tblcustomfields where fieldto = ? and company_id = ?", [table_name, getSelectedUser.company_id], (err, result) => {
                 if(err) return reject(err);
                 console.log("result to", result);
                 resolve(result);
@@ -604,7 +602,9 @@ exports.GetCustomFields = async (req, res, next) => {
             query += " AND active = ?";
             params.push(active);
         }
-        query += " ORDER BY field_order";
+        query += " AND company_id = ? ";
+        params.push(getSelectedUser.company_id);
+        query += "ORDER BY field_order";
 
         console.log("query", query, "params", params);
 

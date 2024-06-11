@@ -1,4 +1,5 @@
 import { attachmentReducer } from "./slices/AttachmentSlices";
+import DevSlices from "./slices/DevSlices";
 import { assignedReducer, countriesReducer, leadsReducer, sourceReducer, statusReducer } from "./slices/LeadSlices";
 import { noteReducer } from "./slices/NoteSlices";
 import { notificationReducer } from "./slices/Notification";
@@ -19,7 +20,8 @@ const store = configureStore({
         setup: setupReducer,
         note: noteReducer,
         reminder: reminderReducer,
-        attachment: attachmentReducer
+        attachment: attachmentReducer,
+        dev: DevSlices
     }
 });
 

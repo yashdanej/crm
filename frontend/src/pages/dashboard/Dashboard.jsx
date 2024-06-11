@@ -184,43 +184,64 @@ const Dashboard = ({children}) => {
                     </li>
                 )
             }
-            <li className={`mb-1 group ${location.pathname === "/admin/leads" && "active"}`}>
-                <Link to="/admin/leads" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
-                    <i className="ri-home-2-line mr-3 text-lg"></i>
-                    <span className="text-sm">Leads</span>
-                </Link>
-            </li>
-              {getUser?.role !== 1 && menu.map((item, index) => {
-                console.log('location.pathname.startsWith("/setup")', location.pathname.startsWith("/setup"));
-                return (
-                  <li className={`mb-1 group ${location.pathname.startsWith("/setup") && "active"}`} key={index}>
-                    <button
-                      onClick={() => toggleDropdown(index)}
-                      className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md"
-                    >
-                      <i className="ri-instance-line mr-3 text-lg"></i>
-                      <span className="text-sm">{item.title}</span>
-                      <i
-                        className={`ri-arrow-right-s-line ml-auto transition-transform ${
-                          openStates[index] ? 'rotate-90' : ''
-                        }`}
-                      ></i>
-                    </button>
-                    <ul className={`pl-7 mt-2 ${openStates[index] ? 'block' : 'hidden'}`}>
-                      {item?.items?.map((subItem, subIndex) => (
-                        <li key={subIndex} className={`mb-4 ${location.pathname === subItem.href && "active"}`}>
-                          <Link
-                            to={subItem.href}
-                            className="text-gray-300 text-sm flex items-center hover:text-gray-100 before:content-[''] before:w-1 before:h-1 before:rounded-full before:bg-gray-300 before:mr-3"
+             {
+                getUser?.role === 4 ? (
+                  <>
+                    <li className={`mb-1 group ${location.pathname === "/developer/company" && "active"}`}>
+                        <Link to="/developer/company" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
+                            <i className="ri-home-2-line mr-3 text-lg"></i>
+                            <span className="text-sm">Company</span>
+                        </Link>
+                    </li>
+                    <li className={`mb-1 group ${location.pathname === "/developer/super_admin" && "active"}`}>
+                        <Link to="/developer/super_admin" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
+                            <i className="ri-home-2-line mr-3 text-lg"></i>
+                            <span className="text-sm">Super Admin</span>
+                        </Link>
+                    </li>
+                  </>
+                ):(
+                  <>
+                    <li className={`mb-1 group ${location.pathname === "/admin/leads" && "active"}`}>
+                        <Link to="/admin/leads" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
+                            <i className="ri-home-2-line mr-3 text-lg"></i>
+                            <span className="text-sm">Leads</span>
+                        </Link>
+                    </li>
+                      {getUser?.role !== 1 && menu.map((item, index) => {
+                        console.log('location.pathname.startsWith("/setup")', location.pathname.startsWith("/setup"));
+                        return (
+                          <li className={`mb-1 group ${location.pathname.startsWith("/setup") && "active"}`} key={index}>
+                            <button
+                              onClick={() => toggleDropdown(index)}
+                              className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md"
                             >
-                            {subItem.label}
-                      </Link>
+                              <i className="ri-instance-line mr-3 text-lg"></i>
+                              <span className="text-sm">{item.title}</span>
+                              <i
+                                className={`ri-arrow-right-s-line ml-auto transition-transform ${
+                                  openStates[index] ? 'rotate-90' : ''
+                                }`}
+                              ></i>
+                            </button>
+                            <ul className={`pl-7 mt-2 ${openStates[index] ? 'block' : 'hidden'}`}>
+                              {item?.items?.map((subItem, subIndex) => (
+                                <li key={subIndex} className={`mb-4 ${location.pathname === subItem.href && "active"}`}>
+                                  <Link
+                                    to={subItem.href}
+                                    className="text-gray-300 text-sm flex items-center hover:text-gray-100 before:content-[''] before:w-1 before:h-1 before:rounded-full before:bg-gray-300 before:mr-3"
+                                    >
+                                    {subItem.label}
+                              </Link>
+                              </li>
+                          ))}
+                        </ul>
                       </li>
-                  ))}
-                </ul>
-              </li>
-            );
-          })}
+                    );
+                  })}
+                  </>
+                )
+            }
             {/* <li className="mb-1 group">
                 <a href="#" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
                     <i className="ri-settings-2-line mr-3 text-lg"></i>

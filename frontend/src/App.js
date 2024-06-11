@@ -21,6 +21,8 @@ import ProtectedRoute from './utils/ProtectedRoute';
 import ActiveUser from './components/dashboard/activityLog/ActivityUser';
 import CustomField from './components/dashboard/setup/customField/CustomField';
 import CustomFieldAdd from './components/dashboard/setup/customField/CustomFieldAdd';
+import Dev from './pages/dashboard/Dev';
+import SuperAdmin from './pages/dashboard/SuperAdmin';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -98,6 +100,17 @@ function App() {
             <ProtectedRoute allowedRoles={[3]}>
               <Routes>
                 <Route exact path="users" element={<Dashboard><Users /></Dashboard>} />
+              </Routes>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/developer/*'
+          element={
+            <ProtectedRoute allowedRoles={[4]}>
+              <Routes>
+                <Route exact path="company" element={<Dashboard><Dev /></Dashboard>} />
+                <Route exact path="super_admin" element={<Dashboard><SuperAdmin /></Dashboard>} />
               </Routes>
             </ProtectedRoute>
           }
