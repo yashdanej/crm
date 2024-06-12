@@ -22,7 +22,7 @@ exports.MailSend = async (req, res, next) => {
             if (!myUser) {
                 return res.status(400).json({ success: false, message: "No user found with provided ID" });
             }
-
+            console.log("myUser", myUser);
             subject = from === "lead" ? "Lead Assignment" : "Lead Update";
             html = `
                 <p>Hi ${userAssigned.full_name},</p>
@@ -50,7 +50,8 @@ exports.MailSend = async (req, res, next) => {
                 html: html,
             };
 
-            await sendEmail(mailOptions);
+            await sendEmail(mailOptions, from);
+            return res.status(200).json({ success: true, message: "Mail sent successfully!" });
         } else if (from === "reminder") {
             console.log("req.body", req.body);
             subject = `Friendly Reminder: Follow-Up Needed on Lead ${req.body.lead.name}`;
@@ -73,29 +74,36 @@ exports.MailSend = async (req, res, next) => {
                 html: html,
             };
 
-            await sendEmail(mailOptions);
+            await sendEmail(mailOptions, from);
             await query("update tblreminders set isnotified = ? where id = ?", [true, req.body.id]);
         }
     } catch (error) {
         console.error("Error:", error);
+        if(from == "reminder"){
+            return;
+        }
         return res.status(400).json({ success: false, message: "An error occurred", error });
     }
 };
 
-const sendEmail = async (mailOptions) => {
+const sendEmail = async (mailOptions, from) => {
+    console.log("mailOptions", mailOptions);
     const auth = nodemailer.createTransport({
         service: 'gmail',
         port: 465,
         secure: true,
         auth: {
             user: 'yashdanej2004@gmail.com',
-            pass: 'vkce zpez qhkk chkh'
+            pass: 'ybnw pzwi fcvs oriz'
         }
     });
 
     try {
         await auth.sendMail(mailOptions);
         console.log("Mail sent successfully!");
+        if(from == "reminder"){
+            return;
+        }
     } catch (error) {
         console.log("Failed to send email", error);
         throw error;
@@ -120,7 +128,7 @@ exports.SendWhatsappMessage = async (req, res, next) => {
         formData.append('language', language);
         formData.append('data[0]', full_name);
         formData.append('data[1]', name);
-        formData.append('data[2]', company);
+        formData.append('data[2]', company?company:"No company found");
         formData.append('data[3]', email);
         formData.append('data[4]', leadphone);
         formData.append('data[5]', source);
@@ -559,11 +567,9 @@ exports.getColumn = async (req, res, next, table_name) => {
         const columnExistOrNot = await new Promise((resolve, reject) => {
             db.query("select * from tblcustomfields where fieldto = ? and company_id = ?", [table_name, getSelectedUser.company_id], (err, result) => {
                 if(err) return reject(err);
-                console.log("result to", result);
                 resolve(result);
             });
         });
-        console.log("columnExistOrNot", columnExistOrNot);
         return columnExistOrNot;
     } catch (error) {
         console.error(`Error in getColumn: ${error}`);

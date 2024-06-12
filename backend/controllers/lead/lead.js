@@ -17,7 +17,6 @@ exports.NewLead = async (req, res, next) => {
                     console.log("error in userAssigned", err);
                     reject("error in userAssigned");
                 }else{
-                    console.log('result', result);
                     if(result === undefined || result.length === 0){
                         return res.status(400).json({ success: false, message: "no assigned user found" });
                     }else{
@@ -79,7 +78,6 @@ exports.NewLead = async (req, res, next) => {
                     console.log("error in newLead", err);
                     reject("error in newLead");
                 }else{
-                    console.log('result', result);
                     resolve(result);
                 }
             });
@@ -99,10 +97,16 @@ exports.NewLead = async (req, res, next) => {
                 for (const element of Column) {
                     const value = req.body[element.name];
                     console.log("value", value);
-                    if (!value || value == undefined) {
-                        missingFields.push(`Give value to custom field ${element.name}`);
-                    } else {
-                        await CustomFieldValue(req, res, next, newLead.insertId, element.id, element.fieldto, value);
+                    if(element.required){
+                        if (!value || value == undefined) {
+                            missingFields.push(`Give value to custom field ${element.name}`);
+                        }else{
+                            await CustomFieldValue(req, res, next, newLead.insertId, element.id, element.fieldto, value);    
+                        }  
+                    }else {
+                        if (value && value != undefined) {
+                            await CustomFieldValue(req, res, next, newLead.insertId, element.id, element.fieldto, value);
+                        }
                     }
                 }
             }
@@ -216,6 +220,32 @@ exports.GetLead = async (req, res, next) => {
 
                 query += moreQuery;
             });
+        }
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("select * from users where id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.log("error in getSelectedUser", err);
+                    reject("error in getSelectedUser");
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
+        const getAllUsers = await new Promise((resolve, reject) => {
+            db.query("select * from users where company_id = ?", [getSelectedUser.company_id], (err, result) => {
+                if (err) {
+                    console.log("error in getSelectedUser", err);
+                    reject("error in getSelectedUser");
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+        const userIds = getAllUsers.map(user => user.id);
+        if (userIds.length > 0) {
+            const placeholders = userIds.map(() => '?').join(',');
+            query += ` AND addedfrom IN (${placeholders})`;
+            queryParams = queryParams.concat(userIds);
         }
 
         console.log('query', query);
@@ -342,41 +372,52 @@ exports.GetSources = async (req, res) => {
     }
 }
 
-exports.GetUsers = async (req, res) => {
+exports.GetUsers = async (req, res, next) => {
     try {
+        const getUser = await verifyToken(req, res, next, verifyUser=true);
+        const getSelectedUser = await new Promise((resolve, reject) => {
+            db.query("SELECT * FROM users WHERE id = ?", [getUser], (err, result) => {
+                if (err) {
+                    console.error("Error getSelectedUser:", err);
+                    reject(err);
+                } else {
+                    resolve(result[0]);
+                }
+            });
+        });
         const id = req.params.id;
-        let getUsers;
+        let AgetUsers;
         if(id){
-            getUsers = await new Promise((resolve, reject) => {
-                db.query("select * from users where id != ?", [id], (err, result) => {
+            AgetUsers = await new Promise((resolve, reject) => {
+                db.query("select * from users where id != ? and company_id = ?", [id, getSelectedUser.company_id], (err, result) => {
                     if(err){
-                        console.log("error in getUsers", err);
-                        reject("error in getUsers");
+                        console.log("error in AgetUsers", err);
+                        reject("error in AgetUsers");
                     }else{
                         resolve(result);
                     }   
                 });
             });
         }else{
-            getUsers = await new Promise((resolve, reject) => {
-                db.query("select * from users", (err, result) => {
+            AgetUsers = await new Promise((resolve, reject) => {
+                db.query("select * from users where company_id = ?", [getSelectedUser.company_id], (err, result) => {
                     if(err){
-                        console.log("error in getUsers", err);
-                        reject("error in getUsers");
+                        console.log("error in AgetUsers", err);
+                        reject("error in AgetUsers");
                     }else{
                         resolve(result);
                     }   
                 });
             });
         }
-        if(getUsers.length>0){
-            return res.status(200).json({ success: true, message: "Users fetched successfully", data: getUsers })
+        if(AgetUsers.length>0){
+            return res.status(200).json({ success: true, message: "Users fetched successfully", data: AgetUsers })
         }else{
             return res.status(200).json({ success: true, message: "No users found" });
         }
     } catch (error) {
-        console.error("Error getUsers:", error);
-        return res.status(400).json({ success: false, message: "Error getUsers", error: error });
+        console.error("Error AgetUsers:", error);
+        return res.status(400).json({ success: false, message: "Error AgetUsers", error: error });
     }
 }
 
@@ -663,11 +704,16 @@ exports.UpdateLead = async (req, res, next) => {
                 for (const element of Column) {
                     const value = req.body[element.name];
                     console.log("value", value);
-                    if (!value || value == undefined) {
-                        missingFields.push(`Give value to custom field ${element.name}`);
-                    } else {
-                        console.log("in--------------------");
-                        await CustomFieldValue(req, res, next, leadId, element.id, element.fieldto, value, "update", element.name);
+                    if(element.required){
+                        if (!value || value == undefined) {
+                            missingFields.push(`Give value to custom field ${element.name}`);
+                        }else{
+                            await CustomFieldValue(req, res, next, leadId, element.id, element.fieldto, value, "update", element.name);
+                        }  
+                    }else {
+                        if (value && value != undefined) {
+                            await CustomFieldValue(req, res, next, leadId, element.id, element.fieldto, value, "update", element.name);
+                        }
                     }
                 }
             }

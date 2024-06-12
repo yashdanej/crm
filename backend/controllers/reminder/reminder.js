@@ -1,5 +1,5 @@
 const util = require('util');
-const { Activity_log, MailSend } = require('../utils/util');
+const { Activity_log, MailSend, SendWhatsappMessage } = require('../utils/util');
 const db = require('../../db');
 const schedule = require('node-schedule');
 const { verifyToken } = require('../../middleware/verifyToken');
@@ -39,6 +39,7 @@ exports.addReminder = async (req, res, next) => {
     const getUser = await verifyToken(req, res, next, verifyUser=true);
     const rel_id = req.params.rel_id;
     const { description, date, staff, rel_type, notify_by_email } = req.body;
+    console.log("date", date);
     const addingReminder = await query("insert into tblreminders set ?", {
         description,
         date,
@@ -62,6 +63,16 @@ exports.addReminder = async (req, res, next) => {
             return res.status(400).json({ success: false, message: "Invalid date format" });
         }
         Remind(req, res, next, {date: reminderDate, description: description, staff: getStaff[0], creator: getCreator[0], lead: getLead[0], reminder_id: addingReminder.insertId});
+        // const setDate = date.split("T");
+        // const setTime = setDate[1].split(".")[0];
+        // console.log("setDate", setDate, "setTime", setTime);
+        // req.body.full_name = getStaff[0].full_name;
+        // req.body.date = setDate;
+        // req.body.time = setTime;
+        // req.body.description = description;
+        // req.body.assigned = getCreator[0].full_name;
+        // console.log(req.body);
+        // await SendWhatsappMessage(req, res, next, "reminder")
         const reminderData = await query("select * from tblreminders where id = ?", [addingReminder.insertId]);
         return res.status(200).json({success: true, message: "Reminder added successfully", data: reminderData});
     }else{
