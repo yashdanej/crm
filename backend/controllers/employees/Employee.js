@@ -28,7 +28,7 @@ exports.AddEmployee = async (req, res, next) => {
             monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone } = req.body;
 
         // Validate required fields and empty values
-        const requiredFields = ["email", "user_password", "full_name", "address", "role", "phone", "designation", "joining_date"];
+        const requiredFields = ["email", "user_password", "full_name", "role", "phone", "designation", "joining_date"];
         const emptyFields = requiredFields.filter(field => !req.body[field] || req.body[field].trim() === "");
 
         if (emptyFields.length > 0) {
@@ -66,21 +66,28 @@ exports.AddEmployee = async (req, res, next) => {
             INSERT INTO users (email, user_password, created_at, updated_at, full_name, role, phone, company_id,
                 facebook, linkedin, skype, profile_img, last_password_change, hourly_rate,
                 address, country, state, city, postal_code, birth_date, designation, joining_date,
-                monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone)
+                monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone, addedfrom)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?, ?, ?, ?);
+                ?, ?, ?, ?, ?, ?, ?, ?);
         `;
 
         // Execute the query
-        await query(sql, [email, hash_password, new Date(), updated_at, full_name, role, phone, getSelectedUser[0]?.company_id,
+        const getEmp =  await query(sql, [email, hash_password, new Date(), updated_at, full_name, role, phone, getSelectedUser[0]?.company_id,
             facebook, linkedin, skype, pfimage, last_password_change, hourly_rate,
             address, country, state, city, postal_code, birth_date, designation, joining_date,
-            monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone]);
+            monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone, getUser]);
 
         // Send success response
-        return res.status(200).json({ success: true, message: "Employee added successfully" });
+        if(getEmp.affectedRows === 1){
+            req.body.description = `Added employee name: ${full_name} and id: ${getEmp.insertId} by user id ${getUser}`;
+            await Activity_log(req, res, next);
+            const empData = await query("select * from users where id = ?", [getEmp.insertId]);
+            return res.status(200).json({success: true, message: "Note added successfully", data: empData});
+        }else{
+            return res.status(200).json({ success: false, message: "Error adding employee", data: [] });
+        }
     } catch (error) {
         console.log("error in AddEmployee", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -96,7 +103,7 @@ exports.getEmployees = async (req, res, next) => {
 
         // Check if any employees were found
         if (employees.length === 0) {
-            return res.status(404).json({ success: false, message: "No employees found" });
+            return res.status(404).json({ success: false, message: "No employees found", data: [] });
         }
 
         // Send the list of employees as the response
@@ -142,7 +149,7 @@ exports.updateEmployee = async (req, res, next) => {
 
         // Validate required fields and empty values
         console.log("email", email);
-        const requiredFields = ["email", "full_name", "address", "role", "phone", "designation", "joining_date"];
+        const requiredFields = ["email", "full_name", "role", "phone", "designation", "joining_date"];
         const emptyFields = requiredFields.filter(field => !req.body[field] || req.body[field] === "");
 
         if (emptyFields.length > 0) {

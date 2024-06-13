@@ -4,6 +4,7 @@ const mailController = require('../../controllers/utils/util');
 const { verifyToken } = require('../../middleware/verifyToken');
 
 router
+    .get("/roles", verifyToken, mailController.getRoles)
     .post("/sendmail", verifyToken, mailController.MailSend)
     .post("/whatsapp", verifyToken, mailController.SendWhatsappMessage)
     .post("/activity_log", verifyToken, mailController.Activity_log)

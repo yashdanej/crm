@@ -254,7 +254,7 @@ export default function NewLeadModal({ConvertToCustomer, getDropdownData, setBul
       const locationInfo = await fetchLocationInfo(zipCode);
       if (locationInfo) {
         const { province, state, country_code } = locationInfo;
-        const country = countriesData.find(option => option.iso2 === country_code)  
+        const country = countriesData.find(option => option.iso2 === country_code)
         setLead((prevLead) => ({ ...prevLead, state, city: province, country: country.short_name }));
       }
     };

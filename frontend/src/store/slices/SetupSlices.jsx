@@ -85,6 +85,37 @@ export const getLeadCustomField = createAsyncThunk('getLeadCustomField', async (
     }
 });
 
+export const getEmployee = createAsyncThunk('getEmployee', async () => {
+    try {
+        const res = await api(`/employee`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+export const addEmployee = createAsyncThunk('addEmployee', async (data) => {
+    try {
+        const res = await api(`/employee`, "post", data, true, true);
+        return res.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+export const getRoles = createAsyncThunk('getRoles', async () => {
+    try {
+        const res = await api(`/util/roles`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+
 const setupSlice = createSlice({
     name: "agents",
     initialState: {
@@ -111,9 +142,61 @@ const setupSlice = createSlice({
                 data: null,
                 isError: false
             }
+        },
+        employees: {
+            isLoading: false,
+            data: [],
+            isError: false,
+        },
+        roles: {
+            isLoading: false,
+            data: [],
+            isError: false,
         }
     },
     extraReducers: (builder) => {
+        // getEmployee
+        builder.addCase(getEmployee.pending, (state, action) => {
+            state.employees.isLoading = true;
+        });
+        builder.addCase(getEmployee.fulfilled, (state, action) => {
+            state.employees.isLoading = false;
+            state.employees.data = action.payload;
+        });
+        builder.addCase(getEmployee.rejected, (state, action) => {
+            console.log("error in getEmployee", action.payload);
+            state.employees.isLoading = false;
+            state.employees.isError = true;
+        });
+
+        // addEmployee
+        builder.addCase(addEmployee.pending, (state, action) => {
+            state.employees.isLoading = true;
+        });
+        builder.addCase(addEmployee.fulfilled, (state, action) => {
+            state.employees.isLoading = false;
+            state.employees.data.push(action.payload[0]);
+        });
+        builder.addCase(addEmployee.rejected, (state, action) => {
+            console.log("error in addEmployee", action.payload);
+            state.employees.isLoading = false;
+            state.employees.isError = true;
+        });
+
+        // roles
+        builder.addCase(getRoles.pending, (state, action) => {
+            state.roles.isLoading = true;
+        });
+        builder.addCase(getRoles.fulfilled, (state, action) => {
+            state.roles.isLoading = false;
+            state.roles.data = action.payload;
+        });
+        builder.addCase(getRoles.rejected, (state, action) => {
+            console.log("error in getRoles", action.payload);
+            state.roles.isLoading = false;
+            state.roles.isError = true;
+        });
+
         // fetchCustomFields
         builder.addCase(fetchCustomFields.pending, (state, action) => {
             state.customFields.isLoading = true;

@@ -23,6 +23,7 @@ import CustomField from './components/dashboard/setup/customField/CustomField';
 import CustomFieldAdd from './components/dashboard/setup/customField/CustomFieldAdd';
 import Dev from './pages/dashboard/Dev';
 import SuperAdmin from './pages/dashboard/SuperAdmin';
+import EmployeesAdd from './components/dashboard/setup/employees/EmployeesAdd';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -129,6 +130,7 @@ function App() {
                 <Route path="profileofclient" element={<Dashboard><ProfileOfClient /></Dashboard>} />
                 <Route path="custom_field" element={<Dashboard><CustomField /></Dashboard>} />
                 <Route path="custom_field/add" element={<Dashboard><CustomFieldAdd /></Dashboard>} />
+                <Route path="employee/add" element={<Dashboard><EmployeesAdd /></Dashboard>} />
               </Routes>
             </ProtectedRoute>
           }

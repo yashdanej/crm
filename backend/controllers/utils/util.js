@@ -4,6 +4,23 @@ const axios = require("axios");
 const db = require("../../db");
 const util = require('util');
 
+
+exports.getRoles = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const getRoles = await query("select * from tblroles where name != ?", ["dev_owner"]);
+        console.log("getRoles", getRoles);
+        if(getRoles.length > 0){
+            return res.status(200).json({success: true, message: "Roles fetched successfully!", data: getRoles});
+        }else{
+            return res.status(200).json({success: true, message: "No role found!", data: []});
+        }
+     } catch (error) {
+        console.log("error in getRoles", error);
+     }
+}
+
+
 exports.MailSend = async (req, res, next) => {
     try {
         const query = util.promisify(db.query).bind(db);
