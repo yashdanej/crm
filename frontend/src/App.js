@@ -118,7 +118,7 @@ function App() {
         <Route exact path="/admin/leads" element={<Dashboard><Lead /></Dashboard>} />
         <Route path="activity_log/:userid" element={<Dashboard><ActiveUser /></Dashboard>} />
         <Route 
-          path="/setup/*" 
+          path="/setup/*"
           element={
             <ProtectedRoute allowedRoles={[2, 3]}>
               <Routes>

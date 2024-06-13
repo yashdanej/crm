@@ -47,6 +47,7 @@ exports.getCompany = async (req, res, next) => {
 }
 
 exports.SuperAdmin = async (req, res) => {
+    const getUser = await verifyToken(req, res, next, verifyUser=true);
     const { email, user_password, full_name, phonenumber, company_id } = req.body;
     const salt = bcrypt.genSaltSync(10);
     const hash_password = bcrypt.hashSync(user_password, salt);
@@ -64,7 +65,7 @@ exports.SuperAdmin = async (req, res) => {
             }
 
             // If email doesn't exist, insert new user
-            db.query("INSERT INTO users SET ?", { email, full_name, user_password: hash_password, phone: phonenumber, company_id, role: 3 }, (err, result) => {
+            db.query("INSERT INTO users SET ?", { email, full_name, user_password: hash_password, phone: phonenumber, company_id, role: 3, addedfrom: getUser }, (err, result) => {
                 if(err){
                     console.error("Error inserting user:", err);
                     return res.status(400).json({ success: false, message: "Error inserting user", error: err });
