@@ -90,9 +90,9 @@ exports.AddEmployee = async (req, res, next) => {
 exports.getEmployees = async (req, res, next) => {
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
-        const selectedUser = await query("select * from users where id = ?", [getUser]);
+        const selectedUser = await query("select * from users where id = ? and is_deleted = ?", [getUser, false]);
         // Execute a query to fetch employee records from the database
-        const employees = await query("SELECT * FROM users WHERE company_id = ? and id != ?", [selectedUser[0].company_id, getUser]);
+        const employees = await query("SELECT * FROM users WHERE company_id = ? and id != ? and is_deleted = ?", [selectedUser[0].company_id, getUser, false]);
 
         // Check if any employees were found
         if (employees.length === 0) {
@@ -100,7 +100,7 @@ exports.getEmployees = async (req, res, next) => {
         }
 
         // Send the list of employees as the response
-        return res.status(200).json({ success: true, message: "Employees fetched successfully", date: employees });
+        return res.status(200).json({ success: true, message: "Employees fetched successfully", data: employees });
     } catch (error) {
         console.log("Error in getEmployees", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -110,10 +110,10 @@ exports.getEmployees = async (req, res, next) => {
 exports.getEmployee = async (req, res, next) => {
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
-        const selectedUser = await query("select * from users where id = ?", [getUser]);
+        const selectedUser = await query("select * from users where id = ? and is_deleted = ?", [getUser, false]);
         const emp_id = req.params.emp_id;
         // Execute a query to fetch employee records from the database
-        const employee = await query("SELECT * FROM users WHERE company_id = ? and id = ?", [selectedUser[0].company_id, emp_id]);
+        const employee = await query("SELECT * FROM users WHERE company_id = ? and id = ? and is_deleted = ?", [selectedUser[0].company_id, emp_id, false]);
 
         // Check if any employee were found
         if (employee.length === 0) {
@@ -121,7 +121,7 @@ exports.getEmployee = async (req, res, next) => {
         }
 
         // Send the list of employee as the response
-        return res.status(200).json({ success: true, message: "Employee fetched successfully", date: employee });
+        return res.status(200).json({ success: true, message: "Employee fetched successfully", data: employee });
     } catch (error) {
         console.log("Error in getEmployee", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -188,6 +188,221 @@ exports.updateEmployee = async (req, res, next) => {
         return res.status(200).json({ success: true, message: "Employee updated successfully" });
     } catch (error) {
         console.log("Error in updateEmployee", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.deleteEmployeeAndDetail = async (req, res, next) => {
+    try {
+        const emp_id = req.params.emp_id;
+        // Execute a query to fetch employee records from the database
+        await query("update users set is_deleted = ? WHERE id = ?", [true, emp_id]);
+        await query("update emp_details set is_deleted = ? WHERE user_id = ?", [true, emp_id]);
+
+        // Send the list of employee as the response
+        return res.status(200).json({ success: true, message: "Employee deleted successfully" });
+    } catch (error) {
+        console.log("Error in getEmployee", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.addEmployeeDetail = async (req, res, next) => {
+    try {
+        const emp_id = req.params.emp_id;
+        const existingUser = await query("select * from emp_details where user_id = ?", [emp_id]);
+        if(existingUser.length > 0){
+            return res.status(200).json({success: false, message: "Employee detail already exist!"})
+        }
+        const {
+            pf_number,
+            aadhar_number,
+            passport,
+            passport_authority,
+            visa,
+            visa_authority,
+            eid,
+            eid_authority,
+            bank_name,
+            account_holder_name,
+            bank_ifsc_code,
+            esi_number,
+            driving_licence_no,
+            passport_date_from,
+            passport_date_to,
+            visa_date,
+            eid_date_from,
+            eid_date_to,
+            bank_branch,
+            bank_acount_no
+        } = req.body;
+
+        // Add validation rules as needed for specific fields
+
+        // Construct the SQL query
+        const sql = `
+            INSERT INTO emp_details (
+                pf_number,
+                aadhar_number,
+                passport,
+                passport_authority,
+                visa,
+                visa_authority,
+                eid,
+                eid_authority,
+                bank_name,
+                account_holder_name,
+                bank_ifsc_code,
+                esi_number,
+                driving_licence_no,
+                passport_date_from,
+                passport_date_to,
+                visa_date,
+                eid_date_from,
+                eid_date_to,
+                bank_branch,
+                bank_acount_no,
+                user_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        `;
+
+        // Execute the query
+        await query(sql, [
+            pf_number,
+            aadhar_number,
+            passport,
+            passport_authority,
+            visa,
+            visa_authority,
+            eid,
+            eid_authority,
+            bank_name,
+            account_holder_name,
+            bank_ifsc_code,
+            esi_number,
+            driving_licence_no,
+            passport_date_from,
+            passport_date_to,
+            visa_date,
+            eid_date_from,
+            eid_date_to,
+            bank_branch,
+            bank_acount_no,
+            emp_id
+        ]);
+
+        return res.status(200).json({ success: true, message: "Employee detail added successfully" });
+    } catch (error) {
+        console.log("Error in addEmployeeDetail", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getEmployeeDetails = async (req, res, next) => {
+    try {
+        const emp_id = req.params.emp_id;
+        // Execute a query to fetch employee records from the database
+        const employee = await query("SELECT * FROM emp_details WHERE user_id = ? and is_deleted = ?", [emp_id, false]);
+
+        // Check if any employee were found
+        if (employee.length === 0) {
+            return res.status(404).json({ success: false, message: "No employee detail found" });
+        }
+
+        // Send the list of employee as the response
+        return res.status(200).json({ success: true, message: "Employee details fetched successfully", date: employee });
+    } catch (error) {
+        console.log("Error in getEmployee", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.updateEmployeeDetail = async (req, res, next) => {
+    try {
+        const detail_id = req.params.detail_id;
+        const getDetailId = await query("select * from emp_details where id = ?", [detail_id]);
+        if(!getDetailId.length > 0){
+            return res.status(404).json({success: false, message: "No Employee detail found!"});
+        }
+        const {
+            pf_number,
+            aadhar_number,
+            passport,
+            passport_authority,
+            visa,
+            visa_authority,
+            eid,
+            eid_authority,
+            bank_name,
+            account_holder_name,
+            bank_ifsc_code,
+            esi_number,
+            driving_licence_no,
+            passport_date_from,
+            passport_date_to,
+            visa_date,
+            eid_date_from,
+            eid_date_to,
+            bank_branch,
+            bank_acount_no
+        } = req.body;
+
+        // Add validation rules as needed for specific fields
+
+        // Construct the SQL query for updating employee detail
+        const sql = `
+            UPDATE emp_details
+            SET pf_number=?,
+                aadhar_number=?,
+                passport=?,
+                passport_authority=?,
+                visa=?,
+                visa_authority=?,
+                eid=?,
+                eid_authority=?,
+                bank_name=?,
+                account_holder_name=?,
+                bank_ifsc_code=?,
+                esi_number=?,
+                driving_licence_no=?,
+                passport_date_from=?,
+                passport_date_to=?,
+                visa_date=?,
+                eid_date_from=?,
+                eid_date_to=?,
+                bank_branch=?,
+                bank_acount_no=?
+            WHERE id=?;
+        `;
+
+        // Execute the query
+        await query(sql, [
+            pf_number,
+            aadhar_number,
+            passport,
+            passport_authority,
+            visa,
+            visa_authority,
+            eid,
+            eid_authority,
+            bank_name,
+            account_holder_name,
+            bank_ifsc_code,
+            esi_number,
+            driving_licence_no,
+            passport_date_from,
+            passport_date_to,
+            visa_date,
+            eid_date_from,
+            eid_date_to,
+            bank_branch,
+            bank_acount_no,
+            detail_id
+        ]);
+
+        return res.status(200).json({ success: true, message: "Employee detail updated successfully" });
+    } catch (error) {
+        console.log("Error in updateEmployeeDetail", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };

@@ -9,5 +9,11 @@ router
     .get("/", verifyToken, employeesController.getEmployees)
     .get("/:emp_id", verifyToken, employeesController.getEmployee)
     .patch("/:emp_id", verifyToken, upload.single("profile_img"), employeesController.updateEmployee)
+    .delete("/:emp_id", verifyToken, employeesController.deleteEmployeeAndDetail)
+
+    // Employee details
+    .post("/detail/:emp_id", verifyToken, employeesController.addEmployeeDetail)
+    .get("/detail/:emp_id", verifyToken, employeesController.getEmployeeDetails)
+    .patch("/detail/:detail_id", verifyToken, employeesController.updateEmployeeDetail)
 
 module.exports = router;
