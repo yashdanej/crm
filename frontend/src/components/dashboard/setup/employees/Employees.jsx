@@ -2,8 +2,8 @@ import Add from '@mui/icons-material/Add'
 import { Button } from '@mui/material'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
-import { getEmployee, getRoles } from '../../../../store/slices/SetupSlices'
+import { Link, useNavigate } from 'react-router-dom'
+import { deleteEmployee, getEmployee, getEmployeeField, getRoles } from '../../../../store/slices/SetupSlices'
 
 const Employees = () => {
     const empData = useSelector(state => state.setup.employees);
@@ -13,6 +13,15 @@ const Employees = () => {
         dispatch(getEmployee());
         dispatch(getRoles());
     }, []);
+
+    const handleDeleteEmployee = (id) => {
+        dispatch(deleteEmployee(id));
+    }
+    const navigate = useNavigate();
+    const handlEditEmployee = (id) => {
+        dispatch(getEmployeeField(id));
+        navigate("/setup/employee/add");
+    }
   return (
     <div className='m-6'>
             <div className='mb-4'>
@@ -48,9 +57,9 @@ const Employees = () => {
                                             </td>
                                             <td className="py-2 px-4 border-b border-b-gray-50">
                                                 <p className="text-[13px] font-medium text-gray-400">{item.full_name}</p>
-                                                <span className='text-xs hover:underline cursor-pointer text-green-950'>Edit </span>
+                                                <span onClick={() => handlEditEmployee(item?.id)} className='text-xs hover:underline cursor-pointer text-green-950'>Edit </span>
                                                 <span className='text-xs hover:underline cursor-pointer'>/</span>
-                                                <span className='text-xs hover:underline cursor-pointer text-red-950'> Delete</span>
+                                                <span onClick={() => handleDeleteEmployee(item?.id)} className='text-xs hover:underline cursor-pointer text-red-950'> Delete</span>
                                             </td>
                                             <td className="py-2 px-4 border-b border-b-gray-50">
                                                 <span className="text-[13px] font-medium text-gray-400">{item.email}</span>

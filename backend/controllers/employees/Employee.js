@@ -142,13 +142,19 @@ exports.updateEmployee = async (req, res, next) => {
         // Extract employee data from request body
         console.log("req.body", req.body);
         const { email, full_name, role, phone,
-            facebook, linkedin, skype, last_password_change, hourly_rate,
+            facebook, linkedin, skype, user_password, last_password_change, hourly_rate,
             address, country, state, city, postal_code, birth_date, designation, joining_date,
             monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone } = req.body;
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         const getSelectedUser = await query("SELECT * FROM users WHERE id = ?", [getUser]);
         const emp_id = req.params.emp_id;
-
+        let result;
+        if(req.file && req.file.path){
+            result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "crm",
+                resource_type: "auto"
+            });
+        }
         // Validate required fields and empty values
         console.log("email", email);
         const requiredFields = ["email", "full_name", "role", "phone", "designation", "joining_date"];
@@ -179,19 +185,65 @@ exports.updateEmployee = async (req, res, next) => {
             return handleErrorResponse(res, 400, "Email already exists. Please use a different email address.");
         }
 
+        // Check if the previous password matches the newly entered password
+        const previousPassword = existingEmployee[0].user_password;
+        const passwordMatches = bcrypt.compareSync(user_password, previousPassword);
+        const joiningDate = new Date(joining_date).toISOString().slice(0, 19).replace('T', ' ');
         // Construct the SQL query for updating employee details
-        const sql = `
-            UPDATE users 
-            SET email=?, full_name=?, role=?, phone=?, facebook=?, linkedin=?, skype=?, last_password_change=?, hourly_rate=?,
-                address=?, country=?, state=?, city=?, postal_code=?, birth_date=?, designation=?, joining_date=?,
-                monthly_salary=?, leaving_date=?, emergency_fn=?, emergency_ln=?, relationship=?, emergency_phone=?, updated_at=?
-            WHERE id=?;
-        `;
+        let sql;
+        const queryParamsBase = [email, full_name, role, phone, facebook, linkedin, skype, hourly_rate,
+            address, country, state, city, postal_code, birth_date, designation, joiningDate,
+            monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone, new Date(), emp_id];
+
+        if (!passwordMatches) {
+            // Password does not match, update the password
+            const salt = bcrypt.genSaltSync(10);
+            const hashedPassword = bcrypt.hashSync(user_password, salt);
+            if (req.file && req.file.path) {
+                sql = `
+                    UPDATE users 
+                    SET email=?, full_name=?, role=?, phone=?, facebook=?, linkedin=?, skype=?, user_password=?, last_password_change=?,
+                        hourly_rate=?, address=?, country=?, state=?, city=?, postal_code=?, birth_date=?, designation=?, joining_date=?,
+                        monthly_salary=?, leaving_date=?, emergency_fn=?, emergency_ln=?, relationship=?, emergency_phone=?, updated_at=?, profile_img=?
+                    WHERE id=?;
+                `;
+                queryParamsBase.splice(7, 0, hashedPassword, last_password_change);
+                queryParamsBase.splice(queryParamsBase.length - 1, 0, result.secure_url);
+            } else {
+                sql = `
+                    UPDATE users 
+                    SET email=?, full_name=?, role=?, phone=?, facebook=?, linkedin=?, skype=?, user_password=?, last_password_change=?,
+                        hourly_rate=?, address=?, country=?, state=?, city=?, postal_code=?, birth_date=?, designation=?, joining_date=?,
+                        monthly_salary=?, leaving_date=?, emergency_fn=?, emergency_ln=?, relationship=?, emergency_phone=?, updated_at=?
+                    WHERE id=?;
+                `;
+                queryParamsBase.splice(7, 0, hashedPassword, last_password_change);
+            }
+        } else {
+            // Password matches, do not update the password
+            if (req.file && req.file.path) {
+                sql = `
+                    UPDATE users 
+                    SET email=?, full_name=?, role=?, phone=?, facebook=?, linkedin=?, skype=?, last_password_change=?,
+                        hourly_rate=?, address=?, country=?, state=?, city=?, postal_code=?, birth_date=?, designation=?, joining_date=?,
+                        monthly_salary=?, leaving_date=?, emergency_fn=?, emergency_ln=?, relationship=?, emergency_phone=?, updated_at=?, profile_img=?
+                    WHERE id=?;
+                `;
+                queryParamsBase.splice(7, 0);
+                queryParamsBase.splice(queryParamsBase.length - 1, 0, result.secure_url);
+            } else {
+                sql = `
+                    UPDATE users 
+                    SET email=?, full_name=?, role=?, phone=?, facebook=?, linkedin=?, skype=?, last_password_change=?,
+                        hourly_rate=?, address=?, country=?, state=?, city=?, postal_code=?, birth_date=?, designation=?, joining_date=?,
+                        monthly_salary=?, leaving_date=?, emergency_fn=?, emergency_ln=?, relationship=?, emergency_phone=?, updated_at=?
+                    WHERE id=?;
+                `;
+            }
+        }
 
         // Execute the query
-        await query(sql, [email, full_name, role, phone, facebook, linkedin, skype, last_password_change, hourly_rate,
-            address, country, state, city, postal_code, birth_date, designation, joining_date,
-            monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone, new Date(), emp_id]);
+        await query(sql, queryParamsBase);
 
         // Send success response
         return res.status(200).json({ success: true, message: "Employee updated successfully" });
@@ -201,6 +253,7 @@ exports.updateEmployee = async (req, res, next) => {
     }
 };
 
+
 exports.deleteEmployeeAndDetail = async (req, res, next) => {
     try {
         const emp_id = req.params.emp_id;
@@ -209,6 +262,8 @@ exports.deleteEmployeeAndDetail = async (req, res, next) => {
         await query("update emp_details set is_deleted = ? WHERE user_id = ?", [true, emp_id]);
 
         // Send the list of employee as the response
+        req.body.description = `Deleted employee id: [${emp_id}]`;
+        await Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Employee deleted successfully" });
     } catch (error) {
         console.log("Error in getEmployee", error);
@@ -223,7 +278,7 @@ exports.addEmployeeDetail = async (req, res, next) => {
         if(existingUser.length > 0){
             return res.status(200).json({success: false, message: "Employee detail already exist!"})
         }
-        const {
+        let {
             pf_number,
             aadhar_number,
             passport,
@@ -245,7 +300,21 @@ exports.addEmployeeDetail = async (req, res, next) => {
             bank_branch,
             bank_acount_no
         } = req.body;
-
+        if(passport_date_from == ""){
+            passport_date_from = null;
+        }
+        if(passport_date_to == ""){
+            passport_date_to = null;
+        }
+        if(visa_date == ""){
+            visa_date = null;
+        }
+        if(eid_date_from == ""){
+            eid_date_from = null;
+        }
+        if(eid_date_to == ""){
+            eid_date_to = null;
+        }
         // Add validation rules as needed for specific fields
 
         // Construct the SQL query
@@ -325,7 +394,7 @@ exports.getEmployeeDetails = async (req, res, next) => {
         }
 
         // Send the list of employee as the response
-        return res.status(200).json({ success: true, message: "Employee details fetched successfully", date: employee });
+        return res.status(200).json({ success: true, message: "Employee details fetched successfully", data: employee });
     } catch (error) {
         console.log("Error in getEmployee", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -418,6 +487,168 @@ exports.updateEmployeeDetail = async (req, res, next) => {
         return res.status(200).json({ success: true, message: "Employee detail updated successfully" });
     } catch (error) {
         console.log("Error in updateEmployeeDetail", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.addOrUpdateEmployeeDetail = async (req, res, next) => {
+    try {
+        const emp_id = req.params.emp_id;
+        const existingDetails = await query("SELECT * FROM emp_details WHERE user_id = ?", [emp_id]);
+
+        let {
+            pf_number,
+            aadhar_number,
+            passport,
+            passport_authority,
+            visa,
+            visa_authority,
+            eid,
+            eid_authority,
+            bank_name,
+            account_holder_name,
+            bank_ifsc_code,
+            esi_number,
+            driving_licence_no,
+            passport_date_from,
+            passport_date_to,
+            visa_date,
+            eid_date_from,
+            eid_date_to,
+            bank_branch,
+            bank_acount_no
+        } = req.body;
+
+        // Set empty date fields to null
+        passport_date_from = passport_date_from || null;
+        passport_date_to = passport_date_to || null;
+        visa_date = visa_date || null;
+        eid_date_from = eid_date_from || null;
+        eid_date_to = eid_date_to || null;
+
+        if (existingDetails.length > 0) {
+            // Employee details exist, update them
+            const detail_id = existingDetails[0].id;
+
+            const sqlUpdate = `
+                UPDATE emp_details
+                SET pf_number=?,
+                    aadhar_number=?,
+                    passport=?,
+                    passport_authority=?,
+                    visa=?,
+                    visa_authority=?,
+                    eid=?,
+                    eid_authority=?,
+                    bank_name=?,
+                    account_holder_name=?,
+                    bank_ifsc_code=?,
+                    esi_number=?,
+                    driving_licence_no=?,
+                    passport_date_from=?,
+                    passport_date_to=?,
+                    visa_date=?,
+                    eid_date_from=?,
+                    eid_date_to=?,
+                    bank_branch=?,
+                    bank_acount_no=?
+                WHERE id=?;
+            `;
+
+            await query(sqlUpdate, [
+                pf_number,
+                aadhar_number,
+                passport,
+                passport_authority,
+                visa,
+                visa_authority,
+                eid,
+                eid_authority,
+                bank_name,
+                account_holder_name,
+                bank_ifsc_code,
+                esi_number,
+                driving_licence_no,
+                passport_date_from,
+                passport_date_to,
+                visa_date,
+                eid_date_from,
+                eid_date_to,
+                bank_branch,
+                bank_acount_no,
+                detail_id
+            ]);
+
+            req.body.description = `Updated employee detail for employee id: ${emp_id}`;
+            await Activity_log(req, res, next);
+
+            return res.status(200).json({ success: true, message: "Employee detail updated successfully" });
+
+        } else {
+            // Employee details do not exist, add new details
+            const sqlInsert = `
+                INSERT INTO emp_details (
+                    pf_number,
+                    aadhar_number,
+                    passport,
+                    passport_authority,
+                    visa,
+                    visa_authority,
+                    eid,
+                    eid_authority,
+                    bank_name,
+                    account_holder_name,
+                    bank_ifsc_code,
+                    esi_number,
+                    driving_licence_no,
+                    passport_date_from,
+                    passport_date_to,
+                    visa_date,
+                    eid_date_from,
+                    eid_date_to,
+                    bank_branch,
+                    bank_acount_no,
+                    user_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            `;
+
+            const empDetail = await query(sqlInsert, [
+                pf_number,
+                aadhar_number,
+                passport,
+                passport_authority,
+                visa,
+                visa_authority,
+                eid,
+                eid_authority,
+                bank_name,
+                account_holder_name,
+                bank_ifsc_code,
+                esi_number,
+                driving_licence_no,
+                passport_date_from,
+                passport_date_to,
+                visa_date,
+                eid_date_from,
+                eid_date_to,
+                bank_branch,
+                bank_acount_no,
+                emp_id
+            ]);
+
+            if (empDetail.affectedRows === 1) {
+                req.body.description = `Added employee detail for employee id: ${emp_id}`;
+                await Activity_log(req, res, next);
+
+                const newEmpDetails = await query("SELECT * FROM emp_details WHERE id = ?", [empDetail.insertId]);
+                console.log("newEmpDetails", newEmpDetails);
+                return res.status(200).json({ success: true, message: "Employee detail added successfully", data: newEmpDetails });
+            } else {
+                return res.status(200).json({ success: false, message: "Error adding employee detail", data: [] });
+            }
+        }
+    } catch (error) {
+        console.log("Error in addOrUpdateEmployeeDetail", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
