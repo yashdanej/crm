@@ -105,9 +105,7 @@ const CustomFieldAdd = () => {
     useEffect(() => {
         dispatch(fetchTablesData());
     }, []);
-    useEffect(() => {
-        console.log("customField", customField);
-    }, [customField])
+
     // activity log
     useEffect(() => {
         api("/util/last_active", "patch", false, false, true)

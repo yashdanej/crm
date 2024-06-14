@@ -18,6 +18,7 @@ export const api = async (pathname, method, body, formData=false, includeCredent
     };
     if(body){
         if(formData){
+          console.log("body------", body);
             const data = new FormData();
             for (const key in body) {
               if (body.hasOwnProperty(key)) {

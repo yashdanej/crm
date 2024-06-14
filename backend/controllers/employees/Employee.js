@@ -19,6 +19,7 @@ const handleErrorResponse = (res, statusCode, message) => {
 
 exports.AddEmployee = async (req, res, next) => {
     try {
+        console.log("in----------");
         // Extract employee data from request body
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         const getSelectedUser = await query("select * from users where id = ?", [getUser]);
@@ -30,24 +31,24 @@ exports.AddEmployee = async (req, res, next) => {
         // Validate required fields and empty values
         const requiredFields = ["email", "user_password", "full_name", "role", "phone", "designation", "joining_date"];
         const emptyFields = requiredFields.filter(field => !req.body[field] || req.body[field].trim() === "");
-
+        console.log("emptyFields", emptyFields);
         if (emptyFields.length > 0) {
-            return handleErrorResponse(res, 400, `Empty values found for fields: ${emptyFields.join(", ")}`);
+            return handleErrorResponse(res, 200, `Empty values found for fields: ${emptyFields.join(", ")}`);
         }
 
         // Validate phone number format
         if (!validatePhoneNumber(phone)) {
-            return handleErrorResponse(res, 400, "Invalid phone number format. Please provide a 10-digit phone number.");
+            return handleErrorResponse(res, 200, "Invalid phone number format. Please provide a 10-digit phone number.");
         }
 
         if (emergency_phone && emergency_phone !== "" && !validatePhoneNumber(emergency_phone)) {
-            return handleErrorResponse(res, 400, "Invalid emergency phone number format. Please provide a 10-digit phone number.");
+            return handleErrorResponse(res, 200, "Invalid emergency phone number format. Please provide a 10-digit phone number.");
         }
 
         // Check if the email already exists
         const existingUser = await query("SELECT * FROM users WHERE email = ? and company_id = ?", [email, getSelectedUser[0].company_id]);
         if (existingUser.length > 0) {
-            return handleErrorResponse(res, 400, "Email already exists. Please use a different email address.");
+            return handleErrorResponse(res, 200, "Email already exists. Please use a different email address.");
         }
         let result;
         if(req.file && req.file.path){
@@ -56,6 +57,7 @@ exports.AddEmployee = async (req, res, next) => {
                 resource_type: "auto"
             });
         }
+        console.log("in2----------");
         const pfimage = result?.secure_url;
         // Password hashing
         const salt = bcrypt.genSaltSync(10);
@@ -84,7 +86,7 @@ exports.AddEmployee = async (req, res, next) => {
             req.body.description = `Added employee name: ${full_name} and id: ${getEmp.insertId} by user id ${getUser}`;
             await Activity_log(req, res, next);
             const empData = await query("select * from users where id = ?", [getEmp.insertId]);
-            return res.status(200).json({success: true, message: "Note added successfully", data: empData});
+            return res.status(200).json({success: true, message: "Employee added successfully", data: empData});
         }else{
             return res.status(200).json({ success: false, message: "Error adding employee", data: [] });
         }
@@ -274,7 +276,7 @@ exports.addEmployeeDetail = async (req, res, next) => {
         `;
 
         // Execute the query
-        await query(sql, [
+        const empDetail = await query(sql, [
             pf_number,
             aadhar_number,
             passport,
@@ -297,8 +299,14 @@ exports.addEmployeeDetail = async (req, res, next) => {
             bank_acount_no,
             emp_id
         ]);
-
-        return res.status(200).json({ success: true, message: "Employee detail added successfully" });
+        if(empDetail.affectedRows === 1){
+            req.body.description = `Added employee detail to employee id: ${emp_id}`;
+            await Activity_log(req, res, next);
+            const empDetails = await query("select * from users where id = ?", [empDetail.insertId]);
+            return res.status(200).json({success: true, message: "Employee detail added successfully", data: empDetails});
+        }else{
+            return res.status(200).json({ success: false, message: "Error adding employee detail", data: [] });
+        }
     } catch (error) {
         console.log("Error in addEmployeeDetail", error);
         return res.status(500).json({ success: false, message: "Internal server error" });

@@ -97,7 +97,21 @@ export const getEmployee = createAsyncThunk('getEmployee', async () => {
 
 export const addEmployee = createAsyncThunk('addEmployee', async (data) => {
     try {
+        console.log("data---------", data);
         const res = await api(`/employee`, "post", data, true, true);
+        console.log("res.data---" , res);
+        return res.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+export const addEmployeeDetail = createAsyncThunk('addEmployeeDetail', async (data) => {
+    try {
+        console.log("data---------", data);
+        const res = await api(`/employee/detail/${data.id}`, "post", data.data, false, true);
+        console.log("res.data---" , res);
         return res.data;
     } catch (err) {
         console.log("err", err);
@@ -147,6 +161,15 @@ const setupSlice = createSlice({
             isLoading: false,
             data: [],
             isError: false,
+            success: false,
+            message: "",
+            details: {
+                isLoading: false,
+                data: [],
+                isError: false,
+                success: false,
+                message: ""
+            }
         },
         roles: {
             isLoading: false,
@@ -167,17 +190,47 @@ const setupSlice = createSlice({
             console.log("error in getEmployee", action.payload);
             state.employees.isLoading = false;
             state.employees.isError = true;
-        });
+        }); 
 
         // addEmployee
         builder.addCase(addEmployee.pending, (state, action) => {
             state.employees.isLoading = true;
         });
         builder.addCase(addEmployee.fulfilled, (state, action) => {
+            console.log("action.payload----------", action.payload);
             state.employees.isLoading = false;
-            state.employees.data.push(action.payload[0]);
+            if(action.payload.success){
+                state.employees.data.push(action.payload.data[0]);
+                state.employees.success = true;
+                state.employees.message = action.payload.message;
+            }else{
+                state.employees.success = false;
+                state.employees.message = action.payload.message;
+            }
         });
         builder.addCase(addEmployee.rejected, (state, action) => {
+            console.log("error in addEmployee", action.payload);
+            state.employees.isLoading = false;
+            state.employees.isError = true;
+        });
+
+        // addEmployeeDetails
+        builder.addCase(addEmployeeDetail.pending, (state, action) => {
+            state.employees.details.isLoading = true;
+        });
+        builder.addCase(addEmployeeDetail.fulfilled, (state, action) => {
+            console.log("action.payload----------", action.payload);
+            state.employees.isLoading = false;
+            if(action.payload.details.success){
+                state.employees.details.data.push(action.payload.data[0]);
+                state.employees.details.success = true;
+                state.employees.details.message = action.payload.message;
+            }else{
+                state.employees.details.success = false;
+                state.employees.details.message = action.payload.message;
+            }
+        });
+        builder.addCase(addEmployeeDetail.rejected, (state, action) => {
             console.log("error in addEmployee", action.payload);
             state.employees.isLoading = false;
             state.employees.isError = true;
