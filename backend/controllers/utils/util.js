@@ -774,3 +774,318 @@ exports.UpdateCustomField = async (req, res, next) => {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
 }
+
+// grp
+exports.createGrpName = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ success: false, message: "Name is required" });
+        }
+        const sql = "INSERT INTO crmdb.grp_name (name) VALUES (?);";
+        await query(sql, [name]);
+        return res.status(201).json({ success: true, message: "Group name created successfully" });
+    } catch (error) {
+        console.log("Error in createGrpName", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getAllGrpNames = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const sql = "SELECT * FROM crmdb.grp_name;";
+        const grpNames = await query(sql);
+        return res.status(200).json({ success: true, data: grpNames });
+    } catch (error) {
+        console.log("Error in getAllGrpNames", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getGrpNameById = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "SELECT * FROM crmdb.grp_name WHERE id = ?;";
+        const grpName = await query(sql, [id]);
+        if (grpName.length === 0) {
+            return res.status(404).json({ success: false, message: "Group name not found" });
+        }
+        return res.status(200).json({ success: true, data: grpName });
+    } catch (error) {
+        console.log("Error in getGrpNameById", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.updateGrpName = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ success: false, message: "Name is required" });
+        }
+        const sql = "UPDATE crmdb.grp_name SET name = ? WHERE id = ?;";
+        const result = await query(sql, [name, id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Group name not found" });
+        }
+        return res.status(200).json({ success: true, message: "Group name updated successfully" });
+    } catch (error) {
+        console.log("Error in updateGrpName", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
+exports.deleteGrpName = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "DELETE FROM crmdb.grp_name WHERE id = ?;";
+        const result = await query(sql, [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Group name not found" });
+        }
+        return res.status(200).json({ success: true, message: "Group name deleted successfully" });
+    } catch (error) {
+        console.log("Error in deleteGrpName", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+// it status
+exports.createItStatus = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ success: false, message: "Name is required" });
+        }
+        const sql = "INSERT INTO crmdb.it_status (name) VALUES (?);";
+        await query(sql, [name]);
+        return res.status(201).json({ success: true, message: "IT status created successfully" });
+    } catch (error) {
+        console.log("Error in createItStatus", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getAllItStatus = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const sql = "SELECT * FROM crmdb.it_status;";
+        const itStatus = await query(sql);
+        return res.status(200).json({ success: true, data: itStatus });
+    } catch (error) {
+        console.log("Error in getAllItStatus", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getItStatusById = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "SELECT * FROM crmdb.it_status WHERE id = ?;";
+        const itStatus = await query(sql, [id]);
+        if (itStatus.length === 0) {
+            return res.status(404).json({ success: false, message: "IT status not found" });
+        }
+        return res.status(200).json({ success: true, data: itStatus[0] });
+    } catch (error) {
+        console.log("Error in getItStatusById", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.updateItStatus = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ success: false, message: "Name is required" });
+        }
+        const sql = "UPDATE crmdb.it_status SET name = ? WHERE id = ?;";
+        const result = await query(sql, [name, id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "IT status not found" });
+        }
+        return res.status(200).json({ success: true, message: "IT status updated successfully" });
+    } catch (error) {
+        console.log("Error in updateItStatus", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.deleteItStatus = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "DELETE FROM crmdb.it_status WHERE id = ?;";
+        const result = await query(sql, [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "IT status not found" });
+        }
+        return res.status(200).json({ success: true, message: "IT status deleted successfully" });
+    } catch (error) {
+        console.log("Error in deleteItStatus", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+// master type
+exports.createMasterType = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ success: false, message: "Name is required" });
+        }
+        const sql = "INSERT INTO crmdb.master_type (name) VALUES (?);";
+        await query(sql, [name]);
+        return res.status(201).json({ success: true, message: "Master type created successfully" });
+    } catch (error) {
+        console.log("Error in createMasterType", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getAllMasterTypes = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const sql = "SELECT * FROM crmdb.master_type;";
+        const masterTypes = await query(sql);
+        return res.status(200).json({ success: true, data: masterTypes });
+    } catch (error) {
+        console.log("Error in getAllMasterTypes", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getMasterTypeById = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "SELECT * FROM crmdb.master_type WHERE id = ?;";
+        const masterType = await query(sql, [id]);
+        if (masterType.length === 0) {
+            return res.status(404).json({ success: false, message: "Master type not found" });
+        }
+        return res.status(200).json({ success: true, data: masterType[0] });
+    } catch (error) {
+        console.log("Error in getMasterTypeById", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.updateMasterType = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ success: false, message: "Name is required" });
+        }
+        const sql = "UPDATE crmdb.master_type SET name = ? WHERE id = ?;";
+        const result = await query(sql, [name, id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Master type not found" });
+        }
+        return res.status(200).json({ success: true, message: "Master type updated successfully" });
+    } catch (error) {
+        console.log("Error in updateMasterType", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.deleteMasterType = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "DELETE FROM crmdb.master_type WHERE id = ?;";
+        const result = await query(sql, [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Master type not found" });
+        }
+        return res.status(200).json({ success: true, message: "Master type deleted successfully" });
+    } catch (error) {
+        console.log("Error in deleteMasterType", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+// currency
+exports.createCurrency = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { name } = req.body;
+        const sql = "INSERT INTO currency_master (name) VALUES (?);";
+        await query(sql, [name]);
+        return res.status(201).json({ success: true, message: "Currency created successfully" });
+    } catch (error) {
+        console.log("Error in createCurrency", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getCurrency = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const sql = "SELECT * FROM currency_master;";
+        const currency = await query(sql);
+        if (currency.length === 0) {
+            return res.status(404).json({ success: false, message: "Currency not found" });
+        }
+        return res.status(200).json({ success: true, data: currency });
+    } catch (error) {
+        console.log("Error in getCurrencyById", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getCurrencyById = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "SELECT * FROM currency_master WHERE id = ?;";
+        const currency = await query(sql, [id]);
+        if (currency.length === 0) {
+            return res.status(404).json({ success: false, message: "Currency not found" });
+        }
+        return res.status(200).json({ success: true, data: currency[0] });
+    } catch (error) {
+        console.log("Error in getCurrencyById", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.updateCurrency = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        const sql = "UPDATE currency_master SET name = ? WHERE id = ?;";
+        await query(sql, [name, id]);
+        return res.status(200).json({ success: true, message: "Currency updated successfully" });
+    } catch (error) {
+        console.log("Error in updateCurrency", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
+exports.deleteCurrency = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const sql = "DELETE FROM currency_master WHERE id = ?;";
+        await query(sql, [id]);
+        return res.status(200).json({ success: true, message: "Currency deleted successfully" });
+    } catch (error) {
+        console.log("Error in deleteCurrency", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};

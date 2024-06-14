@@ -23,4 +23,32 @@ router
     .get("/get_custom_field/:fieldid", verifyToken, mailController.EditCustomField) // get custom fields and with table also
     .patch("/update_custom_field/:fieldid", verifyToken, mailController.UpdateCustomField) // get custom fields and with table also
 
+    // grp
+    .post("/grp", verifyToken, mailController.createGrpName)
+    .get("/grp", verifyToken, mailController.getAllGrpNames)
+    .get("/grp/:id", verifyToken, mailController.getGrpNameById)
+    .patch("/grp/:id", verifyToken, mailController.updateGrpName)
+    .delete("/grp/:id", verifyToken, mailController.deleteGrpName)
+
+     // it status
+     .post("/it_status", verifyToken, mailController.createItStatus)
+     .get("/it_status", verifyToken, mailController.getAllItStatus)
+     .get("/it_status/:id", verifyToken, mailController.getItStatusById)
+     .patch("/it_status/:id", verifyToken, mailController.updateItStatus)
+     .delete("/it_status/:id", verifyToken, mailController.deleteItStatus)
+
+     // master type
+     .post("/master_type", verifyToken, mailController.createMasterType)
+     .get("/master_type", verifyToken, mailController.getAllMasterTypes)
+     .get("/master_type/:id", verifyToken, mailController.getMasterTypeById)
+     .patch("/master_type/:id", verifyToken, mailController.updateMasterType)
+     .delete("/master_type/:id", verifyToken, mailController.deleteMasterType)
+
+     // currency_master
+     .post("/currency_master", verifyToken, mailController.createCurrency)
+     .get("/currency_master", verifyToken, mailController.getCurrency)
+     .get("/currency_master/:id", verifyToken, mailController.getCurrencyById)
+     .patch("/currency_master/:id", verifyToken, mailController.updateCurrency)
+     .delete("/currency_master/:id", verifyToken, mailController.deleteCurrency)
+
 module.exports = router;
