@@ -161,28 +161,28 @@ exports.updateEmployee = async (req, res, next) => {
         const emptyFields = requiredFields.filter(field => !req.body[field] || req.body[field] === "");
 
         if (emptyFields.length > 0) {
-            return handleErrorResponse(res, 400, `Empty values found for fields: ${emptyFields.join(", ")}`);
+            return handleErrorResponse(res, 200, `Empty values found for fields: ${emptyFields.join(", ")}`);
         }
 
         // Validate phone number format
         if (!validatePhoneNumber(phone)) {
-            return handleErrorResponse(res, 400, "Invalid phone number format. Please provide a 10-digit phone number.");
+            return handleErrorResponse(res, 200, "Invalid phone number format. Please provide a 10-digit phone number.");
         }
 
         if (emergency_phone && emergency_phone !== "" && !validatePhoneNumber(emergency_phone)) {
-            return handleErrorResponse(res, 400, "Invalid emergency phone number format. Please provide a 10-digit phone number.");
+            return handleErrorResponse(res, 200, "Invalid emergency phone number format. Please provide a 10-digit phone number.");
         }
 
         // Check if the employee exists
         const existingEmployee = await query("SELECT * FROM users WHERE id = ?", [emp_id]);
         if (existingEmployee.length === 0) {
-            return handleErrorResponse(res, 404, "Employee not found");
+            return handleErrorResponse(res, 200, "Employee not found");
         }
 
         // Check if the email already exists
         const existingUser = await query("SELECT * FROM users WHERE email = ? and company_id = ? and id != ?", [email, getSelectedUser[0].company_id, existingEmployee[0].id]);
         if (existingUser.length > 0) {
-            return handleErrorResponse(res, 400, "Email already exists. Please use a different email address.");
+            return handleErrorResponse(res, 200, "Email already exists. Please use a different email address.");
         }
 
         // Check if the previous password matches the newly entered password

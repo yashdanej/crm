@@ -171,6 +171,60 @@ export const getRoles = createAsyncThunk('getRoles', async () => {
     }
 });
 
+// get group
+export const getGroup = createAsyncThunk('getGroup', async () => {
+    try {
+        const res = await api(`/util/grp`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+// get currency
+export const getCurrency = createAsyncThunk('getCurrency', async () => {
+    try {
+        const res = await api(`/util/currency`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+// get it_status
+export const getItStatus = createAsyncThunk('getItStatus', async () => {
+    try {
+        const res = await api(`/util/it_status`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+// get master_type
+export const getMasterType = createAsyncThunk('getMasterType', async () => {
+    try {
+        const res = await api(`/util/master_type`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+// get sub_type
+export const getSubType = createAsyncThunk('getSubType', async () => {
+    try {
+        const res = await api(`/util/sub_master`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
 
 const setupSlice = createSlice({
     name: "agents",
@@ -226,7 +280,33 @@ const setupSlice = createSlice({
             isLoading: false,
             data: [],
             isError: false,
-        }
+        },
+        group: {
+            isLoading: false,
+            data: [],
+            isError: false,
+        },
+        currency: {
+            isLoading: false,
+            data: [],
+            isError: false,
+        },
+        it_status: {
+            isLoading: false,
+            data: [],
+            isError: false,
+        },
+        master_type: {
+            isLoading: false,
+            data: [],
+            isError: false,
+        },
+        sub_type: {
+            isLoading: false,
+            data: [],
+            isError: false,
+        },
+        designation: [],
     },
     extraReducers: (builder) => {
         // getEmployee
@@ -266,7 +346,7 @@ const setupSlice = createSlice({
             state.employees.isError = true;
         });
 
-         // delete employee
+        // delete employee
         builder.addCase(deleteEmployee.pending, (state, action) => {
             state.employees.isLoading = true;
         });
@@ -360,6 +440,76 @@ const setupSlice = createSlice({
             console.log("error in getRoles", action.payload);
             state.roles.isLoading = false;
             state.roles.isError = true;
+        });
+
+        // group
+        builder.addCase(getGroup.pending, (state, action) => {
+            state.group.isLoading = true;
+        });
+        builder.addCase(getGroup.fulfilled, (state, action) => {
+            state.group.isLoading = false;
+            state.group.data = action.payload;
+        });
+        builder.addCase(getGroup.rejected, (state, action) => {
+            console.log("error in getGroup", action.payload);
+            state.group.isLoading = false;
+            state.group.isError = true;
+        });
+
+        // currency
+        builder.addCase(getCurrency.pending, (state, action) => {
+            state.currency.isLoading = true;
+        });
+        builder.addCase(getCurrency.fulfilled, (state, action) => {
+            state.currency.isLoading = false;
+            state.currency.data = action.payload;
+        });
+        builder.addCase(getCurrency.rejected, (state, action) => {
+            console.log("error in getCurrency", action.payload);
+            state.currency.isLoading = false;
+            state.currency.isError = true;
+        });
+        
+        // getItStatus
+        builder.addCase(getItStatus.pending, (state, action) => {
+            state.it_status.isLoading = true;
+        });
+        builder.addCase(getItStatus.fulfilled, (state, action) => {
+            state.it_status.isLoading = false;
+            state.it_status.data = action.payload;
+        });
+        builder.addCase(getItStatus.rejected, (state, action) => {
+            console.log("error in getCurrency", action.payload);
+            state.it_status.isLoading = false;
+            state.it_status.isError = true;
+        });
+
+        // getMasterType
+        builder.addCase(getMasterType.pending, (state, action) => {
+            state.master_type.isLoading = true;
+        });
+        builder.addCase(getMasterType.fulfilled, (state, action) => {
+            state.master_type.isLoading = false;
+            state.master_type.data = action.payload;
+        });
+        builder.addCase(getMasterType.rejected, (state, action) => {
+            console.log("error in getCurrency", action.payload);
+            state.master_type.isLoading = false;
+            state.master_type.isError = true;
+        });
+
+        // getSubType
+        builder.addCase(getSubType.pending, (state, action) => {
+            state.sub_type.isLoading = true;
+        });
+        builder.addCase(getSubType.fulfilled, (state, action) => {
+            state.sub_type.isLoading = false;
+            state.sub_type.data = action.payload;
+        });
+        builder.addCase(getSubType.rejected, (state, action) => {
+            console.log("error in getCurrency", action.payload);
+            state.sub_type.isLoading = false;
+            state.sub_type.isError = true;
         });
 
         // fetchCustomFields
@@ -500,9 +650,12 @@ const setupSlice = createSlice({
             state.employees.edit.data = []
             state.employees.edit.id = null
             state.employees.edit.message = ""
-        }
+        },
+        getDesignation(state, action){
+            state.designation = action.payload
+        },
     }
 });
 
-export const { getAgents, getTypeOfWork, getProfileOfClient, resetCustomField, resetEmployee } = setupSlice.actions;
+export const { getAgents, getTypeOfWork, getProfileOfClient, resetCustomField, resetEmployee, getDesignation } = setupSlice.actions;
 export const setupReducer = setupSlice.reducer;

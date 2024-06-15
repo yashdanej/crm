@@ -895,7 +895,7 @@ exports.getItStatusById = async (req, res, next) => {
         if (itStatus.length === 0) {
             return res.status(404).json({ success: false, message: "IT status not found" });
         }
-        return res.status(200).json({ success: true, data: itStatus[0] });
+        return res.status(200).json({ success: true, data: itStatus });
     } catch (error) {
         console.log("Error in getItStatusById", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -976,7 +976,7 @@ exports.getMasterTypeById = async (req, res, next) => {
         if (masterType.length === 0) {
             return res.status(404).json({ success: false, message: "Master type not found" });
         }
-        return res.status(200).json({ success: true, data: masterType[0] });
+        return res.status(200).json({ success: true, data: masterType });
     } catch (error) {
         console.log("Error in getMasterTypeById", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -1057,7 +1057,7 @@ exports.getCurrencyById = async (req, res, next) => {
         if (currency.length === 0) {
             return res.status(404).json({ success: false, message: "Currency not found" });
         }
-        return res.status(200).json({ success: true, data: currency[0] });
+        return res.status(200).json({ success: true, data: currency });
     } catch (error) {
         console.log("Error in getCurrencyById", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -1066,6 +1066,7 @@ exports.getCurrencyById = async (req, res, next) => {
 
 exports.updateCurrency = async (req, res, next) => {
     try {
+        const query = util.promisify(db.query).bind(db);
         const { id } = req.params;
         const { name } = req.body;
         const sql = "UPDATE currency_master SET name = ? WHERE id = ?;";
@@ -1080,12 +1081,159 @@ exports.updateCurrency = async (req, res, next) => {
 
 exports.deleteCurrency = async (req, res, next) => {
     try {
+        const query = util.promisify(db.query).bind(db);
         const { id } = req.params;
         const sql = "DELETE FROM currency_master WHERE id = ?;";
         await query(sql, [id]);
         return res.status(200).json({ success: true, message: "Currency deleted successfully" });
     } catch (error) {
         console.log("Error in deleteCurrency", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+// sub_master
+exports.createSubMaster = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { name } = req.body;
+        const sql = "INSERT INTO sub_master (name) VALUES (?);";
+        await query(sql, [name]);
+        return res.status(201).json({ success: true, message: "Sub master created successfully" });
+    } catch (error) {
+        console.log("Error in createsub_master", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getSubMaster = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const sql = "SELECT * FROM sub_master;";
+        const sub_master = await query(sql);
+        if (sub_master.length === 0) {
+            return res.status(404).json({ success: false, message: "sub_master not found" });
+        }
+        return res.status(200).json({ success: true, data: sub_master });
+    } catch (error) {
+        console.log("Error in getsub_masterById", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getSubMasterById = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "SELECT * FROM sub_master WHERE id = ?;";
+        const sub_master = await query(sql, [id]);
+        if (sub_master.length === 0) {
+            return res.status(404).json({ success: false, message: "sub_master not found" });
+        }
+        return res.status(200).json({ success: true, data: sub_master });
+    } catch (error) {
+        console.log("Error in getsub_masterById", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.updateSubMaster = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const { name } = req.body;
+        const sql = "UPDATE sub_master SET name = ? WHERE id = ?;";
+        await query(sql, [name, id]);
+        return res.status(200).json({ success: true, message: "sub_master updated successfully" });
+    } catch (error) {
+        console.log("Error in updatesub_master", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
+exports.deleteSubMaster = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "DELETE FROM sub_master WHERE id = ?;";
+        await query(sql, [id]);
+        return res.status(200).json({ success: true, message: "Currency deleted successfully" });
+    } catch (error) {
+        console.log("Error in deleteCurrency", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+// designation
+exports.createDesignation = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { name } = req.body;
+        const sql = "INSERT INTO designation (name) VALUES (?);";
+        await query(sql, [name]);
+        return res.status(201).json({ success: true, message: "Designation created successfully" });
+    } catch (error) {
+        console.log("Error in designation", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getDesignation = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const sql = "SELECT * FROM designation;";
+        const designation = await query(sql);
+        if (designation.length === 0) {
+            return res.status(404).json({ success: false, message: "Designation not found" });
+        }
+        return res.status(200).json({ success: true, data: designation });
+    } catch (error) {
+        console.log("Error in designation", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getDesignationById = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "SELECT * FROM designation WHERE id = ?;";
+        const designation = await query(sql, [id]);
+        if (designation.length === 0) {
+            return res.status(404).json({ success: false, message: "Designation not found" });
+        }
+        return res.status(200).json({ success: true, data: designation });
+    } catch (error) {
+        console.log("Error in designation", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.updateDesignation = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const { name } = req.body;
+        const sql = "UPDATE designation SET name = ? WHERE id = ?;";
+        await query(sql, [name, id]);
+        return res.status(200).json({ success: true, message: "Designation updated successfully" });
+    } catch (error) {
+        console.log("Error in designation", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
+exports.deleteDesignation = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const sql = "DELETE FROM designation WHERE id = ?;";
+        await query(sql, [id]);
+        return res.status(200).json({ success: true, message: "Designation deleted successfully" });
+    } catch (error) {
+        console.log("Error in designation", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };

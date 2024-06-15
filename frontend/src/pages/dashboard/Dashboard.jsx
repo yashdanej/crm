@@ -151,6 +151,7 @@ const Dashboard = ({children}) => {
           { href: '/setup/agents', label: 'Agents' },
           { href: '/setup/typeofwork', label: 'Type Of Work' },
           { href: '/setup/profileofclient', label: 'Profile Of Client' },
+          { href: '/setup/designation', label: 'Designation' },
           { href: '/setup/custom_field', label: 'Custom Fields' },
           { href: '/setup/employees', label: 'Employees' },
         ]
@@ -207,6 +208,12 @@ const Dashboard = ({children}) => {
                         <Link to="/admin/leads" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
                             <i className="ri-home-2-line mr-3 text-lg"></i>
                             <span className="text-sm">Leads</span>
+                        </Link>
+                    </li>
+                    <li className={`mb-1 group ${location.pathname === "/admin/customer" && "active"}`}>
+                        <Link to="/admin/customer" className="flex items-center py-2 px-4 text-gray-300 hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100">
+                            <i className="ri-home-2-line mr-3 text-lg"></i>
+                            <span className="text-sm">Customer</span>
                         </Link>
                     </li>
                       {getUser?.role !== 1 && menu.map((item, index) => {

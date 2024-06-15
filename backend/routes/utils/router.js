@@ -44,11 +44,25 @@ router
      .patch("/master_type/:id", verifyToken, mailController.updateMasterType)
      .delete("/master_type/:id", verifyToken, mailController.deleteMasterType)
 
-     // currency_master
-     .post("/currency_master", verifyToken, mailController.createCurrency)
-     .get("/currency_master", verifyToken, mailController.getCurrency)
-     .get("/currency_master/:id", verifyToken, mailController.getCurrencyById)
-     .patch("/currency_master/:id", verifyToken, mailController.updateCurrency)
-     .delete("/currency_master/:id", verifyToken, mailController.deleteCurrency)
+     // currency
+     .post("/currency", verifyToken, mailController.createCurrency)
+     .get("/currency", verifyToken, mailController.getCurrency)
+     .get("/currency/:id", verifyToken, mailController.getCurrencyById)
+     .patch("/currency/:id", verifyToken, mailController.updateCurrency)
+     .delete("/currency/:id", verifyToken, mailController.deleteCurrency)
+
+     // sub_master
+     .post("/sub_master", verifyToken, mailController.createSubMaster)
+     .get("/sub_master", verifyToken, mailController.getSubMaster)
+     .get("/sub_master/:id", verifyToken, mailController.getSubMasterById)
+     .patch("/sub_master/:id", verifyToken, mailController.updateSubMaster)
+     .delete("/sub_master/:id", verifyToken, mailController.deleteSubMaster)
+
+     // designation
+     .post("/designation", verifyToken, mailController.createDesignation)
+     .get("/designation", verifyToken, mailController.getDesignation)
+     .get("/designation/:id", verifyToken, mailController.getDesignationById)
+     .patch("/designation/:id", verifyToken, mailController.updateDesignation)
+     .delete("/designation/:id", verifyToken, mailController.deleteDesignation)
 
 module.exports = router;

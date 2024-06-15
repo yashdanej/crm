@@ -25,6 +25,10 @@ import Dev from './pages/dashboard/Dev';
 import SuperAdmin from './pages/dashboard/SuperAdmin';
 import EmployeesAdd from './components/dashboard/setup/employees/EmployeesAdd';
 import Employees from './components/dashboard/setup/employees/Employees';
+import { getAssigned, getCountries } from './store/slices/LeadSlices';
+import Customer from './components/customer/Customer';
+import CustomerAdd from './components/customer/CustomerAdd';
+import Designation from './components/dashboard/setup/designation/Designation';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -89,6 +93,22 @@ function App() {
     .catch((err) => {
       console.log("err in activity log");
     });
+    // users
+    api("/lead/getusers", "get", false, false, true)
+    .then((res) => {
+        dispatch(getAssigned(res.data.data));
+    })
+    .catch((err) => {
+        console.log("error in fetchAssigned", err);
+    })
+    // coutries
+    api("/lead/getcountries", "get", false, false, true)
+    .then((res) => {
+        dispatch(getCountries(res.data.data));
+    })
+    .catch((err) => {
+        console.log('err in countries', err);
+    })
   });
 
   return (
@@ -119,6 +139,8 @@ function App() {
         />
         <Route exact path="/admin/leads" element={<Dashboard><Lead /></Dashboard>} />
         <Route path="activity_log/:userid" element={<Dashboard><ActiveUser /></Dashboard>} />
+        <Route path="/admin/customer" element={<Dashboard><Customer /></Dashboard>} />
+        <Route path="/admin/customer/:path" element={<Dashboard><CustomerAdd /></Dashboard>} />
         <Route 
           path="/setup/*"
           element={
@@ -129,6 +151,7 @@ function App() {
                 <Route path="agents" element={<Dashboard><Agents /></Dashboard>} />
                 <Route path="typeofwork" element={<Dashboard><TypeOfWork /></Dashboard>} />
                 <Route path="profileofclient" element={<Dashboard><ProfileOfClient /></Dashboard>} />
+                <Route path="designation" element={<Dashboard><Designation /></Dashboard>} />
                 <Route path="custom_field" element={<Dashboard><CustomField /></Dashboard>} />
                 <Route path="custom_field/add" element={<Dashboard><CustomFieldAdd /></Dashboard>} />
                 <Route path="/employees" element={<Dashboard><Employees /></Dashboard>} />

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import SnackbarWithDecorators, { api, changeText } from '../../../../utils/Utils'
 import { useDispatch, useSelector } from 'react-redux';
-import { addEmployee, addEmployeeDetail, getEmployeeDetails, getRoles, resetEmployee, updateEmployee } from '../../../../store/slices/SetupSlices';
+import { addEmployee, addEmployeeDetail, getDesignation, getEmployeeDetails, getRoles, resetEmployee, updateEmployee } from '../../../../store/slices/SetupSlices';
 import axios from 'axios';
 import { getCountries } from '../../../../store/slices/LeadSlices';
 import validator from 'validator';
@@ -14,6 +14,7 @@ const EmployeesAdd = () => {
         color: ''
     });
     const empData = useSelector(state => state.setup.employees)
+    const designationData = useSelector(state => state.setup.designation)
 
     const [employee, setEmployee] = useState({
         profile_img: null,
@@ -120,8 +121,18 @@ const EmployeesAdd = () => {
         });
       }, []);
 
+    const fetchDesignationsData = () => {
+        api("/util/designation", "get", false, false, true)
+        .then((res) => {
+            dispatch(getDesignation(res.data.data));
+        })
+        .catch((err) => {
+            console.log("err in fetchDesignationsData", err);
+        })
+    }
     useEffect(() => {
         dispatch(getRoles());
+        fetchDesignationsData();
     }, []);
     const handleEmployeeAdd = () => {
         // Mobile number validation
@@ -149,9 +160,11 @@ const EmployeesAdd = () => {
         if(empData && empData.details && empData.details.data.length > 0){
             dispatch(updateEmployee({id: empData?.details?.id, data: employee}))
             dispatch(getEmployeeDetails(empData?.details?.id));
+            setDetail(true);
         }else{
             // Dispatch action to add employee
             dispatch(addEmployee(employee));
+            setDetail(true);
         }
         setDetail(true);
     }
@@ -346,7 +359,16 @@ const EmployeesAdd = () => {
 
                                 <div className='my-3'>
                                     <label className="block mb-2 text-sm font-medium text-gray-900"><span className='text-red-500'>* </span>Designation</label>
-                                    <input value={employee?.designation} onChange={(e) => changeText(e, setEmployee, employee)} name="designation" type="email" id="first_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="john@gmail.com" required />
+                                    <select onChange={(e) => changeText(e, setEmployee, employee)} name='designation' id="designation" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                        <option>Nothing selected</option>
+                                        {
+                                            designationData && designationData?.map((item) => {
+                                                return (
+                                                    <option selected={item.id == employee?.designation} key={item.id} value={item.id}>{item.name}</option>
+                                                )
+                                            })
+                                        }
+                                    </select>
                                 </div>
 
                                 <div className='my-3'>

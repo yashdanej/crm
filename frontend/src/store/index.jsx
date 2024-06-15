@@ -1,4 +1,5 @@
 import { attachmentReducer } from "./slices/AttachmentSlices";
+import { customerReducer } from "./slices/CustomerSlices";
 import DevSlices from "./slices/DevSlices";
 import { assignedReducer, countriesReducer, leadsReducer, sourceReducer, statusReducer } from "./slices/LeadSlices";
 import { noteReducer } from "./slices/NoteSlices";
@@ -21,6 +22,7 @@ const store = configureStore({
         note: noteReducer,
         reminder: reminderReducer,
         attachment: attachmentReducer,
+        customer: customerReducer,
         dev: DevSlices
     }
 });

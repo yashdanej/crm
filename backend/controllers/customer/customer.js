@@ -7,14 +7,16 @@ const query = util.promisify(db.query).bind(db);
 
 exports.createCustomer = async (req, res, next) => {
     try {
-        const { company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, addedfrom, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee } = req.body;
+        const getUser = await verifyToken(req, res, next, { verifyUser: true });
+        const { company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee } = req.body;
         const sql = `
             INSERT INTO tbl_customer (
                 company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, addedfrom, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         `;
-        await query(sql, [company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, addedfrom, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee]);
-        return res.status(201).json({ success: true, message: "Customer created successfully" });
+        const getCustomer = await query(sql, [company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, getUser, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee]);
+        const getInsertedCustomer = await query("select * from tbl_customer where id = ?", [getCustomer.insertId])
+        return res.status(201).json({ success: true, message: "Customer created successfully", data: getInsertedCustomer });
     } catch (error) {
         console.log("Error in createCustomer", error);
         return res.status(500).json({ success: false, message: "Internal server error" });

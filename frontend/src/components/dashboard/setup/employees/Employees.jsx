@@ -31,7 +31,7 @@ const Employees = () => {
                         color="primary"
                         startDecorator={<Add />}
                         >
-                        Add Custom Field
+                        Add Employee
                     </Button>
                 </Link>
             </div>
