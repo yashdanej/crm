@@ -152,6 +152,11 @@ const Dashboard = ({children}) => {
           { href: '/setup/typeofwork', label: 'Type Of Work' },
           { href: '/setup/profileofclient', label: 'Profile Of Client' },
           { href: '/setup/designation', label: 'Designation' },
+          { href: '/setup/group', label: 'Group' },
+          { href: '/setup/currency', label: 'Currency' },
+          { href: '/setup/it_status', label: 'IT Status' },
+          { href: '/setup/master_type', label: 'Master Type' },
+          { href: '/setup/sub_master', label: 'Sub Master' },
           { href: '/setup/custom_field', label: 'Custom Fields' },
           { href: '/setup/employees', label: 'Employees' },
         ]

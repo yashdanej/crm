@@ -67,7 +67,7 @@ const Customer = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {
+                                { customerData &&
                                     customerData?.data?.map((item) => {
                                         return (
                                             <tr key={item.id}>

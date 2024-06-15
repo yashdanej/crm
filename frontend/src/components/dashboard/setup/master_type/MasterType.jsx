@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import DesignationTable from './DesignationTable';
 import { useDispatch } from 'react-redux';
-import { getDesignation } from '../../../../store/slices/SetupSlices';
 import { api } from '../../../../utils/Utils';
+import { getMaster_Type } from '../../../../store/slices/SetupSlices';
+import MasterTypeTable from './MasterTypeTable';
 
-const Designation = () => {
+const MasterType = () => {
     const [name, setName] = useState("");
     const [err, setErr] = useState("");
     const [editDesignationId, setEditDesignationId] = useState(null); // New state for tracking edit
@@ -12,9 +12,9 @@ const Designation = () => {
     const dispatch = useDispatch();
 
     const fetchDesignationsData = () => {
-        api("/util/designation", "get", false, false, true)
+        api("/util/master_type", "get", false, false, true)
         .then((res) => {
-            dispatch(getDesignation(res.data.data));
+            dispatch(getMaster_Type(res.data.data));
         })
         .catch((err) => {
             console.log("err in fetchDesignationsData", err);
@@ -30,7 +30,7 @@ const Designation = () => {
         
         if (editDesignationId) {
             // Update existing agent
-            api(`/util/designation/${editDesignationId}`, "patch", { name: name }, false, true)
+            api(`/util/master_type/${editDesignationId}`, "patch", { name: name }, false, true)
             .then((res) => {
                 setName("");
                 setEditDesignationId(null);
@@ -41,7 +41,7 @@ const Designation = () => {
             });
         } else {
             // Add new agent
-            api("/util/designation", "post", { name: name }, false, true)
+            api("/util/master_type", "post", { name: name }, false, true)
             .then((res) => {
                 setName("");
                 fetchDesignationsData();
@@ -53,7 +53,7 @@ const Designation = () => {
     }
 
     const handleEdit = (id) => {
-        api(`/util/designation/${id}`, "get", false, false, true)
+        api(`/util/master_type/${id}`, "get", false, false, true)
         .then((res) => {
             setName(res.data.data[0]?.name);
             setEditDesignationId(id); // Set the ID of the agent being edited
@@ -82,13 +82,13 @@ useEffect(() => {
   }, []);
     return (
         <div className='m-6'>
-            <h1 className='text-3xl font-bold bg-gray-900 text-white p-5'>Designation Master</h1>
+            <h1 className='text-3xl font-bold bg-gray-900 text-white p-5'>Master Type</h1>
             <div className='xl:flex gap-10 my-6'>
                 <form className="w-full max-w-lg bg-gray-50 p-5 rounded-3xl" onSubmit={handleStatusSubmit}>
                     <div className="w-full mb-6">
                         <div className="w-full md:w-[20rem] xl:w-full px-3 mb-6 md:mb-0">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="grid-first-name">
-                                Designation name
+                                Master type
                             </label>
                             <input 
                                 onChange={(e) => setName(e.target.value)} 
@@ -113,11 +113,11 @@ useEffect(() => {
                     </div>
                 </form>
                 <div className='my-6'>
-                    <DesignationTable handleEdit={handleEdit} />
+                    <MasterTypeTable handleEdit={handleEdit} />
                 </div>
             </div>
         </div>
     )
 }
 
-export default Designation
+export default MasterType

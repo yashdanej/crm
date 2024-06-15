@@ -29,6 +29,11 @@ import { getAssigned, getCountries } from './store/slices/LeadSlices';
 import Customer from './components/customer/Customer';
 import CustomerAdd from './components/customer/CustomerAdd';
 import Designation from './components/dashboard/setup/designation/Designation';
+import Group from './components/dashboard/setup/group/Group';
+import Currency from './components/dashboard/setup/currency/Currency';
+import MasterType from './components/dashboard/setup/master_type/MasterType';
+import SubMaster from './components/dashboard/setup/sub_master/SubMaster';
+import ItStatus from './components/dashboard/setup/it_status/ItStatus';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -152,6 +157,11 @@ function App() {
                 <Route path="typeofwork" element={<Dashboard><TypeOfWork /></Dashboard>} />
                 <Route path="profileofclient" element={<Dashboard><ProfileOfClient /></Dashboard>} />
                 <Route path="designation" element={<Dashboard><Designation /></Dashboard>} />
+                <Route path="group" element={<Dashboard><Group /></Dashboard>} />
+                <Route path="currency" element={<Dashboard><Currency /></Dashboard>} />
+                <Route path="it_status" element={<Dashboard><ItStatus /></Dashboard>} />
+                <Route path="master_type" element={<Dashboard><MasterType /></Dashboard>} />
+                <Route path="sub_master" element={<Dashboard><SubMaster /></Dashboard>} />
                 <Route path="custom_field" element={<Dashboard><CustomField /></Dashboard>} />
                 <Route path="custom_field/add" element={<Dashboard><CustomFieldAdd /></Dashboard>} />
                 <Route path="/employees" element={<Dashboard><Employees /></Dashboard>} />

@@ -307,6 +307,11 @@ const setupSlice = createSlice({
             isError: false,
         },
         designation: [],
+        setupGroup: [],
+        setupCurrency: [],
+        setupIt_status: [],
+        setupMaster_type: [],
+        setupSub_master: [],
     },
     extraReducers: (builder) => {
         // getEmployee
@@ -654,8 +659,23 @@ const setupSlice = createSlice({
         getDesignation(state, action){
             state.designation = action.payload
         },
+        get_Group(state, action){
+            state.setupGroup = action.payload
+        },
+        get_Currency(state, action){
+            state.setupCurrency = action.payload
+        },
+        getIt_Status(state, action){
+            state.setupIt_status = action.payload
+        },
+        getMaster_Type(state, action){
+            state.setupMaster_type = action.payload
+        },
+        getSub_Master(state, action){
+            state.setupSub_master = action.payload
+        },
     }
 });
 
-export const { getAgents, getTypeOfWork, getProfileOfClient, resetCustomField, resetEmployee, getDesignation } = setupSlice.actions;
+export const { getAgents, getTypeOfWork, getProfileOfClient, resetCustomField, resetEmployee, getDesignation, get_Group, get_Currency, getIt_Status, getMaster_Type, getSub_Master } = setupSlice.actions;
 export const setupReducer = setupSlice.reducer;
