@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import SnackbarWithDecorators, { api, changeText } from '../../../../utils/Utils'
 import { useDispatch, useSelector } from 'react-redux';
-import { addEmployee, addEmployeeDetail, getDesignation, getEmployeeDetails, getRoles, resetEmployee, updateEmployee } from '../../../../store/slices/SetupSlices';
+import { addEmployee, addEmployeeDetail, fetchCustomFields, getDesignation, getEmployeeDetails, getLeadCustomField, getRoles, resetCustomField, resetEmployee, updateEmployee } from '../../../../store/slices/SetupSlices';
 import axios from 'axios';
 import { getCountries } from '../../../../store/slices/LeadSlices';
 import validator from 'validator';
 import { useNavigate } from 'react-router-dom';
+import { ChromePicker } from 'react-color';
 
 const EmployeesAdd = () => {
     const [snackAlert, setSnackAlert] = useState(false); // popup success or error
@@ -15,6 +16,7 @@ const EmployeesAdd = () => {
     });
     const empData = useSelector(state => state.setup.employees)
     const designationData = useSelector(state => state.setup.designation)
+    const customFieldsData = useSelector(state => state.setup.customFields);
 
     const [employee, setEmployee] = useState({
         profile_img: null,
@@ -44,6 +46,7 @@ const EmployeesAdd = () => {
                 role: data.role || 1,
                 user_password: data.user_password || ""
             });
+            dispatch(getLeadCustomField(empData.details.id));
         }
     }, [empData]);
     useEffect(() => {
@@ -135,6 +138,14 @@ const EmployeesAdd = () => {
         fetchDesignationsData();
     }, []);
     const handleEmployeeAdd = () => {
+        if (employee.full_name === "" || employee.email === "" || employee.phone === "" || employee.joining_date === "" || employee.user_password === "") {
+            setSnackbarProperty({
+                text: "* fields are required.",
+                color: "danger"
+            });
+            setSnackAlert(true);
+            return;
+        }
         // Mobile number validation
         const phoneRegex = /^[0-9]{10}$/;
         if (!phoneRegex.test(employee.phone)) {
@@ -145,9 +156,8 @@ const EmployeesAdd = () => {
             setSnackAlert(true);
             return;
         }
-
+    
         // Gmail validation
-        console.log("employee.email", employee.email);
         const gmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!gmailRegex.test(employee.email)) {
             setSnackbarProperty({
@@ -157,16 +167,62 @@ const EmployeesAdd = () => {
             setSnackAlert(true);
             return;
         }
-        if(empData && empData.details && empData.details.data.length > 0){
-            dispatch(updateEmployee({id: empData?.details?.id, data: employee}))
-            dispatch(getEmployeeDetails(empData?.details?.id));
-            setDetail(true);
-        }else{
-            // Dispatch action to add employee
-            dispatch(addEmployee(employee));
-            setDetail(true);
+    
+        try {
+            if (empData && empData.details && empData.details.data.length > 0) {
+                dispatch(updateEmployee({ id: empData.details.id, data: employee }))
+                    .then((response) => {
+                        if (response.payload?.success) {
+                            dispatch(getEmployeeDetails(empData.details.id));
+                            setDetail(true);
+                        } else {
+                            setSnackbarProperty({
+                                text: response.payload?.message || "An error occurred",
+                                color: "danger"
+                            });
+                            setSnackAlert(true);
+                        }
+                    })
+                    .catch((error) => {
+                        console.log("error in updating employee", error);
+                        setSnackbarProperty({
+                            text: error.message || "An error occurred",
+                            color: "danger"
+                        });
+                        setSnackAlert(true);
+                    });
+            } else {
+                dispatch(addEmployee(employee))
+                    .then((response) => {
+                        console.log("response-----------wdwd", response);
+                        if (response.payload?.success) {
+                            setDetail(true);
+                        } else {
+                            setSnackbarProperty({
+                                text: response.payload || "An error occurred",
+                                color: "danger"
+                            });
+                            setSnackAlert(true);
+                        }
+                    })
+                    .catch((error) => {
+                        console.log("error in adding employee", error);
+                        setSnackbarProperty({
+                            text: error.message || "An error occurred",
+                            color: "danger"
+                        });
+                        setSnackAlert(true);
+                    });
+            }
+        } catch (error) {
+            console.log("error in handling employee", error);
+            setSnackbarProperty({
+                text: error.message || "An error occurred",
+                color: "danger"
+            });
+            setSnackAlert(true);
+            return;
         }
-        setDetail(true);
     }
     useEffect(() => {
         if(empData.message !== "")
@@ -184,6 +240,7 @@ const EmployeesAdd = () => {
             setSnackAlert(true);
         }
     }, [empData]);
+
     useEffect(() => {
         if(detail){
             dispatch(getEmployeeDetails(empData?.details?.id));
@@ -260,22 +317,22 @@ const EmployeesAdd = () => {
     useEffect(() => {
         console.log("empData", empData);
     }, [empData]);
-    useEffect(() => {
-        if(empData.details.message !== "")
-        if(empData.details.success){
-            setSnackbarProperty({
-                text: empData.details.message,
-                color: "success"
-            });
-            setSnackAlert(true);
-        }else{
-            setSnackbarProperty({
-                text: empData.details.message,
-                color: "danger"
-            });
-            setSnackAlert(true);
-        }
-    }, [empData.details]);
+    // useEffect(() => {
+    //     if(empData.details.message !== "")
+    //     if(empData.details.success){
+    //         setSnackbarProperty({
+    //             text: empData.details.message,
+    //             color: "success"
+    //         });
+    //         setSnackAlert(true);
+    //     }else{
+    //         setSnackbarProperty({
+    //             text: empData.details.message,
+    //             color: "danger"
+    //         });
+    //         setSnackAlert(true);
+    //     }
+    // }, [empData.details]);
     const handleEmpDetail = () => {
         for (const key in empDetail) {
             // Skip validation if the field is empty
@@ -296,10 +353,47 @@ const EmployeesAdd = () => {
         navigate("/setup/employees");
     }
     useEffect(() => {
+        dispatch(fetchCustomFields("users"))
         return () => {
             dispatch(resetEmployee());
+            dispatch(resetCustomField());
         }
     }, []);
+
+    useEffect(() => {
+        if (customFieldsData?.field?.data && empData?.details?.data?.length > 0) {
+            const updatedEmployee = { ...employee };
+            customFieldsData?.data?.forEach((item) => {
+                updatedEmployee[item.name] = customFieldsData?.field?.data?.find(field => field.fieldid === item.id)?.column_value || "";
+            });
+            console.log("updatedEmployee----------", updatedEmployee);
+            setEmployee(updatedEmployee);
+        }
+    }, [customFieldsData, empData]);
+
+    const handleColorChange = (color, name) => {
+        setEmployee({ ...employee, [name]: color.hex });
+    };
+
+    const multipleSelectChange = (event) => {
+        const selectedOptions = Array.from(event.target.selectedOptions, option => option.value);
+        setEmployee({ ...employee, [event.target.name]: selectedOptions.join(",") });
+    };
+    const typeForCustomField = (type) => {
+        if(type === "input"){
+          return "text";
+        }else if(type === "number"){
+          return "number";
+        }else if(type === "textarea"){
+          return "textarea";
+          }else if(type === "date_picker"){
+            return "date";
+          }else if(type === "datetime_picker"){
+          return "datetime-local";
+        }else if(type === "color_picker"){
+          return "color";
+        }
+    }
   return (
     <div className='mx-6 my-10'>
         {
@@ -393,6 +487,83 @@ const EmployeesAdd = () => {
                                 <div className='my-3'>
                                     <label className="block mb-2 text-sm font-medium text-gray-900"><span className='text-red-500'>* </span>Password</label>
                                     <input value={employee?.user_password} onChange={(e) => changeText(e, setEmployee, employee)} name="user_password" type="password" id="first_name" className="disabled:bg-slate-200 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="john@gmail.com" required />
+                                </div>
+
+                                {/* custom fields */}
+                                <p className='mb-2 font-semibold text-slate-600'>Custom fields:</p>
+                                {customFieldsData?.data && customFieldsData?.data.length === 0 && <p>No fields found</p>}
+                                <div className='flex flex-wrap gap-4 justify-between'>
+                                    {
+                                    customFieldsData?.data?.map((item) => {
+                                        if(item.type === "select"){
+                                            return (
+                                            <div className='w-[48%]'>
+                                                <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
+                                                <select name={item.name} onChange={(event) => changeText(event, setEmployee, employee)} id="countries" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                                    <option></option>
+                                                    {
+                                                        item?.options?.split(",").map((item2) => {
+                                                            return (
+                                                                <option selected={employee[item.name]} value={item2}>{item2}</option>
+                                                            )
+                                                        })
+                                                    }
+                                                </select>
+                                            </div>
+                                        )
+                                        }else if(item.type === "multi_select"){
+                                            return(
+                                                <div className='w-[48%]'>
+                                                <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name} <span className='text-xs'>(To select multiple values hold CTRL)</span></label>
+                                                <select multiple name={item.name} onChange={multipleSelectChange} id="countries" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                                    <option></option>
+                                                    {
+                                                        item?.options?.split(",").map((item2) => {
+                                                            return (
+                                                                <option selected={employee[item.name]} value={item2}>{item2}</option>
+                                                            )
+                                                        })
+                                                    }
+                                                </select>
+                                            </div>
+                                        )
+                                        }else if(item.type === "checkbox"){
+                                            return (
+                                                <div className='w-[48%] flex items-center'>
+                                                <input selected={employee[item.name]} name={item.name} onChange={(event) => setEmployee({...employee, [item.name]: event.target.checked})} id="link-checkbox" type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                                                <label for="link-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"><span className='text-red-600'>{item.required ? "* " : ""}</span>{item.name}</label>
+                                                </div>
+                                            )
+                                        }else if(item.type === "color_picker"){
+                                            return (
+                                                <div className='w-[48%] my-3'>
+                                                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                                    <span className='text-red-600'>{item.required ? "* " : ""}</span>{item.name}
+                                                </label>
+                                                <ChromePicker
+                                                    color={employee[item.name] || (item.default_value ? item.default_value : "#000000")}
+                                                    onChangeComplete={(color) => handleColorChange(color, item.name)}
+                                                />
+                                                </div>
+                                            )
+                                        }
+                                        else if(item.type === "textarea"){
+                                            return (
+                                                <div className='w-[48%] my-3'>
+                                                <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
+                                                <textarea value={employee && employee[item.name]} name={item.name} onChange={(event) => changeText(event, setEmployee, employee)} id="message" rows="4" className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder='Write here...' required={item.required}></textarea>
+                                                </div>
+                                            )
+                                        }else{
+                                            return (
+                                                <div className='w-[48%]'>
+                                                    <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
+                                                    <input value={employee[item.name]} name={item.name} onChange={(event) => changeText(event, setEmployee, employee)} type={typeForCustomField(item.type)} id="first_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required={item.required} />
+                                                </div>
+                                            )
+                                        }
+                                    })
+                                    }
                                 </div>
                             </>
                         ): (
@@ -663,7 +834,7 @@ const EmployeesAdd = () => {
                     
                 </div>
                 <div className='bg-slate-100 border px-6 py-2 flex items-center justify-end'>
-                    <button onClick={() => {detail?handleEmpDetail():handleEmployeeAdd()}} type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-[9px] me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">{detail?empData?.details?.data.length?"Update Employee Details":"Add Employee Details":empData?.details?.data.length?"Update Employee":"Add Employee"}</button>
+                    <button onClick={() => {detail?handleEmpDetail():handleEmployeeAdd()}} type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-[9px] me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">{detail?empData?.details?.data.length?"Update Employee Details":"Add Employee Details":empData?.details?.data.length?"Update Employee":"Add Employee"} {empData.isLoading && "Loading..."}</button>
                 </div>
             </div>
         </div>

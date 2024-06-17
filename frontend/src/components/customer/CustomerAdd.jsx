@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import SnackbarWithDecorators, { changeText } from '../../utils/Utils'
+import SnackbarWithDecorators, { api, changeText } from '../../utils/Utils'
 import { useDispatch, useSelector } from 'react-redux';
-import { getCurrency, getGroup, getItStatus, getMasterType, getSubType } from '../../store/slices/SetupSlices';
+import { fetchCustomFields, getCurrency, getGroup, getItStatus, getLeadCustomField, getMasterType, getSubType, resetCustomField } from '../../store/slices/SetupSlices';
 import axios from 'axios';
 import { addCustomer, updateCustomer } from '../../store/slices/CustomerSlices';
+import { ChromePicker } from 'react-color';
 
 const CustomerAdd = () => {
     // selector state
@@ -15,6 +16,7 @@ const CustomerAdd = () => {
     const master_typeData = useSelector((state) => state.setup.master_type);
     const sub_masterData = useSelector((state) => state.setup.sub_type);
     const customerData = useSelector(state => state.customer.customers);
+    const customFieldsData = useSelector(state => state.setup.customFields);
 
     const [snackAlert, setSnackAlert] = useState(false); // popup success or error
     const [snackbarProperty, setSnackbarProperty] = useState({ // popup success or error text
@@ -85,6 +87,7 @@ const CustomerAdd = () => {
                 description: data.description || "",
                 support_employee: data.support_employee || ""
             }));
+            dispatch(getLeadCustomField(customerData.edit.id));
         }
     }, [customerData]);
 
@@ -157,7 +160,7 @@ const CustomerAdd = () => {
             support_employee: ""
         });
     }
-    const handleCustomerAddUpdate = () => {
+    const handleCustomerAddUpdate = async () => {
         const requireField = ["it_status", "master_type", "company"];
         let isEmpty = false;
         requireField.forEach(element => {
@@ -170,25 +173,28 @@ const CustomerAdd = () => {
                 isEmpty = true; // Set isEmpty to true if a required field is empty
             }
         });
-         // If any required field is empty, return from the function
+    
+        // If any required field is empty, return from the function
         if (isEmpty) {
             return;
         }
+    
         const gmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const validateVAT = (vat) => {
             const vatRegex = /^[A-Z0-9]{8,12}$/; // Example regex, adjust based on your needs
             return vatRegex.test(vat);
         };
         const validatePhone = (phone) => {
-        // Simple example validation: Checks if the phone number is 10 digits
-        const phoneRegex = /^\d{10}$/;
-        return phoneRegex.test(phone);
+            // Simple example validation: Checks if the phone number is 10 digits
+            const phoneRegex = /^\d{10}$/;
+            return phoneRegex.test(phone);
         };
         const validateWebsite = (url) => {
             // Regular expression pattern for a basic URL validation
             const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
             return urlRegex.test(url);
         };
+    
         if (customer?.email !== "" && !gmailRegex.test(customer?.email)) {
             setSnackbarProperty({
                 text: "Please enter a valid email address.",
@@ -196,48 +202,53 @@ const CustomerAdd = () => {
             });
             setSnackAlert(true);
             return;
-        }else if(customer?.vat !== "" && !validateVAT(customer?.vat)){
+        } else if (customer?.vat !== "" && !validateVAT(customer?.vat)) {
             setSnackbarProperty({
                 text: "Please enter a valid VAT number.",
                 color: "danger"
             });
             setSnackAlert(true);
             return;
-        }else if(customer?.phone !== "" && !validatePhone(customer?.phone)){
+        } else if (customer?.phone !== "" && !validatePhone(customer?.phone)) {
             setSnackbarProperty({
                 text: "Please enter a valid phone number.",
                 color: "danger"
             });
             setSnackAlert(true);
             return;
-        }else if(customer?.website !== "" && !validateWebsite(customer?.website)){
+        } else if (customer?.website !== "" && !validateWebsite(customer?.website)) {
             setSnackbarProperty({
-                text: "Please enter a valid website url.",
+                text: "Please enter a valid website URL.",
                 color: "danger"
             });
             setSnackAlert(true);
             return;
-        }else{
-            if(customerData && customerData.edit && customerData.edit.data.length > 0){
-                dispatch(updateCustomer({id: customerData.edit.data[0].id, data: customer}))
-                setSnackbarProperty(prevState => ({
-                    ...prevState,
-                    text: "Customer updated successfully!",
-                    color: "success"
-                }));
-                setSnackAlert(true);
-            }else{
-                dispatch(addCustomer(customer));
-                setSnackbarProperty(prevState => ({
-                    ...prevState,
-                    text: "Customer added successfully!",
-                    color: "success"
-                }));
+        } else {
+            try {
+                if (customerData && customerData.edit && customerData.edit.data.length > 0) {
+                    await dispatch(updateCustomer({ id: customerData.edit.data[0].id, data: customer })).unwrap();
+                    setSnackbarProperty({
+                        text: "Customer updated successfully!",
+                        color: "success"
+                    });
+                } else {
+                    await dispatch(addCustomer(customer)).unwrap();
+                    setSnackbarProperty({
+                        text: "Customer added successfully!",
+                        color: "success"
+                    });
+                }
+                resetValues();
+            } catch (error) {
+                setSnackbarProperty({
+                    text: error, // Display the error message
+                    color: "danger"
+                });
+            } finally {
                 setSnackAlert(true);
             }
-            resetValues()
         }
-    }
+    };
     
     useEffect(() => {
         console.log("customer", customer);
@@ -248,6 +259,62 @@ const CustomerAdd = () => {
         dispatch(getSubType());
     }, [customer]);
 
+    // activity log
+    useEffect(() => {
+        api("/util/last_active", "patch", false, false, true)
+        .then((res) => {
+        console.log("res", res);
+        })
+        .catch((err) => {
+        console.log("err in activity log");
+        });
+        
+    }, []);
+
+    useEffect(() => {
+        dispatch(getGroup());
+        dispatch(fetchCustomFields("tbl_customer"))
+    }, []);
+    useEffect(() => {
+        return () => {
+          dispatch(resetCustomField());
+        }
+    }, []);
+    
+    useEffect(() => {
+        if (customFieldsData?.field?.data && customerData?.edit?.data?.length > 0) {
+            const updatedCustomer = { ...customer };
+            customFieldsData?.data?.forEach((item) => {
+                updatedCustomer[item.name] = customFieldsData?.field?.data?.find(field => field.fieldid === item.id)?.column_value || "";
+            });
+            console.log("updatedCustomer----------", updatedCustomer);
+            setCustomer(updatedCustomer);
+        }
+    }, [customFieldsData, customerData]);
+
+    const handleColorChange = (color, name) => {
+        setCustomer({ ...customer, [name]: color.hex });
+    };
+
+    const multipleSelectChange = (event) => {
+        const selectedOptions = Array.from(event.target.selectedOptions, option => option.value);
+        setCustomer({ ...customer, [event.target.name]: selectedOptions.join(",") });
+    };
+    const typeForCustomField = (type) => {
+        if(type === "input"){
+          return "text";
+        }else if(type === "number"){
+          return "number";
+        }else if(type === "textarea"){
+          return "textarea";
+          }else if(type === "date_picker"){
+            return "date";
+          }else if(type === "datetime_picker"){
+          return "datetime-local";
+        }else if(type === "color_picker"){
+          return "color";
+        }
+    }
   return (
     <div className='mx-6 my-10'>
         {
@@ -638,6 +705,82 @@ const CustomerAdd = () => {
                                 })
                             }
                         </select>
+                    </div>
+                    {/* custom fields */}
+                    <p className='mb-2 font-semibold text-slate-600'>Custom fields:</p>
+                    {customFieldsData?.data && customFieldsData?.data.length === 0 && <p>No fields found</p>}
+                    <div className='flex flex-wrap gap-4 justify-between'>
+                        {
+                        customFieldsData?.data?.map((item) => {
+                            if(item.type === "select"){
+                                return (
+                                <div className='w-[48%]'>
+                                    <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
+                                    <select name={item.name} onChange={(event) => changeText(event, setCustomer, customer)} id="countries" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                        <option></option>
+                                        {
+                                            item?.options?.split(",").map((item2) => {
+                                                return (
+                                                    <option selected={customer[item.name]} value={item2}>{item2}</option>
+                                                )
+                                            })
+                                        }
+                                    </select>
+                                </div>
+                            )
+                            }else if(item.type === "multi_select"){
+                                return(
+                                    <div className='w-[48%]'>
+                                    <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name} <span className='text-xs'>(To select multiple values hold CTRL)</span></label>
+                                    <select multiple name={item.name} onChange={multipleSelectChange} id="countries" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                        <option></option>
+                                        {
+                                            item?.options?.split(",").map((item2) => {
+                                                return (
+                                                    <option selected={customer[item.name]} value={item2}>{item2}</option>
+                                                )
+                                            })
+                                        }
+                                    </select>
+                                </div>
+                            )
+                            }else if(item.type === "checkbox"){
+                                return (
+                                    <div className='w-[48%] flex items-center'>
+                                    <input selected={customer[item.name]} name={item.name} onChange={(event) => setCustomer({...customer, [item.name]: event.target.checked})} id="link-checkbox" type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                                    <label for="link-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"><span className='text-red-600'>{item.required ? "* " : ""}</span>{item.name}</label>
+                                    </div>
+                                )
+                            }else if(item.type === "color_picker"){
+                                return (
+                                    <div className='w-[48%] my-3'>
+                                    <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                        <span className='text-red-600'>{item.required ? "* " : ""}</span>{item.name}
+                                    </label>
+                                    <ChromePicker
+                                        color={customer[item.name] || (item.default_value ? item.default_value : "#000000")}
+                                        onChangeComplete={(color) => handleColorChange(color, item.name)}
+                                    />
+                                    </div>
+                                )
+                            }
+                            else if(item.type === "textarea"){
+                                return (
+                                    <div className='w-[48%] my-3'>
+                                    <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
+                                    <textarea value={customer && customer[item.name]} name={item.name} onChange={(event) => changeText(event, setCustomer, customer)} id="message" rows="4" className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder='Write here...' required={item.required}></textarea>
+                                    </div>
+                                )
+                            }else{
+                                return (
+                                    <div className='w-[48%]'>
+                                        <label for="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><span className='text-red-600'>{item.required?"* ":""}</span>{item.name}</label>
+                                        <input value={customer[item.name]} name={item.name} onChange={(event) => changeText(event, setCustomer, customer)} type={typeForCustomField(item.type)} id="first_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required={item.required} />
+                                    </div>
+                                )
+                            }
+                        })
+                        }
                     </div>
                 </div>
                 <div className='bg-slate-100 border px-6 py-2 flex items-center justify-end'>

@@ -78,6 +78,7 @@ export const updateCustomField = createAsyncThunk('updateCustomField', async (da
 export const getLeadCustomField = createAsyncThunk('getLeadCustomField', async (id) => {
     try {
         const res = await api(`/lead/custom_field/${id}`, "get", false, false, true);
+        console.log("res.data.daataadqad", res);
         return res.data.data;
     } catch (err) {
         console.log("err", err);
@@ -95,15 +96,20 @@ export const getEmployee = createAsyncThunk('getEmployee', async () => {
     }
 });
 
-export const addEmployee = createAsyncThunk('addEmployee', async (data) => {
+export const addEmployee = createAsyncThunk('addEmployee', async (data, { rejectWithValue }) => {
     try {
         console.log("data---------", data);
         const res = await api(`/employee`, "post", data, true, true);
-        console.log("res.data---" , res);
+        console.log("res.data---", res);
+        if (!res.data?.success) {
+            // Reject the thunk with the error message from the response
+            return rejectWithValue(res?.data?.message);
+        }
         return res.data;
     } catch (err) {
         console.log("err", err);
-        throw err;
+        // Reject the thunk with the error message
+        return rejectWithValue(err.message);
     }
 });
 
@@ -150,14 +156,19 @@ export const getEmployeeDetails = createAsyncThunk('getEmployeeDetails', async (
     }
 });
 
-export const updateEmployee = createAsyncThunk('updateEmployee', async (data) => {
+export const updateEmployee = createAsyncThunk('updateEmployee', async (data, { rejectWithValue }) => {
     console.log("id, data", data);
     try {
         const res = await api(`/employee/${data.id}`, "patch", data.data, true, true);
+        if (!res?.data?.success) {
+            // Reject the thunk with the error message from the response
+            return rejectWithValue(res?.data?.message);
+        }
         return res.data;
     } catch (err) {
-        console.log("err", err);
-        throw err;
+        console.log("err in updateEmployee", err);
+        // Reject the thunk with the error message
+        return rejectWithValue(err.message);
     }
 });
 

@@ -34,6 +34,7 @@ import Currency from './components/dashboard/setup/currency/Currency';
 import MasterType from './components/dashboard/setup/master_type/MasterType';
 import SubMaster from './components/dashboard/setup/sub_master/SubMaster';
 import ItStatus from './components/dashboard/setup/it_status/ItStatus';
+import Appoinment from './components/dashboard/dash/Appoinment';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -142,6 +143,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route exact path="/admin/dashboard" element={<Dashboard><Appoinment /></Dashboard>} />
         <Route exact path="/admin/leads" element={<Dashboard><Lead /></Dashboard>} />
         <Route path="activity_log/:userid" element={<Dashboard><ActiveUser /></Dashboard>} />
         <Route path="/admin/customer" element={<Dashboard><Customer /></Dashboard>} />

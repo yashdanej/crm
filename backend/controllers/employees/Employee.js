@@ -3,7 +3,7 @@ const { verifyToken } = require("../../middleware/verifyToken");
 const bcrypt = require("bcrypt");
 const cloudinary = require("../utils/cloudinary");
 const util = require("util");
-const { Activity_log } = require("../utils/util");
+const { Activity_log, getColumn, CustomFieldValue } = require("../utils/util");
 const query = util.promisify(db.query).bind(db);
 
 // Extracted function to validate phone number format
@@ -46,7 +46,7 @@ exports.AddEmployee = async (req, res, next) => {
         }
 
         // Check if the email already exists
-        const existingUser = await query("SELECT * FROM users WHERE email = ? and company_id = ?", [email, getSelectedUser[0].company_id]);
+        const existingUser = await query("SELECT * FROM users WHERE email = ? and company_id = ? and is_deleted = ?", [email, getSelectedUser[0].company_id, false]);
         if (existingUser.length > 0) {
             return handleErrorResponse(res, 200, "Email already exists. Please use a different email address.");
         }
@@ -80,16 +80,45 @@ exports.AddEmployee = async (req, res, next) => {
             facebook, linkedin, skype, pfimage, last_password_change, hourly_rate,
             address, country, state, city, postal_code, birth_date, designation, joining_date,
             monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone, getUser]);
+        
+            // custom field
+            const Column = await getColumn(req, res, next, "users");
+            console.log("Column", Column);
+            let missingFields = [];
+            if (Column != undefined && Column && Column.length > 0) {
+                for (const element of Column) {
+                    const value = req.body[element.name];
+                    console.log("value", value);
+                    if(element.required){
+                        if (!value || value == undefined) {
+                            missingFields.push(`Give value to custom field ${element.name}`);
+                        }else{
+                            await CustomFieldValue(req, res, next, getEmp.insertId, element.id, element.fieldto, value);    
+                        }  
+                    }else {
+                        if (value && value != undefined) {
+                            await CustomFieldValue(req, res, next, getEmp.insertId, element.id, element.fieldto, value);
+                        }
+                    }
+                }
+            }
 
-        // Send success response
-        if(getEmp.affectedRows === 1){
-            req.body.description = `Added employee name: ${full_name} and id: ${getEmp.insertId} by user id ${getUser}`;
-            await Activity_log(req, res, next);
-            const empData = await query("select * from users where id = ?", [getEmp.insertId]);
-            return res.status(200).json({success: true, message: "Employee added successfully", data: empData});
-        }else{
-            return res.status(200).json({ success: false, message: "Error adding employee", data: [] });
-        }
+            if (missingFields.length > 0) {
+                console.log("in missignfiels");
+                req.body.emp_id = getEmp.insertId;
+                await this.deleteEmployeeAndDetail(req, res, next);
+                return res.status(200).json({ success: false, message: missingFields.join(", ") });
+            } else {
+                // Send success response
+                if(getEmp.affectedRows === 1){
+                    req.body.description = `Added employee name: ${full_name} and id: ${getEmp.insertId} by user id ${getUser}`;
+                    await Activity_log(req, res, next);
+                    const empData = await query("select * from users where id = ?", [getEmp.insertId]);
+                    return res.status(200).json({success: true, message: "Employee added successfully", data: empData});
+                }else{
+                    return res.status(200).json({ success: false, message: "Error adding employee", data: [] });
+                }
+            }
     } catch (error) {
         console.log("error in AddEmployee", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -180,9 +209,38 @@ exports.updateEmployee = async (req, res, next) => {
         }
 
         // Check if the email already exists
-        const existingUser = await query("SELECT * FROM users WHERE email = ? and company_id = ? and id != ?", [email, getSelectedUser[0].company_id, existingEmployee[0].id]);
+        const existingUser = await query("SELECT * FROM users WHERE email = ? and company_id = ? and id != ? and is_deleted = ?", [email, getSelectedUser[0].company_id, emp_id, false]);
+        console.log("existingUser-----", existingUser);
         if (existingUser.length > 0) {
             return handleErrorResponse(res, 200, "Email already exists. Please use a different email address.");
+        }
+
+        // Custome field
+
+        const Column = await getColumn(req, res, next, "users");
+        console.log("Column", Column);
+        let missingFields = [];
+        if (Column != undefined && Column && Column.length > 0) {
+            for (const element of Column) {
+                const value = req.body[element.name];
+                console.log("value", value);
+                if(element.required){
+                    if (!value || value == undefined) {
+                        missingFields.push(`Give value to custom field ${element.name}`);
+                    }else{
+                        await CustomFieldValue(req, res, next, emp_id, element.id, element.fieldto, value, "update", element.name);
+                    }  
+                }else {
+                    if (value && value != undefined) {
+                        await CustomFieldValue(req, res, next, emp_id, element.id, element.fieldto, value, "update", element.name);
+                    }
+                }
+            }
+        }
+
+        if (missingFields.length > 0) {
+            req.body.id = id;
+            return res.status(200).json({ success: false, message: missingFields.join(", ") });
         }
 
         // Check if the previous password matches the newly entered password
@@ -256,7 +314,11 @@ exports.updateEmployee = async (req, res, next) => {
 
 exports.deleteEmployeeAndDetail = async (req, res, next) => {
     try {
-        const emp_id = req.params.emp_id;
+        console.log("in deleteEmployeeAndDetail");
+        const emp_id = req.params.emp_id?req.params.emp_id:req.body.emp_id;
+        if(!emp_id){
+            return res.status(400).json({ success: false, message: "No id provided" });
+        }
         // Execute a query to fetch employee records from the database
         await query("update users set is_deleted = ? WHERE id = ?", [true, emp_id]);
         await query("update emp_details set is_deleted = ? WHERE user_id = ?", [true, emp_id]);
@@ -264,7 +326,11 @@ exports.deleteEmployeeAndDetail = async (req, res, next) => {
         // Send the list of employee as the response
         req.body.description = `Deleted employee id: [${emp_id}]`;
         await Activity_log(req, res, next);
-        return res.status(200).json({ success: true, message: "Employee deleted successfully" });
+        if(req.body.emp_id){
+            return
+        }else{
+            return res.status(200).json({ success: true, message: "Employee deleted successfully" });
+        }
     } catch (error) {
         console.log("Error in getEmployee", error);
         return res.status(500).json({ success: false, message: "Internal server error" });

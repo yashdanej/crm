@@ -4,10 +4,12 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { deleteEmployee, getEmployee, getEmployeeField, getRoles } from '../../../../store/slices/SetupSlices'
+import { api } from '../../../../utils/Utils'
 
 const Employees = () => {
     const empData = useSelector(state => state.setup.employees);
     const rolesData = useSelector(state => state.setup.roles);
+    
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(getEmployee());
@@ -22,6 +24,16 @@ const Employees = () => {
         dispatch(getEmployeeField(id));
         navigate("/setup/employee/add");
     }
+    useEffect(() => {
+        // last active
+        api("/util/last_active", "patch", false, false, true)
+        .then((res) => {
+        console.log("res", res);
+        })
+        .catch((err) => {
+        console.log("err in activity log");
+        });
+    }, []);
   return (
     <div className='m-6'>
             <div className='mb-4'>

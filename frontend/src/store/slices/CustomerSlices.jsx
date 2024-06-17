@@ -12,15 +12,19 @@ export const getCustomer = createAsyncThunk('getCustomer', async () => {
     }
 });
 
-export const addCustomer = createAsyncThunk('addCustomer', async (data) => {
+export const addCustomer = createAsyncThunk('addCustomer', async (data, { rejectWithValue }) => {
     try {
         console.log("data---------", data);
         const res = await api(`/customer`, "post", data, false, true);
-        console.log("res.data---" , res);
+        console.log("res.data---", res);
+        // Check if the API response indicates failure
+        if (!res.data.success) {
+            return rejectWithValue(res.data.message); // Reject with the error message
+        }
         return res.data;
     } catch (err) {
         console.log("err", err);
-        throw err;
+        return rejectWithValue(err.message); // Reject with the error message
     }
 });
 
@@ -44,14 +48,18 @@ export const getCustomerById = createAsyncThunk('getCustomerById', async (id) =>
     }
 });
 
-export const updateCustomer = createAsyncThunk('updateCustomer', async (data) => {
+export const updateCustomer = createAsyncThunk('updateCustomer', async (data, { rejectWithValue }) => {
     console.log("id, data", data);
     try {
         const res = await api(`/customer/${data.id}`, "patch", data.data, false, true);
+        // Check if the API response indicates failure
+        if (!res.data.success) {
+            return rejectWithValue(res.data.message); // Reject with the error message
+        }
         return res.data;
     } catch (err) {
         console.log("err", err);
-        throw err;
+        return rejectWithValue(err.message); // Reject with the error message
     }
 });
 
@@ -131,6 +139,7 @@ const customerSlice = createSlice({
         });
         builder.addCase(getCustomerById.fulfilled, (state, action) => {
             state.customers.edit.isLoading = false;
+            state.customers.edit.id = action.payload[0].id;
             state.customers.edit.data = action.payload;
         });
         builder.addCase(getCustomerById.rejected, (state, action) => {
@@ -158,6 +167,7 @@ const customerSlice = createSlice({
     reducers: {
         resetCustomer(state, action){
             state.customers.message = ""
+            state.customers.edit.id = null
             state.customers.edit.data = []
             state.customers.edit.message = ""
         }
