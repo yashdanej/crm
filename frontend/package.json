@@ -15,6 +15,7 @@
     "@mui/material": "^5.15.17",
     "@mui/x-date-pickers": "^7.5.0",
     "@reduxjs/toolkit": "^2.2.4",
+    "@syncfusion/ej2-react-schedule": "^26.1.35",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

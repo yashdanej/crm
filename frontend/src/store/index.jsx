@@ -1,3 +1,4 @@
+import { appointmentReducer } from "./slices/AppointmentSlices";
 import { attachmentReducer } from "./slices/AttachmentSlices";
 import { customerReducer } from "./slices/CustomerSlices";
 import DevSlices from "./slices/DevSlices";
@@ -23,6 +24,7 @@ const store = configureStore({
         reminder: reminderReducer,
         attachment: attachmentReducer,
         customer: customerReducer,
+        appointment: appointmentReducer,
         dev: DevSlices
     }
 });
