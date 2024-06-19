@@ -3,7 +3,7 @@ const { verifyToken } = require("../../middleware/verifyToken");
 const bcrypt = require("bcrypt");
 const cloudinary = require("../utils/cloudinary");
 const util = require("util");
-const { Activity_log, getColumn, CustomFieldValue } = require("../utils/util");
+const { Activity_log, getColumn, CustomFieldValue, MailSend, SendWhatsappMessage } = require("../utils/util");
 const query = util.promisify(db.query).bind(db);
 
 // Extracted function to validate phone number format
@@ -111,8 +111,20 @@ exports.AddEmployee = async (req, res, next) => {
             } else {
                 // Send success response
                 if(getEmp.affectedRows === 1){
+                    const company = await query("select * from company where id = ?", getSelectedUser[0].company_id);
+                    const des = await query("select * from designation where id = ?", designation);
                     req.body.description = `Added employee name: ${full_name} and id: ${getEmp.insertId} by user id ${getUser}`;
                     await Activity_log(req, res, next);
+                    req.body.from = "employee";
+                    req.body.name = full_name;
+                    req.body.phone = phone;
+                    req.body.company_name = company[0].name;
+                    req.body.designation = des[0].name;
+                    req.body.email = email;
+                    // mail sending
+                    MailSend(req, res, next);
+                    // whatsapp message sending
+                    SendWhatsappMessage(req, res, next);
                     const empData = await query("select * from users where id = ?", [getEmp.insertId]);
                     return res.status(200).json({success: true, message: "Employee added successfully", data: empData});
                 }else{
@@ -245,19 +257,25 @@ exports.updateEmployee = async (req, res, next) => {
 
         // Check if the previous password matches the newly entered password
         const previousPassword = existingEmployee[0].user_password;
-        const passwordMatches = bcrypt.compareSync(user_password, previousPassword);
+        console.log("previousPassword", previousPassword);
+        console.log("user_password", user_password);
         const joiningDate = new Date(joining_date).toISOString().slice(0, 19).replace('T', ' ');
         // Construct the SQL query for updating employee details
         let sql;
+        const currentDate = new Date();
         const queryParamsBase = [email, full_name, role, phone, facebook, linkedin, skype, hourly_rate,
             address, country, state, city, postal_code, birth_date, designation, joiningDate,
-            monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone, new Date(), emp_id];
+            monthly_salary, leaving_date, emergency_fn, emergency_ln, relationship, emergency_phone, currentDate, emp_id];
 
-        if (!passwordMatches) {
+        if (user_password !== previousPassword) {
+            console.log("in+-------------");
             // Password does not match, update the password
             const salt = bcrypt.genSaltSync(10);
             const hashedPassword = bcrypt.hashSync(user_password, salt);
+            queryParamsBase.splice(7, 0, hashedPassword, currentDate);  // Insert hashed password and last password change date at correct positions
+            
             if (req.file && req.file.path) {
+                queryParamsBase.push(result.secure_url);  // Add the profile_img at the end
                 sql = `
                     UPDATE users 
                     SET email=?, full_name=?, role=?, phone=?, facebook=?, linkedin=?, skype=?, user_password=?, last_password_change=?,
@@ -265,8 +283,6 @@ exports.updateEmployee = async (req, res, next) => {
                         monthly_salary=?, leaving_date=?, emergency_fn=?, emergency_ln=?, relationship=?, emergency_phone=?, updated_at=?, profile_img=?
                     WHERE id=?;
                 `;
-                queryParamsBase.splice(7, 0, hashedPassword, last_password_change);
-                queryParamsBase.splice(queryParamsBase.length - 1, 0, result.secure_url);
             } else {
                 sql = `
                     UPDATE users 
@@ -275,11 +291,13 @@ exports.updateEmployee = async (req, res, next) => {
                         monthly_salary=?, leaving_date=?, emergency_fn=?, emergency_ln=?, relationship=?, emergency_phone=?, updated_at=?
                     WHERE id=?;
                 `;
-                queryParamsBase.splice(7, 0, hashedPassword, last_password_change);
             }
         } else {
+            console.log("out+-------------");
             // Password matches, do not update the password
             if (req.file && req.file.path) {
+                queryParamsBase.splice(7, 0, currentDate);  // Insert last password change date at the correct position
+                queryParamsBase.push(result.secure_url);  // Add the profile_img at the end
                 sql = `
                     UPDATE users 
                     SET email=?, full_name=?, role=?, phone=?, facebook=?, linkedin=?, skype=?, last_password_change=?,
@@ -287,9 +305,8 @@ exports.updateEmployee = async (req, res, next) => {
                         monthly_salary=?, leaving_date=?, emergency_fn=?, emergency_ln=?, relationship=?, emergency_phone=?, updated_at=?, profile_img=?
                     WHERE id=?;
                 `;
-                queryParamsBase.splice(7, 0);
-                queryParamsBase.splice(queryParamsBase.length - 1, 0, result.secure_url);
             } else {
+                queryParamsBase.splice(7, 0, currentDate);  // Insert last password change date at the correct position
                 sql = `
                     UPDATE users 
                     SET email=?, full_name=?, role=?, phone=?, facebook=?, linkedin=?, skype=?, last_password_change=?,

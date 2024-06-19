@@ -67,6 +67,21 @@ export const completeAppoinment = createAsyncThunk('completeAppoinment', async (
     }
 });
 
+export const deleteAppoinment = createAsyncThunk('deleteAppoinment', async (id, { rejectWithValue }) => {
+    try {
+        const res = await api(`/appoinment/${id}`, "delete", false, false, true);
+        // Check if the API response indicates failure
+        if (!res.data.success) {
+            return rejectWithValue(res.data.message); // Reject with the error message
+        }
+        return {id};
+    } catch (err) {
+        console.log("err", err);
+        return rejectWithValue(err.message); // Reject with the error message
+    }
+});
+
+
 const appointmentSlice = createSlice({
     name: "appointment",
     initialState: {
@@ -150,10 +165,29 @@ const appointmentSlice = createSlice({
         builder.addCase(completeAppoinment.fulfilled, (state, action) => {
             state.appointment.isLoading = false;
             console.log("action.payload", action.payload);
-            state.appointment.data.filter(data => data.id !== action.payload.id);
+            state.appointment.edit.isLoading = false;
+            state.appointment.edit.data = [];
+            state.appointment.data = state.appointment.data.filter(appointment => appointment.id !== action.payload.id);
         });
         builder.addCase(completeAppoinment.rejected, (state, action) => {
             console.log("error in completeAppoinment", action.payload);
+            state.appointment.isLoading = false;
+            state.appointment.isError = true;
+        });
+
+        // deleteAppoinment
+        builder.addCase(deleteAppoinment.pending, (state, action) => {
+            state.appointment.isLoading = true;
+        });
+        builder.addCase(deleteAppoinment.fulfilled, (state, action) => {
+            state.appointment.isLoading = false;
+            console.log("action.payload", action.payload);
+            state.appointment.edit.isLoading = false;
+            state.appointment.edit.data = [];
+            state.appointment.data = state.appointment.data.filter(appointment => appointment.id !== action.payload.id);
+        });
+        builder.addCase(deleteAppoinment.rejected, (state, action) => {
+            console.log("error in deleteAppoinment", action.payload);
             state.appointment.isLoading = false;
             state.appointment.isError = true;
         });

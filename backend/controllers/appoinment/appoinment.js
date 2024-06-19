@@ -2,8 +2,19 @@ const nodemailer = require("nodemailer");
 const { verifyToken } = require("../../middleware/verifyToken");
 const db = require("../../db");
 const util = require('util');
-const { Activity_log } = require("../utils/util");
+const { Activity_log, Remind, SendWhatsappMessage } = require("../utils/util");
 const query = util.promisify(db.query).bind(db);
+const schedule = require('node-schedule');
+
+const dateToCron = (date) => {
+    const minutes = date.getMinutes();
+    const hours = date.getHours();
+    const days = date.getDate();
+    const months = date.getMonth() + 1;
+    const dayOfWeek = date.getDay();
+
+    return `${minutes} ${hours} ${days} ${months} ${dayOfWeek}`;
+};
 
 exports.createAppointment = async (req, res, next) => {
     try {
@@ -12,6 +23,7 @@ exports.createAppointment = async (req, res, next) => {
         if(employee_id == "", employee_id == null){
             employee_id = getUser;
         }
+        const getSelectedUser = await query("select * from users where id = ?", [employee_id]);
         if(client_id == "" || client_id == null){
             client_id = null;
         }
@@ -30,7 +42,28 @@ exports.createAppointment = async (req, res, next) => {
         // adding activity log
         req.body.description = `Added appoinment of employee id: [${employee_id}], name: [${emp[0].full_name}] with client id: [${client_id}], client comapny: [${client_or_other_name}]`;
         await Activity_log(req, res, next);
-
+        const reminderDate = new Date(appointment_date);
+        if (isNaN(reminderDate)) {
+            return res.status(400).json({ success: false, message: "Invalid date format" });
+        }
+        console.log("reminderDate", reminderDate);
+        // Subtract 2 hours (2 * 60 * 60 * 1000 milliseconds)
+        const beforeDate = new Date(reminderDate.getTime() - 2 * 60 * 60 * 1000);
+        console.log(`Reminder date and time: ${reminderDate}`)
+        
+        Remind(req, res, next, {from: "beforeDate", date: beforeDate, remind: reminderDate, name: getSelectedUser[0].full_name, email: getSelectedUser[0].email, client: client_or_other_name});
+        Remind(req, res, next, {from: "appointment", date: reminderDate, name: getSelectedUser[0].full_name, email: getSelectedUser[0].email, client: client_or_other_name});
+        const cronDate = dateToCron(reminderDate);
+        schedule.scheduleJob(cronDate, async () => {
+            if(getSelectedUser[0].phone){
+                req.body.from = "appointment";
+                req.body.phone = getSelectedUser[0].phone;
+                req.body.name = getSelectedUser[0].full_name;
+                req.body.date = reminderDate;
+                req.body.client = client_or_other_name;
+                SendWhatsappMessage(req, res, next);
+            }
+        });
         return res.status(201).json({ success: true, message: "Appointment created successfully", data: getAppointment });
     } catch (error) {
         console.log("Error in createAppointment", error);

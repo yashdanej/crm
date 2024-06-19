@@ -1,38 +1,10 @@
 const util = require('util');
-const { Activity_log, MailSend, SendWhatsappMessage } = require('../utils/util');
+const { Activity_log, MailSend, SendWhatsappMessage, Remind } = require('../utils/util');
 const db = require('../../db');
 const schedule = require('node-schedule');
 const { verifyToken } = require('../../middleware/verifyToken');
 
 const query = util.promisify(db.query).bind(db);
-
-const dateToCron = (date) => {
-    const minutes = date.getMinutes();
-    const hours = date.getHours();
-    const days = date.getDate();
-    const months = date.getMonth() + 1;
-    const dayOfWeek = date.getDay();
-
-    return `${minutes} ${hours} ${days} ${months} ${dayOfWeek}`;
-};
-
-const Remind = (req, res, next, obj) => {
-    console.log("clicked");
-    console.log("obj", obj);
-    const cronDate = dateToCron(obj.date);
-    console.log("cronDate", cronDate);
-    schedule.scheduleJob(cronDate, async () => {
-        console.log("ran");
-        req.body.date = obj.date;
-        req.body.description = obj.description;
-        req.body.staff = obj.staff;
-        req.body.creator = obj.creator;
-        req.body.from = "reminder";
-        req.body.lead = obj.lead;
-        req.body.id = obj.reminder_id;
-        MailSend(req, res, next);
-    });
-}
 
 exports.addReminder = async (req, res, next) => {
  try {

@@ -63,6 +63,7 @@ const Appointment = () => {
   const toggleModal = () => {
     const modal = document.getElementById('crud-modal');
     modal.classList.toggle('hidden');
+    resetState();
   };
   const handleEditEvent = (eventId) => {
     dispatch(getAppoinmentById(eventId));

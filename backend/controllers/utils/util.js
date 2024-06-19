@@ -3,7 +3,7 @@ const { verifyToken } = require("../../middleware/verifyToken");
 const axios = require("axios");
 const db = require("../../db");
 const util = require('util');
-
+const schedule = require('node-schedule');
 
 exports.getRoles = async (req, res, next) => {
     try {
@@ -20,6 +20,56 @@ exports.getRoles = async (req, res, next) => {
      }
 }
 
+exports.dateToCron = (date) => {
+    const minutes = date.getMinutes();
+    const hours = date.getHours();
+    const days = date.getDate();
+    const months = date.getMonth() + 1;
+    const dayOfWeek = date.getDay();
+
+    return `${minutes} ${hours} ${days} ${months} ${dayOfWeek}`;
+};
+
+exports.Remind = (req, res, next, obj) => {
+    console.log("clicked");
+    console.log("obj", obj);
+    const cronDate = this.dateToCron(obj.date);
+    console.log("cronDate", cronDate);
+    console.log("req.body.from", req.body.from);
+    console.log("obj.from", obj.from);
+    if(req.body.from == "reminder"){
+        schedule.scheduleJob(cronDate, async () => {
+            console.log("ran");
+            req.body.date = obj.date;
+            req.body.description = obj.description;
+            req.body.staff = obj.staff;
+            req.body.creator = obj.creator;
+            req.body.from = "reminder";
+            req.body.lead = obj.lead;
+            req.body.id = obj.reminder_id;
+            this.MailSend(req, res, next);
+        });
+    }else if(obj.from == "appointment"){
+        schedule.scheduleJob(cronDate, async () => {
+            req.body.date = obj.date;
+            req.body.name = obj.name;
+            req.body.from = "appointment_reminder";
+            req.body.email = obj.email;
+            req.body.client = obj.client;
+            this.MailSend(req, res, next);
+        });
+    }else if(obj.from == "beforeDate"){
+        schedule.scheduleJob(cronDate, async () => {
+            req.body.date = obj.date;
+            req.body.name = obj.name;
+            req.body.remind = obj.remind;
+            req.body.from = "appointment_reminder_before";
+            req.body.email = obj.email;
+            req.body.client = obj.client;
+            this.MailSend(req, res, next);
+        });
+    }
+}
 
 exports.MailSend = async (req, res, next) => {
     try {
@@ -93,6 +143,64 @@ exports.MailSend = async (req, res, next) => {
 
             await sendEmail(mailOptions, from);
             await query("update tblreminders set isnotified = ? where id = ?", [true, req.body.id]);
+        }else if(from === "employee"){
+            console.log("req.body", req.body);
+            subject = `Welcome to the Team, ${req.body.name}!`;
+            html = `
+                <p>Dear ${req.body.name},</p>
+                <p>I hope this message finds you well. On behalf of everyone here at ${req.body.company_name}, I am delighted 
+                to welcome you to our team!</p>
+                <p>We are excited to have you join us as a ${req.body.designation} and look forward to the unique 
+                skills and perspectives you will bring to our team. Your experience and enthusiasm will be invaluable 
+                as we continue to grow and achieve great things together.</p>
+                <p>Best regards,</p>
+            `;
+            const mailOptions = {
+                from: "yashdanej2004@gmail.com",
+                to: req.body.email,
+                subject: subject,
+                html: html,
+            };
+
+            await sendEmail(mailOptions, from);
+        }else if(from === "appointment_reminder"){
+            console.log("req.body", req.body);
+            subject = `Friendly Reminder: Upcoming Appointment on ${req.body.date}!`;
+            html = `
+                <p>Dear ${req.body.name},</p>
+                <p>I hope this message finds you well. This is a friendly reminder about your upcoming appointment scheduled for:</p>
+                <p>Date: ${req.body.date}</p>
+                <p>Client: ${req.body.client}</p>
+                <p>Best regards,</p>
+            `;
+            const mailOptions = {
+                from: "yashdanej2004@gmail.com",
+                to: req.body.email,
+                subject: subject,
+                html: html,
+            };
+
+            await sendEmail(mailOptions, from);
+            console.log("success mail sent");
+        }else if(from === "appointment_reminder_before"){
+            console.log("req.body", req.body);
+            subject = `Friendly Reminder: Upcoming Appointment on ${req.body.remind}!`;
+            html = `
+                <p>Dear ${req.body.name},</p>
+                <p>I hope this message finds you well. This is a friendly reminder about your upcoming appointment scheduled for:</p>
+                <p>Date: ${req.body.remind}</p>
+                <p>Client: ${req.body.client}</p>
+                <p>Best regards,</p>
+            `;
+            const mailOptions = {
+                from: "yashdanej2004@gmail.com",
+                to: req.body.email,
+                subject: subject,
+                html: html,
+            };
+
+            await sendEmail(mailOptions, from);
+            console.log("success mail sent");
         }
     } catch (error) {
         console.error("Error:", error);
@@ -118,7 +226,7 @@ const sendEmail = async (mailOptions, from) => {
     try {
         await auth.sendMail(mailOptions);
         console.log("Mail sent successfully!");
-        if(from == "reminder"){
+        if(from == "reminder" || from == "employee"){
             return;
         }
     } catch (error) {
@@ -133,31 +241,75 @@ exports.SendWhatsappMessage = async (req, res, next) => {
         const authToken = 'U2FsdGVkX1/ug0OBB0k7o4i/C2fLQsC26whfAOfewPWDHATb0kdL+QElsbtYMiNQVH8PdYc3PpS+TG4P6S6dMACPuoX49vhOnirOfCPMtNy7//x+w9Jk8boA4nOCzTpfar6mPF/wExPqByo7EdjoF+UWqZrCB6iIYd2PRjIU1t1z3WNyUAhSk1t/zKMRvVgU';
         const sendTo = `91${sendphone}`; // Replace with the recipient's WhatsApp number
         const originWebsite = 'https://myinvented.com/';
-        const templateName = 'crm';
+        let templateName = 'crm';
+        if(req.body.from && req.body.from == "employee"){
+            templateName = "crm_employee";
+        }else if(req.body.from && req.body.from == "appointment"){
+            templateName = "crm_remind_appointment";
+        }
         const language = 'en';
-
-        // Create form data
-        const formData = new FormData();
-        formData.append('authToken', authToken);
-        formData.append('sendto', sendTo);
-        formData.append('originWebsite', originWebsite);
-        formData.append('templateName', templateName);
-        formData.append('language', language);
-        formData.append('data[0]', full_name);
-        formData.append('data[1]', name);
-        formData.append('data[2]', company?company:"No company found");
-        formData.append('data[3]', email);
-        formData.append('data[4]', leadphone);
-        formData.append('data[5]', source);
-        formData.append('data[6]', assigned);
-        console.log("formdata", formData);
-        const response = await axios.post('https://app.11za.in/apis/template/sendTemplate', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
-        console.log('WhatsApp message sent successfully:', response.data);
-        return res.status(200).json({success: true, message: "WhatsApp message sent successfully!"})
+        if(req.body.from && req.body.from == "employee"){
+            // Create form data
+            const formData = new FormData();
+            formData.append('authToken', authToken);
+            formData.append('sendto', `91${req.body.phone}`);
+            formData.append('originWebsite', originWebsite);
+            formData.append('templateName', templateName);
+            formData.append('language', language);
+            formData.append('data[0]', req.body.name);
+            formData.append('data[1]', req.body.company_name);
+            formData.append('data[2]', req.body.designation);
+            console.log("formdata", formData);
+            const response = await axios.post('https://app.11za.in/apis/template/sendTemplate', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log('WhatsApp message sent successfully:', response.data);
+            return;
+        }else if(req.body.from && req.body.from == "appointment"){
+            // Create form data
+            const formData = new FormData();
+            formData.append('authToken', authToken);
+            formData.append('sendto', `91${req.body.phone}`);
+            formData.append('originWebsite', originWebsite);
+            formData.append('templateName', templateName);
+            formData.append('language', language);
+            formData.append('data[0]', req.body.name);
+            formData.append('data[1]', req.body.date);
+            formData.append('data[2]', req.body.client);
+            console.log("formdata", formData);
+            const response = await axios.post('https://app.11za.in/apis/template/sendTemplate', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log('WhatsApp message sent successfully:', response.data);
+            return;
+        }else{
+            // Create form data
+            const formData = new FormData();
+            formData.append('authToken', authToken);
+            formData.append('sendto', sendTo);
+            formData.append('originWebsite', originWebsite);
+            formData.append('templateName', templateName);
+            formData.append('language', language);
+            formData.append('data[0]', full_name);
+            formData.append('data[1]', name);
+            formData.append('data[2]', company?company:"No company found");
+            formData.append('data[3]', email);
+            formData.append('data[4]', leadphone);
+            formData.append('data[5]', source);
+            formData.append('data[6]', assigned);
+            console.log("formdata", formData);
+            const response = await axios.post('https://app.11za.in/apis/template/sendTemplate', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log('WhatsApp message sent successfully:', response.data);
+            return res.status(200).json({success: true, message: "WhatsApp message sent successfully!"})
+        }
     } catch (error) {
         console.error('Error sending WhatsApp message:', error);
         return res.status(400).json({success: false, message: "WhatsApp message sent failed!"})
@@ -785,6 +937,8 @@ exports.createGrpName = async (req, res, next) => {
         }
         const sql = "INSERT INTO crmdb.grp_name (name) VALUES (?);";
         await query(sql, [name]);
+        req.body.description = `Group added. group name is [${name}]`;
+        await this.Activity_log(req, res, next);
         return res.status(201).json({ success: true, message: "Group name created successfully" });
     } catch (error) {
         console.log("Error in createGrpName", error);
@@ -824,6 +978,7 @@ exports.updateGrpName = async (req, res, next) => {
     try {
         const query = util.promisify(db.query).bind(db);
         const { id } = req.params;
+        const get = await query("select * from grp_name where id = ?", [id]);
         const { name } = req.body;
         if (!name) {
             return res.status(400).json({ success: false, message: "Name is required" });
@@ -833,6 +988,8 @@ exports.updateGrpName = async (req, res, next) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "Group name not found" });
         }
+        req.body.description = `Group id: [${id}] updated. from group name [${get[0].name}] to [${name}]`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Group name updated successfully" });
     } catch (error) {
         console.log("Error in updateGrpName", error);
@@ -845,11 +1002,14 @@ exports.deleteGrpName = async (req, res, next) => {
     try {
         const query = util.promisify(db.query).bind(db);
         const { id } = req.params;
+        const get = await query("select * from grp_name where id = ?", [id]);
         const sql = "DELETE FROM crmdb.grp_name WHERE id = ?;";
         const result = await query(sql, [id]);
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "Group name not found" });
         }
+        req.body.description = `Group id: [${id}], name [${get[0].name}] deleted`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Group name deleted successfully" });
     } catch (error) {
         console.log("Error in deleteGrpName", error);
@@ -867,6 +1027,8 @@ exports.createItStatus = async (req, res, next) => {
         }
         const sql = "INSERT INTO crmdb.it_status (name) VALUES (?);";
         await query(sql, [name]);
+        req.body.description = `ItStatus name: [${name}] added`;
+        await this.Activity_log(req, res, next);
         return res.status(201).json({ success: true, message: "IT status created successfully" });
     } catch (error) {
         console.log("Error in createItStatus", error);
@@ -906,6 +1068,7 @@ exports.updateItStatus = async (req, res, next) => {
     try {
         const query = util.promisify(db.query).bind(db);
         const { id } = req.params;
+        const get = await query("select * from it_status where id = ?", [id]);
         const { name } = req.body;
         if (!name) {
             return res.status(400).json({ success: false, message: "Name is required" });
@@ -915,6 +1078,8 @@ exports.updateItStatus = async (req, res, next) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "IT status not found" });
         }
+        req.body.description = `ItStatus id: [${id}] updated. from ItStatus name [${get[0].name}] to [${name}]`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "IT status updated successfully" });
     } catch (error) {
         console.log("Error in updateItStatus", error);
@@ -931,6 +1096,8 @@ exports.deleteItStatus = async (req, res, next) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "IT status not found" });
         }
+        req.body.description = `ItStatus id: [${id}], name [${get[0].name}] deleted`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "IT status deleted successfully" });
     } catch (error) {
         console.log("Error in deleteItStatus", error);
@@ -948,6 +1115,8 @@ exports.createMasterType = async (req, res, next) => {
         }
         const sql = "INSERT INTO crmdb.master_type (name) VALUES (?);";
         await query(sql, [name]);
+        req.body.description = `MasterType name: [${name}] added`;
+        await this.Activity_log(req, res, next);
         return res.status(201).json({ success: true, message: "Master type created successfully" });
     } catch (error) {
         console.log("Error in createMasterType", error);
@@ -996,6 +1165,9 @@ exports.updateMasterType = async (req, res, next) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "Master type not found" });
         }
+        const get = await query("select * from master_type where id = ?", [id]);
+        req.body.description = `MasterType id: [${id}] updated. from MasterType name [${get[0].name}] to [${name}]`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Master type updated successfully" });
     } catch (error) {
         console.log("Error in updateMasterType", error);
@@ -1012,6 +1184,9 @@ exports.deleteMasterType = async (req, res, next) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: "Master type not found" });
         }
+        const get = await query("select * from master_type where id = ?", [id]);
+        req.body.description = `MasterType id: [${id}], name [${get[0].name}] deleted`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Master type deleted successfully" });
     } catch (error) {
         console.log("Error in deleteMasterType", error);
@@ -1026,6 +1201,8 @@ exports.createCurrency = async (req, res, next) => {
         const { name } = req.body;
         const sql = "INSERT INTO currency_master (name) VALUES (?);";
         await query(sql, [name]);
+        req.body.description = `Currency name: [${name}] added`;
+        await this.Activity_log(req, res, next);
         return res.status(201).json({ success: true, message: "Currency created successfully" });
     } catch (error) {
         console.log("Error in createCurrency", error);
@@ -1071,6 +1248,9 @@ exports.updateCurrency = async (req, res, next) => {
         const { name } = req.body;
         const sql = "UPDATE currency_master SET name = ? WHERE id = ?;";
         await query(sql, [name, id]);
+        const get = await query("select * from currency_master where id = ?", [id]);
+        req.body.description = `Currency id: [${id}] updated. from Currency name [${get[0].name}] to [${name}]`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Currency updated successfully" });
     } catch (error) {
         console.log("Error in updateCurrency", error);
@@ -1085,6 +1265,9 @@ exports.deleteCurrency = async (req, res, next) => {
         const { id } = req.params;
         const sql = "DELETE FROM currency_master WHERE id = ?;";
         await query(sql, [id]);
+        const get = await query("select * from currency_master where id = ?", [id]);
+        req.body.description = `Currency id: [${id}], name [${get[0].name}] deleted`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Currency deleted successfully" });
     } catch (error) {
         console.log("Error in deleteCurrency", error);
@@ -1099,6 +1282,8 @@ exports.createSubMaster = async (req, res, next) => {
         const { name } = req.body;
         const sql = "INSERT INTO sub_master (name) VALUES (?);";
         await query(sql, [name]);
+        req.body.description = `SubMaster name: [${name}] added`;
+        await this.Activity_log(req, res, next);
         return res.status(201).json({ success: true, message: "Sub master created successfully" });
     } catch (error) {
         console.log("Error in createsub_master", error);
@@ -1144,6 +1329,9 @@ exports.updateSubMaster = async (req, res, next) => {
         const { name } = req.body;
         const sql = "UPDATE sub_master SET name = ? WHERE id = ?;";
         await query(sql, [name, id]);
+        const get = await query("select * from sub_master where id = ?", [id]);
+        req.body.description = `SubMaster id: [${id}] updated. from SubMaster name [${get[0].name}] to [${name}]`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "sub_master updated successfully" });
     } catch (error) {
         console.log("Error in updatesub_master", error);
@@ -1158,6 +1346,9 @@ exports.deleteSubMaster = async (req, res, next) => {
         const { id } = req.params;
         const sql = "DELETE FROM sub_master WHERE id = ?;";
         await query(sql, [id]);
+        const get = await query("select * from sub_master where id = ?", [id]);
+        req.body.description = `SubMaster id: [${id}], name [${get[0].name}] deleted`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Currency deleted successfully" });
     } catch (error) {
         console.log("Error in deleteCurrency", error);
@@ -1172,6 +1363,8 @@ exports.createDesignation = async (req, res, next) => {
         const { name } = req.body;
         const sql = "INSERT INTO designation (name) VALUES (?);";
         await query(sql, [name]);
+        req.body.description = `Designation name: [${name}] added`;
+        await this.Activity_log(req, res, next);
         return res.status(201).json({ success: true, message: "Designation created successfully" });
     } catch (error) {
         console.log("Error in designation", error);
@@ -1217,6 +1410,9 @@ exports.updateDesignation = async (req, res, next) => {
         const { name } = req.body;
         const sql = "UPDATE designation SET name = ? WHERE id = ?;";
         await query(sql, [name, id]);
+        const get = await query("select * from designation where id = ?", [id]);
+        req.body.description = `Designation id: [${id}] updated. from Designation name [${get[0].name}] to [${name}]`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Designation updated successfully" });
     } catch (error) {
         console.log("Error in designation", error);
@@ -1231,6 +1427,9 @@ exports.deleteDesignation = async (req, res, next) => {
         const { id } = req.params;
         const sql = "DELETE FROM designation WHERE id = ?;";
         await query(sql, [id]);
+        const get = await query("select * from designation where id = ?", [id]);
+        req.body.description = `Designation id: [${id}], name [${get[0].name}] deleted`;
+        await this.Activity_log(req, res, next);
         return res.status(200).json({ success: true, message: "Designation deleted successfully" });
     } catch (error) {
         console.log("Error in designation", error);

@@ -1,33 +1,73 @@
 import React, { useEffect, useState } from 'react';
 import { getCustomer } from '../../../store/slices/CustomerSlices';
 import { useDispatch, useSelector } from 'react-redux';
-import { changeText } from '../../../utils/Utils';
+import SnackbarWithDecorators, { changeText } from '../../../utils/Utils';
 import { getEmployee } from '../../../store/slices/SetupSlices';
-import { addAppointment, completeAppoinment, fetchAppointments, updateAppoinment } from '../../../store/slices/AppointmentSlices';
+import { addAppointment, completeAppoinment, deleteAppoinment, fetchAppointments, updateAppoinment } from '../../../store/slices/AppointmentSlices';
 
 const AddEvent = ({apmntData, toggleModal, resetState, appointment, setAppointment, emp_client, setEmp_Client}) => {
     
     const customerData = useSelector(state => state.customer.customers);
     const empData = useSelector(state => state.setup.employees);
-
+    const [snackAlert, setSnackAlert] = useState(false); // popup success or error
+    const [snackbarProperty, setSnackbarProperty] = useState({ // popup success or error text
+        text: '',
+        color: ''
+    });
     const dispatch = useDispatch();
+    const validatePhone = (phone) => {
+        // Simple example validation: Checks if the phone number is 10 digits
+        const phoneRegex = /^\d{10}$/;
+        return phoneRegex.test(phone);
+    };
+    const gmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
     const OnSubmit = (e) => {
         e.preventDefault();
         const {employee_id, client_id, subject, client_or_other_name, phone, email, appointment_date, remark} = appointment;
+        if(subject === "" || appointment_date == null){
+            console.log("");
+            setSnackbarProperty({
+                text: "* fields are required.",
+                color: "danger"
+            });
+            setSnackAlert(true);
+            return;
+        }if(phone !== "" && !validatePhone(phone)){
+            setSnackbarProperty({
+                text: "Please enter a valid phone number.",
+                color: "danger"
+            });
+            setSnackAlert(true);
+            return;
+        }else if (email !== "" && !gmailRegex.test(email)) {
+            setSnackbarProperty({
+                text: "Please enter a valid email address.",
+                color: "danger"
+            });
+            setSnackAlert(true);
+            return;
+        }else if(emp_client.client === "false"){
+            setAppointment({...appointment, client_id: null})
+        }
         if(apmntData && apmntData.edit && apmntData.edit.data.length > 0){
             dispatch(updateAppoinment({id: apmntData?.edit?.data[0]?.id, data: appointment}));
             dispatch(fetchAppointments());
+            toggleModal();
+            resetState();
         }else{
             dispatch(addAppointment(appointment));
+            toggleModal();
+            resetState();
         }
-        // onEventAdded({
-        //     employee_id, client_id, subject, client_or_other_name, phone, email, appointment_date, remark
-        // });
-        toggleModal();
-        resetState();
     }
     const handleComplete = (id) => {
         dispatch(completeAppoinment(id));
+        toggleModal();
+        resetState();
+    }
+    const handleDelete = (id) => {
+        dispatch(deleteAppoinment(id));
         toggleModal();
         resetState();
     }
@@ -62,6 +102,11 @@ const AddEvent = ({apmntData, toggleModal, resetState, appointment, setAppointme
       }, [apmntData.edit.data]);
     return (
         <>
+        {
+            snackAlert ?
+            <SnackbarWithDecorators snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
+            : null
+        }
              <button
             onClick={toggleModal}
             className="my-2 block text-white bg-slate-700 hover:bg-slate-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
@@ -125,6 +170,7 @@ const AddEvent = ({apmntData, toggleModal, resetState, appointment, setAppointme
                                         id="designation"
                                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     >
+                                        <option></option>
                                         <option value={true}>Employee</option>
                                         <option value={false}>Self</option>
                                     </select>
@@ -135,6 +181,7 @@ const AddEvent = ({apmntData, toggleModal, resetState, appointment, setAppointme
                                             htmlFor="name"
                                             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                         >
+                                            <span className="text-red-500">* </span>
                                             Employee
                                         </label>
                                         <select
@@ -186,6 +233,7 @@ const AddEvent = ({apmntData, toggleModal, resetState, appointment, setAppointme
                                         id="designation"
                                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     >
+                                        <option></option>
                                         <option value={true}>Client</option>
                                         <option value={false}>Other</option>
                                     </select>
@@ -195,7 +243,7 @@ const AddEvent = ({apmntData, toggleModal, resetState, appointment, setAppointme
                                         <label
                                             htmlFor="name"
                                             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                        >
+                                        ><span className="text-red-500">* </span>
                                             Client
                                         </label>
                                         <select
@@ -237,6 +285,7 @@ const AddEvent = ({apmntData, toggleModal, resetState, appointment, setAppointme
                                         htmlFor="name"
                                         className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                     >
+                                        <span className="text-red-500">* </span>
                                         Client/Other name
                                     </label>
                                     <input
@@ -262,6 +311,7 @@ const AddEvent = ({apmntData, toggleModal, resetState, appointment, setAppointme
                                         htmlFor="name"
                                         className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                     >
+                                        <span className="text-red-500">* </span>
                                         Subject
                                     </label>
                                     <input
@@ -401,14 +451,24 @@ const AddEvent = ({apmntData, toggleModal, resetState, appointment, setAppointme
                                     }
                                 </button>
                                 {
-                                    apmntData?.edit?.data.length>0 &&
-                                    <button
-                                    type="submit"
-                                    className="mx-2 text-white inline-flex items-center bg-slate-700 hover:bg-slate-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                                    onClick={() => handleComplete(apmntData?.edit?.data[0].id)}
-                                    >
-                                        Mark as complete
-                                    </button>
+                                    apmntData?.edit?.data.length>0 && (
+                                        <>
+                                            <button
+                                            type="submit"
+                                            className="mx-2 text-white inline-flex items-center bg-slate-700 hover:bg-slate-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                            onClick={() => handleComplete(apmntData?.edit?.data[0].id)}
+                                            >
+                                                Mark as complete
+                                            </button>
+                                            <button
+                                            type="submit"
+                                            className="mx-2 text-white inline-flex items-center bg-slate-700 hover:bg-slate-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                                            onClick={() => handleDelete(apmntData?.edit?.data[0].id)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </>
+                                    )
                                 }
                             </div>
                         </form>
