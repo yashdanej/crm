@@ -63,6 +63,17 @@ export const updateCustomer = createAsyncThunk('updateCustomer', async (data, { 
     }
 });
 
+// Contacts
+export const getContact = createAsyncThunk('getContact', async (id) => {
+    try {
+        const res = await api(`/contact/${id}`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
 const customerSlice = createSlice({
     name: "customer",
     initialState: {
@@ -80,6 +91,12 @@ const customerSlice = createSlice({
                 success: false,
                 message: "",
             }
+        },
+        id: null,
+        contacts: {
+            isLoading: false,
+            data: [],
+            isError: false,
         }
     },
     extraReducers: (builder) => {
@@ -163,6 +180,20 @@ const customerSlice = createSlice({
             state.customers.edit.isLoading = false;
             state.customers.edit.isError = true;
         });
+
+        // getContacts
+        builder.addCase(getContact.pending, (state, action) => {
+            state.contacts.isLoading = true;
+        });
+        builder.addCase(getContact.fulfilled, (state, action) => {
+            state.contacts.isLoading = false;
+            state.contacts.data = action.payload;
+        });
+        builder.addCase(getContact.rejected, (state, action) => {
+            console.log("error in getContact", action.payload);
+            state.contacts.isLoading = false;
+            state.contacts.isError = true;
+        }); 
     },
     reducers: {
         resetCustomer(state, action){
@@ -170,9 +201,15 @@ const customerSlice = createSlice({
             state.customers.edit.id = null
             state.customers.edit.data = []
             state.customers.edit.message = ""
+        },
+        addContactId(state, action){
+            state.id = action.payload
+        },
+        emptyContactId(state, action){
+            state.id = null
         }
     }
 })
 
-export const { resetEmployee } = customerSlice.actions;
+export const { resetCustomer, addContactId, emptyContactId } = customerSlice.actions;
 export const customerReducer = customerSlice.reducer;

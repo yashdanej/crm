@@ -2,8 +2,8 @@ import Add from '@mui/icons-material/Add'
 import { Button } from '@mui/material'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link, useNavigate } from 'react-router-dom'
-import { deleteCustomer, getCustomer, getCustomerById } from '../../store/slices/CustomerSlices'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { addContactId, deleteCustomer, getCustomer, getCustomerById } from '../../store/slices/CustomerSlices'
 import { api } from '../../utils/Utils'
 import { getGroup } from '../../store/slices/SetupSlices'
 
@@ -76,7 +76,9 @@ const Customer = () => {
                                                 </td>
                                                 <td className="py-2 px-4 border-b border-b-gray-50">
                                                     <p className="text-[13px] font-medium text-gray-400">{item?.company === "" ?"No Company":item?.company}</p>
-                                                    <span onClick={() => {handlEditCustomer(item?.id)}} className='text-xs hover:underline cursor-pointer text-green-950'>Edit </span>
+                                                    <Link onClick={() => dispatch(addContactId(item.id))} to="/admin/customer/view"><span className='text-xs hover:underline cursor-pointer text-green-950'>Contact </span></Link>
+                                                    <span className='text-xs hover:underline cursor-pointer'>/</span>
+                                                    <span onClick={() => {handlEditCustomer(item?.id)}} className='text-xs hover:underline cursor-pointer text-green-950'> Edit </span>
                                                     <span className='text-xs hover:underline cursor-pointer'>/</span>
                                                     <span onClick={() => {handleDeleteCustomer(item?.id)}} className='text-xs hover:underline cursor-pointer text-red-950'> Delete</span>
                                                 </td>

@@ -131,13 +131,9 @@ const CustomFieldAdd = () => {
                         <label for="countries" className="block mb-2 text-sm font-medium text-gray-900"><span className='text-red-500'>* </span>Field Belongs to</label>
                         <select disabled={fieldData?.data !== null ? true : false} value={customField?.fieldto} name='fieldto' onChange={(event) => changeText(event, setCustomField, customField)} id="countries" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             <option>Nothing selected</option>
-                            {
-                                tablesData?.data?.map((item) => {
-                                    return (
-                                        <option selected={customField?.fieldto} className='uppercase' value={item.Tables_in_crmdb}>{item.Tables_in_crmdb}</option>
-                                    )
-                                })
-                            }
+                            <option selected={customField?.fieldto} value="tbl_customer">Lead</option>
+                            <option selected={customField?.fieldto} value="tblleads">Customer</option>
+                            <option selected={customField?.fieldto} value="users">Employees</option>
                         </select>
                     </div>
 

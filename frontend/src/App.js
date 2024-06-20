@@ -35,6 +35,7 @@ import MasterType from './components/dashboard/setup/master_type/MasterType';
 import SubMaster from './components/dashboard/setup/sub_master/SubMaster';
 import ItStatus from './components/dashboard/setup/it_status/ItStatus';
 import Appoinment from './components/dashboard/dash/Appoinment';
+import ViewContact from './components/customer/view/ViewContact';
 
 function App() {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -147,8 +148,9 @@ function App() {
         <Route exact path="/admin/leads" element={<Dashboard><Lead /></Dashboard>} />
         <Route path="activity_log/:userid" element={<Dashboard><ActiveUser /></Dashboard>} />
         <Route path="/admin/customer" element={<Dashboard><Customer /></Dashboard>} />
+        <Route path="/admin/customer/view" element={<Dashboard><ViewContact /></Dashboard>} />
         <Route path="/admin/customer/:path" element={<Dashboard><CustomerAdd /></Dashboard>} />
-        <Route 
+        <Route
           path="/setup/*"
           element={
             <ProtectedRoute allowedRoles={[2, 3]}>

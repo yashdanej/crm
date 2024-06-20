@@ -6,11 +6,11 @@ import PlaylistAddCheckCircleRoundedIcon from '@mui/icons-material/PlaylistAddCh
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 
-export const BACKEND_URL = "http://crm.bhupeshmittal.com/api/v1";
-// export const BACKEND_URL = "http://localhost:3001/api/v1";
-// export const BACKEND = "http://localhost:3001";
+// export const BACKEND_URL = "http://crm.bhupeshmittal.com/api/v1";
+export const BACKEND_URL = "http://localhost:3001/api/v1";
+export const BACKEND = "http://localhost:3001";
 // export const BACKEND = "http://65.0.30.99:3001";
-export const BACKEND = "http://crm.bhupeshmittal.com";
+// export const BACKEND = "http://crm.bhupeshmittal.com";
 
 export const api = async (pathname, method, body, formData=false, includeCredentials = false) => {
     const axiosConfig = {
