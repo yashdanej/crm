@@ -6,10 +6,11 @@ import PlaylistAddCheckCircleRoundedIcon from '@mui/icons-material/PlaylistAddCh
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 
-// export const BACKEND_URL = "http://65.0.30.99:3001/api/v1";
-export const BACKEND_URL = "http://localhost:3001/api/v1";
+export const BACKEND_URL = "http://crm.bhupeshmittal.com/api/v1";
+// export const BACKEND_URL = "http://localhost:3001/api/v1";
+// export const BACKEND = "http://localhost:3001";
 // export const BACKEND = "http://65.0.30.99:3001";
-export const BACKEND = "http://localhost:3001";
+export const BACKEND = "http://crm.bhupeshmittal.com";
 
 export const api = async (pathname, method, body, formData=false, includeCredentials = false) => {
     const axiosConfig = {
@@ -77,11 +78,11 @@ export default function SnackbarWithDecorators({snackAlert, setSnackAlert, text,
 export const selectedItem = (leadData, item, from) => {
   let selected;
   if(from == "Status"){
-    selected = item.find(option => option.id === leadData?.status);
+    selected = item?.find(option => option.id === leadData?.status);
   }else if(from === "Source"){
-    selected = item.find(option => option.id === leadData?.source);
+    selected = item?.find(option => option.id === leadData?.source);
   }else{
-    selected = item.find(option => option.id === leadData?.assigned);
+    selected = item?.find(option => option.id === leadData?.assigned);
   }
   if(from === "Assigned"){
     return selected ? selected.full_name : null;

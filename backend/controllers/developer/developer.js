@@ -46,15 +46,17 @@ exports.getCompany = async (req, res, next) => {
      }
 }
 
-exports.SuperAdmin = async (req, res) => {
+exports.SuperAdmin = async (req, res, next) => {
+    console.log("in-------");
     const getUser = await verifyToken(req, res, next, verifyUser=true);
+    console.log("in2-------");
     const { email, user_password, full_name, phonenumber, company_id } = req.body;
     const salt = bcrypt.genSaltSync(10);
     const hash_password = bcrypt.hashSync(user_password, salt);
     try {
         // Check if email already exists
         console.log(email);
-        db.query("SELECT * FROM users WHERE email = ?", [email], (err, existingEmail) => {
+        db.query("SELECT * FROM users WHERE email = ? and is_deleted = ? and role = ?", [email, false, 3], (err, existingEmail) => {
             if(err){
                 console.log("error in select email", err);
                 return res.status(200).json({ success: false, message: "Error selecting email", error: err });

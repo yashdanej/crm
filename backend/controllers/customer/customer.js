@@ -9,13 +9,14 @@ const query = util.promisify(db.query).bind(db);
 exports.createCustomer = async (req, res, next) => {
     try {
         const getUser = await verifyToken(req, res, next, { verifyUser: true });
+        const getSelectedUser = await query("select * from users where id = ?", [getUser]);
         const { company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee } = req.body;
         const sql = `
             INSERT INTO tbl_customer (
-                company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, addedfrom, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, addedfrom, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee, company_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         `;
-        const getCustomer = await query(sql, [company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, getUser, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee]);
+        const getCustomer = await query(sql, [company, primary_contact, email, vat, phone, website, in_groups, currency, default_language, address, city, state, zip, country, getUser, it_status, master_type, pan_no, gstin, aadhar_no, incorporation_date_from, incorporation_date_to, licence_no, licence_authority, trn_no, description, support_employee, getSelectedUser[0].company_id]);
         const getInsertedCustomer = await query("select * from tbl_customer where id = ?", [getCustomer.insertId])
 
         const Column = await getColumn(req, res, next, "tbl_customer");
@@ -56,8 +57,10 @@ exports.createCustomer = async (req, res, next) => {
 
 exports.getCustomers = async (req, res, next) => {
     try {
-        const sql = "SELECT * FROM tbl_customer;";
-        const customer = await query(sql);
+        const getUser = await verifyToken(req, res, next, { verifyUser: true });
+        const getSelectedUser = await query("select * from users where id = ?", [getUser]);
+        const sql = "SELECT * FROM tbl_customer where company_id = ?";
+        const customer = await query(sql, [getSelectedUser[0].company_id]);
         if (customer.length === 0) {
             return res.status(404).json({ success: false, message: "Customer not found" });
         }
