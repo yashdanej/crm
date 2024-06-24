@@ -42,8 +42,11 @@ exports.createContact = async (req, res, next) => {
             result = {secure_url: "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"};
         }
         const datecreated = new Date();
+        console.log("is_primary", is_primary);
         if(is_primary == true){
-            await query("update tblcontacts set is_primary = ? where is_primary = ?", [false, true]);
+            const getPrimaryContact = await query("select * from tblcontacts where userid = ?", [userid]);
+            console.log("getPrimaryContact", getPrimaryContact);
+            await query("update tblcontacts set is_primary = ? where is_primary = ? and userid = ?", [false, true, getPrimary[0].id]);
         }
         const sql = `
         INSERT INTO tblcontacts (
@@ -135,6 +138,11 @@ exports.updateContact = async (req, res, next) => {
             'invoice_emails = ?', 'estimate_emails = ?', 'credit_note_emails = ?',
             'contract_emails = ?', 'task_emails = ?', 'project_emails = ?', 'ticket_emails = ?'
         ];
+
+        console.log("is_primary", is_primary);
+        if(is_primary == true){
+            await query("update tblcontacts set is_primary = ? where is_primary = ? and userid = ?", [false, true, userid]);
+        }
 
         const valuesToUpdate = [
             userid, is_primary, firstname, lastname, email, phonenumber, title, password,

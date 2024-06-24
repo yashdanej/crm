@@ -1436,3 +1436,92 @@ exports.deleteDesignation = async (req, res, next) => {
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
+// Status
+exports.createStatus = async (req, res, next) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { name } = req.body;
+        const getUser = await verifyToken(req, res, next, { verifyUser: true });
+        
+        if (!name) {
+            return res.status(400).json({ success: false, message: "Name is required" });
+        }
+
+        const sql = `INSERT INTO crmdb.tblstatus (name, addedfrom) VALUES (?, ?)`;
+        const result = await query(sql, [name, getUser]);
+
+        const newStatus = await query("SELECT * FROM crmdb.tblstatus WHERE id = ?", [result.insertId]);
+        return res.status(201).json({ success: true, message: "Status created successfully", data: newStatus });
+    } catch (error) {
+        console.log("Error in createStatus", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getAllStatuses = async (req, res) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const statuses = await query("SELECT * FROM crmdb.tblstatus");
+        return res.status(200).json({ success: true, data: statuses });
+    } catch (error) {
+        console.log("Error in getAllStatuses", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getStatusById = async (req, res) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const status = await query("SELECT * FROM crmdb.tblstatus WHERE id = ?", [id]);
+
+        if (status.length === 0) {
+            return res.status(404).json({ success: false, message: "Status not found" });
+        }
+
+        return res.status(200).json({ success: true, data: status });
+    } catch (error) {
+        console.log("Error in getStatusById", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.updateStatus = async (req, res) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const { name } = req.body;
+
+        if (!name) {
+            return res.status(400).json({ success: false, message: "Name is required" });
+        }
+
+        const sql = `UPDATE crmdb.tblstatus SET name = ? WHERE id = ?`;
+        await query(sql, [name, id]);
+
+        const updatedStatus = await query("SELECT * FROM crmdb.tblstatus WHERE id = ?", [id]);
+        return res.status(200).json({ success: true, message: "Status updated successfully", data: updatedStatus });
+    } catch (error) {
+        console.log("Error in updateStatus", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.deleteStatus = async (req, res) => {
+    try {
+        const query = util.promisify(db.query).bind(db);
+        const { id } = req.params;
+        const status = await query("SELECT * FROM crmdb.tblstatus WHERE id = ?", [id]);
+
+        if (status.length === 0) {
+            return res.status(404).json({ success: false, message: "Status not found" });
+        }
+
+        await query("DELETE FROM crmdb.tblstatus WHERE id = ?", [id]);
+        return res.status(200).json({ success: true, message: "Status deleted successfully" });
+    } catch (error) {
+        console.log("Error in deleteStatus", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};

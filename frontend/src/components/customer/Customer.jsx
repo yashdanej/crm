@@ -75,7 +75,7 @@ const Customer = () => {
                                                     <p className="text-[13px] font-medium text-gray-400">{item.id}</p>
                                                 </td>
                                                 <td className="py-2 px-4 border-b border-b-gray-50">
-                                                    <p className="text-[13px] font-medium text-gray-400">{item?.company === "" ?"No Company":item?.company}</p>
+                                                    <p className="text-[13px] font-medium text-gray-400">{item?.company === "" ?"[Company name not found]":item?.company}</p>
                                                     <Link onClick={() => dispatch(addContactId(item.id))} to="/admin/customer/view"><span className='text-xs hover:underline cursor-pointer text-green-950'>Contact </span></Link>
                                                     <span className='text-xs hover:underline cursor-pointer'>/</span>
                                                     <span onClick={() => {handlEditCustomer(item?.id)}} className='text-xs hover:underline cursor-pointer text-green-950'> Edit </span>

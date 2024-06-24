@@ -65,4 +65,11 @@ router
      .patch("/designation/:id", verifyToken, mailController.updateDesignation)
      .delete("/designation/:id", verifyToken, mailController.deleteDesignation)
 
+     // status
+     .post("/status", verifyToken, mailController.createStatus)
+     .get("/status", verifyToken, mailController.getAllStatuses)
+     .get("/status/:id", verifyToken, mailController.getStatusById)
+     .patch("/status/:id", verifyToken, mailController.updateStatus)
+     .delete("/status/:id", verifyToken, mailController.deleteStatus)
+
 module.exports = router;

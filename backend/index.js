@@ -31,6 +31,7 @@ const employeesRouter = require("./routes/employees/employeeRouter");
 const customerRouter = require("./routes/customer/customer");
 const appoinmentRouter = require("./routes/appoinment/appoinment");
 const contactRouter = require("./routes/contact/contactRouter");
+const taskRouter = require("./routes/task/taskRoutes");
 const db = require("./db");
 const { MailSend, SendWhatsappMessage } = require("./controllers/utils/util");
 
@@ -47,6 +48,7 @@ app.use('/api/v1/employee', employeesRouter);
 app.use('/api/v1/customer', customerRouter);
 app.use('/api/v1/appoinment', appoinmentRouter);
 app.use('/api/v1/contact', contactRouter);
+app.use('/api/v1/tasks', taskRouter);
 app.use('/api/v1/util', utilRouter);
 
 app.use('/api/v1/zipcode', createProxyMiddleware({
