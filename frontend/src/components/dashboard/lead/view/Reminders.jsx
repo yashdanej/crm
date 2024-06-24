@@ -3,12 +3,12 @@ import SnackbarWithDecorators, { changeText } from '../../../../utils/Utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { addReminder, fetchReminder } from '../../../../store/slices/ReminderSlice';
 
-const Reminders = () => {
+const Reminders = ({from}) => {
   const [reminder, setReminder] = useState({
     description: "",
     date: null,
     staff: 0,
-    rel_type: "lead",
+    rel_type: from === "customer"?"customer":"lead",
     notify_by_email: 1
   });
   const [snackAlert, setSnackAlert] = useState(false); // popup success or error
@@ -16,6 +16,7 @@ const Reminders = () => {
       text: '',
       color: ''
   });
+  const customerId = useSelector(state => state.customer.id);
   const leadData = useSelector(state => state.leads.leadData);
   const userData = useSelector(state => state.assigned.assignedData);
   const reminderData = useSelector(state => state.reminder.lead);
@@ -29,11 +30,11 @@ const Reminders = () => {
       }));
       setSnackAlert(true);
     }else{
-      dispatch(addReminder({id: leadData[0]?.id, data: reminder}));
+      dispatch(addReminder({id: from==="customer"?customerId:leadData[0]?.id, data: reminder}));
     }
   }
   useEffect(() => {
-    dispatch(fetchReminder(leadData[0]?.id));
+    dispatch(fetchReminder({id: from==="customer"?customerId:leadData[0]?.id, rel_type: from === "customer"?"customer":"lead"}));
   }, []);
   return (
     <div className='my-3 p-4 rounded-sm w-full min:h-full max:h-[50vh] overflow-auto bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]'>

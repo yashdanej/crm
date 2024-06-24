@@ -5,6 +5,6 @@ const { verifyToken } = require('../../middleware/verifyToken');
 
 router
     .post("/addreminder/:rel_id", verifyToken, reminderController.addReminder) // done
-    .get("/:rel_id", verifyToken, reminderController.getReminder) // done
+    .get("/:rel_id/:rel_type", verifyToken, reminderController.getReminder) // done
 
 module.exports = router;

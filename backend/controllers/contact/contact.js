@@ -18,11 +18,11 @@ exports.createContact = async (req, res, next) => {
         } = req.body;
 
         // Check if email or phone number already exists
-        const checkSql = `SELECT id FROM tblcontacts WHERE email = ? OR phonenumber = ?`;
-        const existingContacts = await query(checkSql, [email, phonenumber]);
+        const checkSql = `SELECT id FROM tblcontacts WHERE (email = ? OR phonenumber = ?) and  userid = ?`;
+        const existingContacts = await query(checkSql, [email, phonenumber, userid]);
 
         if (existingContacts.length > 0) {
-            return res.status(400).json({ success: false, message: "Email or phone number already exists" });
+            return res.status(200).json({ success: false, message: "Email or phone number already exists" });
         }
         let ipAddress;
 
@@ -32,11 +32,15 @@ exports.createContact = async (req, res, next) => {
         } else {
             ipAddress = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || (req.connection.socket ? req.connection.socket.remoteAddress : null);
         }
-        const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: "crm",
-            resource_type: "auto"
-        });
-
+        let result;
+        if(req?.file?.path){
+            result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "crm",
+                resource_type: "auto"
+            });
+        }else{
+            result = {secure_url: "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"};
+        }
         const datecreated = new Date();
         if(is_primary == true){
             await query("update tblcontacts set is_primary = ? where is_primary = ?", [false, true]);
@@ -95,6 +99,7 @@ exports.createContact = async (req, res, next) => {
 exports.updateContact = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const getContact = await query("select * from tblcontacts where id = ?", [id]);
         const {
             userid, is_primary, firstname, lastname, email, phonenumber, title,
             password, new_pass_key, new_pass_key_requested, email_verified_at, email_verification_key,
@@ -104,8 +109,8 @@ exports.updateContact = async (req, res, next) => {
         } = req.body;
 
         // Check if email or phone number already exists and belongs to a different contact
-        const checkSql = `SELECT id FROM tblcontacts WHERE (email = ? OR phonenumber = ?) AND id != ?`;
-        const existingContacts = await query(checkSql, [email, phonenumber, id]);
+        const checkSql = `SELECT id FROM tblcontacts WHERE (email = ? OR phonenumber = ?) AND id != ? and userid = ?`;
+        const existingContacts = await query(checkSql, [email, phonenumber, id, getContact[0].userid]);
 
         if (existingContacts.length > 0) {
             return res.status(400).json({ success: false, message: "Email or phone number already exists" });
@@ -188,12 +193,13 @@ exports.getContactById = async (req, res, next) => {
             SELECT * FROM tblcontacts WHERE id = ?;
         `;
         const contact = await query(sql, [id]);
-
+        console.log("contact", contact);
         if (contact.length === 0) {
             return res.status(404).json({ success: false, message: "Contact not found" });
         }
+        console.log("contact", contact);
 
-        return res.status(200).json({ success: true, message: "Contact fetched successfully", data: contact[0] });
+        return res.status(200).json({ success: true, message: "Contact fetched successfully", data: contact });
     } catch (error) {
         console.log("Error in getContactById", error);
         return res.status(500).json({ success: false, message: "Internal server error" });

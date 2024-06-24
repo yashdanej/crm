@@ -47,7 +47,8 @@ exports.Attachment = async (req, res, next) => {
 exports.GetAttachment = async (req, res) => {
     try {
         const rel_id = req.params.rel_id;
-        const getAttachment = await query("select * from tblfiles where rel_id = ?", [rel_id]);
+        const rel_type = req.params.rel_type;
+        const getAttachment = await query("select * from tblfiles where rel_id = ? and rel_type = ?", [rel_id, rel_type]);
         if(getAttachment.length>0){
             return res.status(200).json({success: true, message: "Attachment fetched successfully", data: getAttachment});
         }else{

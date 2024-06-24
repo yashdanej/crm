@@ -6,6 +6,6 @@ const { upload, xlsxUpload } = require('../../middleware/upload');
 
 router
     .post("/add_attachment/:rel_id", verifyToken, upload.single("file"), atachmentController.Attachment)
-    .get("/:rel_id", verifyToken, atachmentController.GetAttachment)
+    .get("/:rel_id/:rel_type", verifyToken, atachmentController.GetAttachment)
 
 module.exports = router;

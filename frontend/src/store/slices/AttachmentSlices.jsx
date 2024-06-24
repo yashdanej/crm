@@ -12,9 +12,10 @@ export const addAttachment = createAsyncThunk("addAttachment", async (data) => {
     }
 });
 
-export const fetchAttachments = createAsyncThunk("fetchAttachments", async (id) => {
+export const fetchAttachments = createAsyncThunk("fetchAttachments", async (data) => {
     try {
-        const res = await api(`/attachment/${id}`, "get", false, false, true);
+        console.log("data in fetchAttachments", data);
+        const res = await api(`/attachment/${data.id}/${data.rel_type}`, "get", false, false, true);
         return res.data.data;
     } catch (err) {
         console.log("err", err);

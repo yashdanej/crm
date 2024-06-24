@@ -58,7 +58,8 @@ exports.addReminder = async (req, res, next) => {
 exports.getReminder = async (req, res, next) => {
     try {
         const rel_id = req.params.rel_id;
-        const getReminder = await query("select * from tblreminders where rel_id = ?", [rel_id]);
+        const rel_type = req.params.rel_type;
+        const getReminder = await query("select * from tblreminders where rel_id = ? and rel_type = ?", [rel_id, rel_type]);
         console.log("getReminder", getReminder);
         if(getReminder.length > 0){
             return res.status(200).json({success: true, message: "Reminder fetched successfully!", data: getReminder});

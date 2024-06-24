@@ -11,9 +11,9 @@ export const addReminder = createAsyncThunk("addReminder", async (data) => {
     }
 });
 
-export const fetchReminder = createAsyncThunk("fetchReminder", async (id) => {
+export const fetchReminder = createAsyncThunk("fetchReminder", async (data) => {
     try {
-        const res = await api(`/reminder/${id}`, "get", false, false, true);
+        const res = await api(`/reminder/${data.id}/${data.rel_type}`, "get", false, false, true);
         return res.data.data;
     } catch (err) {
         console.log("err", err);

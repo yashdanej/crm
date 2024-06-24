@@ -36,8 +36,10 @@ import SubMaster from './components/dashboard/setup/sub_master/SubMaster';
 import ItStatus from './components/dashboard/setup/it_status/ItStatus';
 import Appoinment from './components/dashboard/dash/Appoinment';
 import ViewContact from './components/customer/view/ViewContact';
+import useAxiosInterceptor from './pages/dashboard/useAxiosInterceptor';
 
 function App() {
+  useAxiosInterceptor();
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
   const navigate = useNavigate();
   const dispatch = useDispatch();

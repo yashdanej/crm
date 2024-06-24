@@ -1,17 +1,70 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { getContact } from '../../../../store/slices/CustomerSlices';
+import { deleteContact, getContact, getContactById } from '../../../../store/slices/CustomerSlices';
+import { unwrapResult } from '@reduxjs/toolkit';
+import SnackbarWithDecorators from '../../../../utils/Utils';
+import { useNavigate } from 'react-router-dom';
 
-const ContactTable = () => {
+const ContactTable = ({setActive}) => {
     const customerId = useSelector(state => state.customer.id);
     const contactData = useSelector(state => state.customer.contacts);
     console.log("contactData", contactData);
+    const [snackAlert, setSnackAlert] = useState(false); // popup success or error
+    const [snackbarProperty, setSnackbarProperty] = useState({ // popup success or error text
+        text: '',
+        color: ''
+    });
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(getContact(customerId));
-      }, [dispatch]);
+    }, [dispatch]);
+    const onDelete = async (id) => {
+        try {
+            const resultAction = await dispatch(deleteContact(id));
+            const result = unwrapResult(resultAction);
+            console.log("result", result);
+            // Handle successful case
+            setSnackbarProperty({
+                text: "Contact deleted successfully.",
+                color: "success"
+            });
+            setSnackAlert(true);
+        } catch (err) {
+            console.log("err", err);
+            // Handle error case
+            setSnackbarProperty({
+                text: err || "Failed to delete contact.",
+                color: "danger"
+            });
+            setSnackAlert(true);
+        }
+    }
+    const onEdit = async (id) => {
+        try {
+            const resultAction = await dispatch(getContactById(id));
+            const result = unwrapResult(resultAction);
+            console.log("result", result);
+            if(result.length > 0){
+                setActive("ContactForm");
+            }
+        } catch (err) {
+            console.log("err", err);
+            // Handle error case
+            setSnackbarProperty({
+                text: err || "Failed to edit contact.",
+                color: "danger"
+            });
+            setSnackAlert(true);
+        }
+    }
   return (
     <div className="relative overflow-x-auto sm:rounded-lg p-5">
+        {
+            snackAlert ?
+            <SnackbarWithDecorators snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
+            : null
+        }
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 pb-4 bg-white dark:bg-gray-900">
         </div>
         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -64,7 +117,9 @@ const ContactTable = () => {
                                         {item.active}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <a href="#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit/Delete</a>
+                                        <span onClick={() => onEdit(item.id)} className="cursor-pointer font-medium text-blue-600 hover:underline">Edit </span>
+                                        <span>/ </span>
+                                        <span onClick={() => onDelete(item.id)} className="cursor-pointer font-medium text-red-600 hover:underline">Delete</span>
                                     </td>
                                 </tr>
                             )

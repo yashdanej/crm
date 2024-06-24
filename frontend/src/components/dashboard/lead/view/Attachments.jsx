@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addAttachment, fetchAttachments } from '../../../../store/slices/AttachmentSlices';
 import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown';
 
-const Attachments = () => {
+const Attachments = ({from}) => {
   const [snackAlert, setSnackAlert] = useState(false); // popup success or error
   const [snackbarProperty, setSnackbarProperty] = useState({ // popup success or error text
       text: '',
@@ -12,18 +12,20 @@ const Attachments = () => {
   });
   const [file, setFile] = useState({
     file: null,
-    rel_type: "lead"
+    rel_type: from==="customer"?"customer":"lead"
   });
   const attachmentData = useSelector(state => state.attachment.lead);
   const leadData = useSelector(state => state.leads.leadData);
+  const customerId = useSelector(state => state.customer.id);
+
   const dispatch = useDispatch();
   const onUploadClick = () => {
     console.log("filename", file.file);
     if(file.file){
-      dispatch(addAttachment({id: leadData[0]?.id, data: file}));
+      dispatch(addAttachment({id: from==="customer"?customerId:leadData[0]?.id, data: file}));
       setFile({
         file: null,
-        rel_type: "lead"
+        rel_type: from==="customer"?"customer":"lead"
       })
     }else{
       setSnackbarProperty(prevState => ({
@@ -35,7 +37,7 @@ const Attachments = () => {
     }
   }
   useEffect(() => {
-    dispatch(fetchAttachments(leadData[0]?.id));
+    dispatch(fetchAttachments({id:from==="customer"?customerId:leadData[0]?.id, rel_type: from==="customer"?"customer":"lead"}));
   }, [])
   return (
     <div className='my-3 p-4 rounded-sm w-full min:h-full max:h-[50vh] overflow-auto bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]'>

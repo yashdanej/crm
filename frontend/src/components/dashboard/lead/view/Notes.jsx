@@ -3,13 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import SnackbarWithDecorators, { changeText } from '../../../../utils/Utils';
 import { addNote, fetchNotes } from '../../../../store/slices/NoteSlices';
 
-const Notes = () => {
+const Notes = ({from}) => {
   const [selected, setSelected] = useState({
     contacted: false,
     not_contacted: true,
   });
   const [note, setNote] = useState({
-    rel_type: "lead",
+    rel_type: from==="customer"?"customer":"lead",
     description: "",
     date_contacted: null
   });
@@ -20,10 +20,12 @@ const Notes = () => {
   });
   const notesData = useSelector(state => state.note.lead);
   const leadData = useSelector(state => state.leads.leadData);
+  const customerId = useSelector(state => state.customer.id);
+
   const dispatch = useDispatch();
   const resetNote = () => {
     setNote({
-      rel_type: "lead",
+      rel_type: from==="customer"?"customer":"lead",
       description: "",
       date_contacted: null
     })
@@ -45,7 +47,7 @@ const Notes = () => {
       }));
       setSnackAlert(true);
     }else{
-      dispatch(addNote({id: leadData[0]?.id, data: note}));
+      dispatch(addNote({id: from==="customer"?customerId:leadData[0]?.id, data: note}));
       resetNote();
       setSelected({
         contacted: false,
@@ -55,7 +57,7 @@ const Notes = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchNotes(leadData[0]?.id));
+    dispatch(fetchNotes(from==="customer"?customerId:leadData[0]?.id));
   }, []);
 
   const handleRadioChange = () => {

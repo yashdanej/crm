@@ -7,7 +7,7 @@ const { upload } = require('../../middleware/upload');
 router
     .post("/", verifyToken, upload.single("profile_image"), contactController.createContact)
     .get("/:customer_id", verifyToken, contactController.getContacts)
-    .get("/:id", verifyToken, contactController.getContactById)
+    .get("/contact_by_id/:id", verifyToken, contactController.getContactById)
     .patch("/:id", verifyToken, upload.single("profile_image"), contactController.updateContact)
     .delete("/:id", verifyToken, contactController.deleteContact)
 
