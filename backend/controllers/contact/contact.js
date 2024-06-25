@@ -46,7 +46,7 @@ exports.createContact = async (req, res, next) => {
         if(is_primary == true){
             const getPrimaryContact = await query("select * from tblcontacts where userid = ?", [userid]);
             console.log("getPrimaryContact", getPrimaryContact);
-            await query("update tblcontacts set is_primary = ? where is_primary = ? and userid = ?", [false, true, getPrimary[0].id]);
+            await query("update tblcontacts set is_primary = ? where is_primary = ? and userid = ?", [false, true, getPrimaryContact[0].id]);
         }
         const sql = `
         INSERT INTO tblcontacts (

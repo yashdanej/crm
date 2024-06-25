@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import SnackbarWithDecorators, { changeText } from '../../../../utils/Utils';
+import SnackbarWithDecorators, { LoadingAnimation, changeText } from '../../../../utils/Utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { addContact, emptyContactEdit, updateContact } from '../../../../store/slices/CustomerSlices';
 import { unwrapResult } from '@reduxjs/toolkit';
@@ -190,6 +190,9 @@ const ContactForm = ({setActive}) => {
     }, [contact]);
   return (
     <>
+    {
+        contactData.contacts.isLoading || contactData.contacts.edit.isLoading && <LoadingAnimation/>
+    }
         {
             snackAlert ?
             <SnackbarWithDecorators snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
