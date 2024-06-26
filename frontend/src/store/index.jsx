@@ -7,6 +7,7 @@ import { noteReducer } from "./slices/NoteSlices";
 import { notificationReducer } from "./slices/Notification";
 import { reminderReducer } from "./slices/ReminderSlice";
 import { setupReducer } from "./slices/SetupSlices";
+import { taskReducer } from "./slices/TaskSlices";
 import userSlice from "./slices/UserSlice";
 import { configureStore } from "@reduxjs/toolkit";
 
@@ -25,7 +26,8 @@ const store = configureStore({
         attachment: attachmentReducer,
         customer: customerReducer,
         appointment: appointmentReducer,
-        dev: DevSlices
+        dev: DevSlices,
+        task: taskReducer
     }
 });
 

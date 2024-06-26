@@ -37,6 +37,8 @@ import ItStatus from './components/dashboard/setup/it_status/ItStatus';
 import Appoinment from './components/dashboard/dash/Appoinment';
 import ViewContact from './components/customer/view/ViewContact';
 import useAxiosInterceptor from './pages/dashboard/useAxiosInterceptor';
+import Task from './components/task/Task';
+import TaskForm from './components/task/TaskForm';
 
 function App() {
   useAxiosInterceptor();
@@ -152,6 +154,8 @@ function App() {
         <Route path="/admin/customer" element={<Dashboard><Customer /></Dashboard>} />
         <Route path="/admin/customer/view" element={<Dashboard><ViewContact /></Dashboard>} />
         <Route path="/admin/customer/:path" element={<Dashboard><CustomerAdd /></Dashboard>} />
+        <Route path="/admin/task" element={<Dashboard><Task /></Dashboard>} />
+        <Route path="/admin/task/:path" element={<Dashboard><TaskForm /></Dashboard>} />
         <Route
           path="/setup/*"
           element={

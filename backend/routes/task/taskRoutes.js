@@ -15,7 +15,7 @@ router
     // tbltask_assigned table
     .post('/task-assigned', verifyToken, taskController.createTaskAssigned)
     .get("/task-assigned/:taskid", verifyToken, taskController.getAllTaskAssigned)
-    .get('/task-assigned/:id', verifyToken, taskController.getTaskAssignedById)
+    .get('/task-assigned-by-id/:id', verifyToken, taskController.getTaskAssignedById)
     .patch('/task-assigned/:taskid', verifyToken, taskController.updateTaskAssigned)
     .delete('/task-assigned/:id', verifyToken, taskController.deleteTaskAssigned)
 

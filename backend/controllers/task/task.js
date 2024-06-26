@@ -30,7 +30,7 @@ exports.createTask = async (req, res, next) => {
         `;
 
         const values = [
-            name, description, priority, new Date(dateadded), new Date(startdate), duedate, datefinished, getUser,
+            name, description, priority, new Date(), new Date(startdate), duedate, datefinished, getUser,
             is_added_from_contact, status, recurring_type, repeat_every, recurring, is_recurring_from,
             cycles, total_cycles, custom_recurring, last_recurring_date, rel_id, rel_type, is_public,
             billable, billed, invoice_id, hourly_rate, milestone, kanban_order, milestone_order,
@@ -41,7 +41,7 @@ exports.createTask = async (req, res, next) => {
         const result = await query(sql, values);
 
         const newTask = await query("SELECT * FROM tbltasks WHERE id = ?", [result.insertId]);
-        return res.status(201).json({ success: true, message: "Task created successfully", data: newTask[0] });
+        return res.status(201).json({ success: true, message: "Task created successfully", data: newTask });
     } catch (error) {
         console.error("Error in createTask:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -188,7 +188,7 @@ exports.getTaskAssignedById = async (req, res) => {
         const sql = 'SELECT * FROM tbltask_assigned WHERE id = ?';
         const result = await query(sql, [id]);
         if (result.length > 0) {
-            res.status(200).json({ success: true, data: result[0] });
+            res.status(200).json({ success: true, data: result });
         } else {
             res.status(404).json({ success: false, message: 'Task assignment not found' });
         }

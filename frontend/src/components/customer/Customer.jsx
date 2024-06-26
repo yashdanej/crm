@@ -50,7 +50,7 @@ const Customer = () => {
                         </Button>
                     </Link>
                 </div>
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-white border border-1 rounded-lg shadow-md p-6">
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[540px]" data-tab-for="order" data-page="active">
                             <thead>
