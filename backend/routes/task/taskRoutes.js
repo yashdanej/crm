@@ -6,22 +6,23 @@ const { upload, xlsxUpload } = require('../../middleware/upload');
 
 router
     // tbltasks table
-    .post("/", verifyToken, taskController.createTask) // done
-    .get("/", verifyToken, taskController.getAllTasks) // done
-    .get("/:id", verifyToken, taskController.getTaskById) // done
-    .patch("/:id", verifyToken, taskController.updateTask) // done
-    .delete("/:id", verifyToken, taskController.deleteTask) // done
+    .post("/", verifyToken, taskController.createTask)
+    .get("/", verifyToken, taskController.getAllTasks)
+    .get("/:id", verifyToken, taskController.getTaskById)
+    .patch("/:id", verifyToken, taskController.updateTask)
+    .patch("/:id/:status", verifyToken, taskController.updateStatusTask)
+    .delete("/:id", verifyToken, taskController.deleteTask)
 
     // tbltask_assigned table
     .post('/task-assigned', verifyToken, taskController.createTaskAssigned)
     .get("/task-assigned/:taskid", verifyToken, taskController.getAllTaskAssigned)
     .get('/task-assigned-by-id/:id', verifyToken, taskController.getTaskAssignedById)
-    .patch('/task-assigned/:taskid', verifyToken, taskController.updateTaskAssigned)
+    .patch('/task-assigned/update/:taskid', verifyToken, taskController.updateTaskAssigned)
     .delete('/task-assigned/:id', verifyToken, taskController.deleteTaskAssigned)
 
     // tbltask_followers table
     .post('/task-follower', verifyToken, taskController.createTaskFollowers)
-    .patch('/task-follower/:taskid', verifyToken, taskController.updateTaskFollowers)
+    .patch('/task-follower/update/:taskid', verifyToken, taskController.updateTaskFollowers)
     .get("/task-follower/:taskid", verifyToken, taskController.getTaskFollowers)
 
     // tbltask_comments table

@@ -1,19 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteTask, getTask, getTaskAssign, getTaskById } from '../../store/slices/TaskSlices';
+import { deleteTask, getTask, getTaskAssign, getTaskById, getTaskStatus, updateTaskStatus } from '../../store/slices/TaskSlices';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { useNavigate } from 'react-router-dom';
+import { changeText } from '../../utils/Utils';
 
 const TaskTable = () => {
     const [assignedUsers, setAssignedUsers] = useState({});
     const taskData = useSelector(state => state.task.task);
     const usersData = useSelector(state => state.assigned.assignedData);
+    const statusData = useSelector(state => state.task.status);
+
     const dispatch = useDispatch();
 
     const handleGetTask = () => {
         dispatch(getTask());
     };
+    const handleGetStatus = () => {
+        dispatch(getTaskStatus());
+    }
+
+    const onStatusChange = (taskid, status) => {
+        dispatch(updateTaskStatus({id: taskid, status}));
+    }
 
     const handleGetTaskAssign = async (id) => {
         const response = await dispatch(getTaskAssign(id));
@@ -25,6 +35,7 @@ const TaskTable = () => {
 
     useEffect(() => {
         handleGetTask();
+        handleGetStatus();
     }, []);
 
     useEffect(() => {
@@ -61,7 +72,7 @@ const TaskTable = () => {
             </thead>
             <tbody>
                 {taskData &&
-                    taskData.data.map((item) => (
+                    taskData?.data?.map((item) => (
                         <tr key={item.id}>
                             <td className="py-2 px-4 border-b border-b-gray-50">
                                 <p className="text-[13px] font-medium text-gray-400">{item?.id}</p>
@@ -73,7 +84,15 @@ const TaskTable = () => {
                                 <span onClick={() => onDelete(item.id)} className="text-xs hover:underline cursor-pointer text-red-950"> Delete</span>
                             </td>
                             <td className="py-2 px-4 border-b border-b-gray-50">
-                                <span className="text-[13px] font-medium text-gray-400">{item?.status}</span>
+                                <select onChange={(e) => onStatusChange(item.id, e.target.value)} name='priority' id="priority" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                    {
+                                        statusData?.data?.map((status) => {
+                                            return (
+                                                <option selected={status?.id === item?.status} value={status?.id}>{status.name}</option>
+                                            )
+                                        })
+                                    }
+                                </select>
                             </td>
                             <td className="py-2 px-4 border-b border-b-gray-50">
                                 <span className="text-[13px] font-medium text-gray-400">{item?.startdate?.split("T")[0]}</span>

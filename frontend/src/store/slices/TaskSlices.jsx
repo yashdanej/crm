@@ -105,6 +105,83 @@ export const updateTask = createAsyncThunk('updateTask', async (data, { rejectWi
     }
 });
 
+export const getTaskStatus = createAsyncThunk('getTaskStatus', async () => {
+    try {
+        const res = await api(`/util/status`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+export const updateTaskStatus = createAsyncThunk('updateTaskStatus', async (data, { rejectWithValue }) => {
+    console.log("id, data", data);
+    try {
+        const res = await api(`/tasks/${data.id}/${data.status}`, "patch", false, false, true);
+        console.log("res------------", res);
+        // Check if the API response indicates failure
+        if (!res.data.success) {
+            return rejectWithValue(res.data.message); // Reject with the error message
+        }
+        return res.data;
+    } catch (err) {
+        console.log("err in updateTask", err);
+        return rejectWithValue(err.message); // Reject with the error message
+    }
+});
+
+export const getTaskAssignedById = createAsyncThunk('getTaskAssignedById', async (id) => {
+    try {
+        const res = await api(`/tasks/task-assigned/${id}`, "get", false, false, true);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+export const updateTaskAssigned = createAsyncThunk('updateTaskAssigned', async (data, { rejectWithValue }) => {
+    console.log("id, data", data);
+    try {
+        const res = await api(`/tasks/task-assigned/update/${data.id}`, "patch", data.data, false, true);
+        // Check if the API response indicates failure
+        if (!res.data.success) {
+            return rejectWithValue(res.data.message); // Reject with the error message
+        }
+        return res.data;
+    } catch (err) {
+        console.log("err in updateTask", err);
+        return rejectWithValue(err.message); // Reject with the error message
+    }
+});
+
+export const getTaskFollowerById = createAsyncThunk('getTaskFollowerById', async (id) => {
+    try {
+        const res = await api(`/tasks/task-follower/${id}`, "get", false, false, true);
+        console.log("res--------", res);
+        return res.data.data;
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+});
+
+export const updateTaskFollower = createAsyncThunk('updateTaskFollower', async (data, { rejectWithValue }) => {
+    console.log("id, data", data);
+    try {
+        const res = await api(`/tasks/task-follower/update/${data.id}`, "patch", data.data, false, true);
+        // Check if the API response indicates failure
+        if (!res.data.success) {
+            return rejectWithValue(res.data.message); // Reject with the error message
+        }
+        return res.data;
+    } catch (err) {
+        console.log("err in updateTask", err);
+        return rejectWithValue(err.message); // Reject with the error message
+    }
+});
+
 const TaskSlice = createSlice({
     name: "task",
     initialState: {
@@ -129,8 +206,31 @@ const TaskSlice = createSlice({
             isError: false,
             success: false,
             message: "",
+            edit: {
+                id: null,
+                isLoading: false,
+                data: [],
+                isError: false,
+                success: false,
+                message: "",
+            }
         },
         task_follower: {
+            isLoading: false,
+            data: [],
+            isError: false,
+            success: false,
+            message: "",
+            edit: {
+                id: null,
+                isLoading: false,
+                data: [],
+                isError: false,
+                success: false,
+                message: "",
+            }
+        },
+        status: {
             isLoading: false,
             data: [],
             isError: false,
@@ -283,6 +383,92 @@ const TaskSlice = createSlice({
             state.task.edit.isLoading = false;
             state.task.edit.isError = true;
         });
+
+        // getTaskStatus
+        builder.addCase(getTaskStatus.pending, (state, action) => {
+            state.status.isLoading = true;
+        });
+        builder.addCase(getTaskStatus.fulfilled, (state, action) => {
+            state.status.isLoading = false;
+            state.status.data = action.payload;
+        });
+        builder.addCase(getTaskStatus.rejected, (state, action) => {
+            console.log("error in getTaskStatus", action.payload);
+            state.status.isLoading = false;
+            state.status.isError = true;
+        });
+
+        // updateTaskStatus
+        builder.addCase(updateTaskStatus.pending, (state, action) => {
+            state.status.isLoading = true;
+        });
+        builder.addCase(updateTaskStatus.fulfilled, (state, action) => {
+            state.status.isLoading = false;
+            console.log("action.payload updateTaskStatus", action.payload);
+            // state.task.data = state.task.data.filter(field => field.id !== action.payload.id);
+            // state.task.data.find(task => task.id === )
+        });
+        builder.addCase(updateTaskStatus.rejected, (state, action) => {
+            console.log("error in updateTaskStatus", action.payload);
+            state.status.isLoading = false;
+            state.status.isError = true;
+        });
+        
+        // getTaskAssignedById
+        builder.addCase(getTaskAssignedById.pending, (state, action) => {
+            state.task_assign.edit.isLoading = true;
+        });
+        builder.addCase(getTaskAssignedById.fulfilled, (state, action) => {
+            state.task_assign.edit.isLoading = false;
+            state.task_assign.edit.data = action.payload;
+        });
+        builder.addCase(getTaskAssignedById.rejected, (state, action) => {
+            console.log("error in getTaskAssignedById", action.payload);
+            state.task_assign.edit.isLoading = false;
+            state.task_assign.edit.isError = true;
+        });
+
+        // updateTaskAssigned
+        builder.addCase(updateTaskAssigned.pending, (state, action) => {
+            state.task_assign.edit.isLoading = true;
+        });
+        builder.addCase(updateTaskAssigned.fulfilled, (state, action) => {
+            state.task_assign.edit.isLoading = false;
+            state.task_assign.edit.data = [];
+        });
+        builder.addCase(updateTaskAssigned.rejected, (state, action) => {
+            console.log("error in updateTaskAssigned", action.payload);
+            state.task_assign.edit.isLoading = false;
+            state.task_assign.edit.isError = true;
+        });
+
+        // updateTaskFollower
+        builder.addCase(updateTaskFollower.pending, (state, action) => {
+            state.task_follower.edit.isLoading = true;
+        });
+        builder.addCase(updateTaskFollower.fulfilled, (state, action) => {
+            state.task_follower.edit.isLoading = false;
+            state.task_follower.edit.data = [];
+        });
+        builder.addCase(updateTaskFollower.rejected, (state, action) => {
+            console.log("error in updateTaskFollower", action.payload);
+            state.task_follower.edit.isLoading = false;
+            state.task_follower.edit.isError = true;
+        });
+
+        // getTaskFollowerById
+        builder.addCase(getTaskFollowerById.pending, (state, action) => {
+            state.task_follower.edit.isLoading = true;
+        });
+        builder.addCase(getTaskFollowerById.fulfilled, (state, action) => {
+            state.task_follower.edit.isLoading = false;
+            state.task_follower.edit.data = action.payload;
+        });
+        builder.addCase(getTaskFollowerById.rejected, (state, action) => {
+            console.log("error in getTaskFollowerById", action.payload);
+            state.task_follower.edit.isLoading = false;
+            state.task_follower.edit.isError = true;
+        });
     },
     reducers: {
         emptyTaskEdit(state, action){
@@ -292,9 +478,25 @@ const TaskSlice = createSlice({
             state.task.edit.isError = false;
             state.task.edit.success = false;
             state.task.edit.message = "";
+        },
+        emptyTaskAssignEdit(state, action){
+            state.task_assign.edit.id = null;
+            state.task_assign.edit.isLoading = false;
+            state.task_assign.edit.data = [];
+            state.task_assign.edit.isError = false;
+            state.task_assign.edit.success = false;
+            state.task_assign.edit.message = "";
+        },
+        emptyTaskFollowerEdit(state, action){
+            state.task_follower.edit.id = null;
+            state.task_follower.edit.isLoading = false;
+            state.task_follower.edit.data = [];
+            state.task_follower.edit.isError = false;
+            state.task_follower.edit.success = false;
+            state.task_follower.edit.message = "";
         }
     }
 })
 
-export const { emptyTaskEdit } = TaskSlice.actions;
+export const { emptyTaskEdit, emptyTaskAssignEdit, emptyTaskFollowerEdit } = TaskSlice.actions;
 export const taskReducer = TaskSlice.reducer;

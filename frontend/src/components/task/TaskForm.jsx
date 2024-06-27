@@ -4,7 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getCustomer } from '../../store/slices/CustomerSlices';
 import { getAllLeads } from '../../store/slices/LeadSlices';
 import Editor from './Editor';
-import { addAssignedTask, addFollowerTask, addTask, emptyTaskEdit, updateTask } from '../../store/slices/TaskSlices';
+import { useNavigate } from 'react-router-dom';
+import { addAssignedTask, addFollowerTask, addTask, emptyTaskAssignEdit, emptyTaskEdit, emptyTaskFollowerEdit, getTaskAssignedById, getTaskFollowerById, updateTask, updateTaskAssigned, updateTaskFollower } from '../../store/slices/TaskSlices';
+import TaskModal from './TaskModal';
 
 const TaskForm = () => {
     const [snackAlert, setSnackAlert] = useState(false); // popup success or error
@@ -12,6 +14,8 @@ const TaskForm = () => {
         text: '',
         color: ''
     });
+    const [open, setOpen] = useState(false);
+    
     let getUser = JSON.parse(localStorage.getItem("user"));
     const [content, setContent] = useState(``);
     const [tblAssigned, setTblAssigned] = useState({
@@ -50,6 +54,8 @@ const TaskForm = () => {
     const leadsData = useSelector((state) => state.leads.leadsData);
     const usersData = useSelector(state => state.assigned.assignedData);
     const tasksData = useSelector(state => state.task.task);
+    const taskAssignData = useSelector(state => state.task.task_assign);
+    const taskFollowerData = useSelector(state => state.task.task_follower);
 
     const dispatch = useDispatch();
     const [infinity, setInfinity] = useState(true);
@@ -85,6 +91,13 @@ const TaskForm = () => {
         visible_to_client: 0,
         deadline_notified: 0
     });
+
+    const AssignedUserByTask = (id) => {
+        dispatch(getTaskAssignedById(id));
+    }
+    const FollowerUserByTask = (id) => {
+        dispatch(getTaskFollowerById(id));
+    }
 
     useEffect(() => {
         if (tasksData && tasksData.edit && tasksData.edit.data.length > 0) {
@@ -122,9 +135,65 @@ const TaskForm = () => {
                 visible_to_client: data.visible_to_client || 0,
                 deadline_notified: data.deadline_notified || 0
             }));
+            AssignedUserByTask(data.id);
+            FollowerUserByTask(data.id);
         }
     }, [tasksData]);
-    
+
+    useEffect(() => {
+        // Extract staff ids from taskAssignData and taskFollowerData
+        const assignStaffIds = taskAssignData?.edit?.data?.map(item => item.staffid);
+        const followerStaffIds = taskFollowerData?.edit?.data?.map(item => item.staffid);
+
+        console.log("assignStaffIds", assignStaffIds);
+        console.log("followerStaffIds", followerStaffIds);
+        // Filter usersData based on extracted staff ids
+        const filteredAssignUsers = usersData.filter(user => assignStaffIds.includes(user.id));
+        const filteredFollowerUsers = usersData.filter(user => followerStaffIds.includes(user.id));
+
+        console.log("filteredAssignUsers", filteredAssignUsers);
+        console.log("filteredFollowerUsers", filteredFollowerUsers);
+
+        // Update the dropdown menu options
+        setFilteredUsers(assignStaffIds)
+        setFilteredFollowers(followerStaffIds)
+        setTblAssigned(prevState => ({
+            ...prevState,
+            staffid: assignStaffIds.join(',')
+        }));
+        setTblFollower(prevState => ({
+            ...prevState,
+            staffid: followerStaffIds.join(',')
+        }));
+    }, [taskAssignData, taskFollowerData, usersData]);
+
+    // useEffect(() => {
+
+    //     // assigned
+    //     // Extract staff ids from taskAssignData
+    //     const staffIds = taskAssignData?.edit?.data?.map(item => item.staffid);
+
+    //     // Filter usersData based on extracted staff ids
+    //     const filteredUsers = usersData.filter(user => staffIds?.includes(user.id));
+
+    //     // Update the dropdown menu options
+    //     setFilteredUsers(filteredUsers);
+
+    //     // assigned
+    //     // Extract staff ids from taskAssignData
+    //     const fstaffIds = taskFollowerData?.edit?.data?.map(item => item.staffid);
+
+    //     // Filter usersData based on extracted staff ids
+    //     const ffilteredUsers = usersData.filter(user => fstaffIds?.includes(user.id));
+
+    //     // Update the dropdown menu options
+    //     setFilteredUsers(filteredUsers);
+    //     setFilteredFollowers(ffilteredUsers);
+
+    // }, [taskAssignData, taskFollowerData, usersData]);
+
+    const [filteredUsers, setFilteredUsers] = useState([]);
+    const [filteredFollowers, setFilteredFollowers] = useState([]);
 
     const resetTaskValues = () => {
         setTask({
@@ -160,6 +229,7 @@ const TaskForm = () => {
             deadline_notified: 0
         });
     }
+    const navigate = useNavigate();
     const handleSubmit = async () => {
         if(task.name === ""){
             setSnackbarProperty({
@@ -176,6 +246,12 @@ const TaskForm = () => {
                         text: "Task updated successfully!",
                         color: "success"
                     });
+                    dispatch(updateTaskAssigned({id: tasksData.edit.data[0].id, data: tblAssigned}));
+                    dispatch(updateTaskFollower({id: tasksData.edit.data[0].id, data: tblFollower}));
+                    dispatch(emptyTaskAssignEdit());
+                    dispatch(emptyTaskFollowerEdit());
+                    resetTaskValues();
+                    setOpen(true);
                 } else {
                     const getThatTask = await dispatch(addTask(task)).unwrap();
                     setSnackbarProperty({
@@ -185,7 +261,10 @@ const TaskForm = () => {
                     setTblAssigned(prev => ({...prev, taskid: getThatTask?.data[0]?.id}));
                     setTblFollower(prev => ({...prev, taskid: getThatTask?.data[0]?.id}));
                     console.log("getThatTask", getThatTask);
+                    dispatch(emptyTaskAssignEdit());
+                    dispatch(emptyTaskFollowerEdit());
                     resetTaskValues();
+                    setOpen(true);
                 }
             } catch (error) {
                 setSnackbarProperty({
@@ -239,8 +318,10 @@ const TaskForm = () => {
     useEffect(() => {
         console.log("content", content);
     }, [content]);
+
   return (
     <div className='mx-6 my-10'>
+        <TaskModal/>
         {
             snackAlert ?
             <SnackbarWithDecorators snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
@@ -252,11 +333,11 @@ const TaskForm = () => {
                 <div className='bg-slate-100 border px-6 py-5 flex items-center'>
                     <div className='w-[48%] flex items-center'>
                         <div className='flex item-center'>
-                            <input selected={task?.is_public} name="is_public" onChange={(event) => setTask({...task, [event.target.name]: event.target.checked})} id="link-checkbox" type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                            <input checked={task?.is_public} name="is_public" onChange={(event) => setTask({...task, [event.target.name]: event.target.checked})} id="link-checkbox" type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
                             <label for="link-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Public</label>
                         </div>
                         <div className='mx-4 flex item-center'>
-                            <input selected={task?.billable} name="billable" onChange={(event) => setTask({...task, [event.target.name]: event.target.checked})} id="link-checkbox" type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                            <input checked={task?.billable} name="billable" onChange={(event) => setTask({...task, [event.target.name]: event.target.checked})} id="link-checkbox" type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
                             <label for="link-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Billable</label>
                         </div>
                     </div>
@@ -451,7 +532,9 @@ const TaskForm = () => {
                                 >
                                     {
                                         usersData?.map((item) => (
-                                            <option key={item.id} value={item.id}>{item.full_name}</option>
+                                            <option selected={
+                                                filteredUsers?.find(field => field === item.id)
+                                             } key={item.id} value={item.id}>{item.full_name}</option>
                                         ))
                                     }
                                 </select>
@@ -469,7 +552,9 @@ const TaskForm = () => {
                                 >
                                     {
                                         usersData?.map((item) => (
-                                            <option key={item.id} value={item.id}>{item.full_name}</option>
+                                            <option selected={
+                                                filteredFollowers?.find(field => field === item.id)
+                                            } key={item.id} value={item.id}>{item.full_name}</option>
                                         ))
                                     }
                                 </select>

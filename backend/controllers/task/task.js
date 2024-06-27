@@ -114,6 +114,27 @@ exports.updateTask = async (req, res) => {
     }
 };
 
+exports.updateStatusTask = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.params;
+        console.log("id, status", id, status);
+
+        const sql = `
+            UPDATE tbltasks SET status = ? WHERE id = ?
+        `;
+
+        await query(sql, [ status, id ]);
+
+        const updatedSTask = await query("SELECT * FROM tbltasks WHERE id = ?", [id]);
+        console.log("update");
+        return res.status(200).json({ success: true, message: "Task updated successfully", data: updatedSTask });
+    } catch (error) {
+        console.log("Error in updateTask", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 exports.deleteTask = async (req, res) => {
     try {
         const { id } = req.params;
@@ -214,9 +235,11 @@ exports.getAllTaskAssigned = async (req, res) => {
 // Update a task assignment
 exports.updateTaskAssigned = async (req, res, next) => {
     try {
+        console.log("inn-------");
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         const { taskid } = req.params;
         const { staffid, is_assigned_from_contact } = req.body;
+        console.log("staffid", staffid);
 
         // Ensure staffid is a non-empty string and split it into an array of integers
         if (typeof staffid !== 'string' || staffid.trim() === '') {
@@ -400,7 +423,7 @@ exports.getTaskFollowers = async (req, res) => {
         if (followers.length > 0) {
             res.status(200).json({ success: true, data: followers });
         } else {
-            res.status(404).json({ success: false, message: 'No followers found for this task' });
+            res.status(200).json({ success: false, message: 'No followers found for this task' });
         }
     } catch (error) {
         console.error('Error in getTaskFollowers:', error);
