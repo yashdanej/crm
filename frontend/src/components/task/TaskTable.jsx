@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deleteTask, getTask, getTaskAssign, getTaskById, getTaskStatus, updateTaskStatus } from '../../store/slices/TaskSlices';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { changeText } from '../../utils/Utils';
 
 const TaskTable = () => {
@@ -111,7 +111,7 @@ const TaskTable = () => {
                                                     return (
                                                         user && (
                                                             <Tippy content={user.full_name} key={assignedItem?.id}>
-                                                                <img className="w-10 h-10 border-2 border-white rounded-full dark:border-gray-800" src={user.profile_img || "/images/unknown.jpg"} alt={user.full_name} />
+                                                                <Link to={`/activity_log/${user.id}`}><img className="w-10 h-10 border-2 border-white rounded-full dark:border-gray-800" src={user.profile_img || "/images/unknown.jpg"} alt={user.full_name} /></Link>
                                                             </Tippy>
                                                         )
                                                     );

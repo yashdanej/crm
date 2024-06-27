@@ -141,30 +141,32 @@ const TaskForm = () => {
     }, [tasksData]);
 
     useEffect(() => {
-        // Extract staff ids from taskAssignData and taskFollowerData
-        const assignStaffIds = taskAssignData?.edit?.data?.map(item => item.staffid);
-        const followerStaffIds = taskFollowerData?.edit?.data?.map(item => item.staffid);
-
-        console.log("assignStaffIds", assignStaffIds);
-        console.log("followerStaffIds", followerStaffIds);
-        // Filter usersData based on extracted staff ids
-        const filteredAssignUsers = usersData.filter(user => assignStaffIds.includes(user.id));
-        const filteredFollowerUsers = usersData.filter(user => followerStaffIds.includes(user.id));
-
-        console.log("filteredAssignUsers", filteredAssignUsers);
-        console.log("filteredFollowerUsers", filteredFollowerUsers);
-
-        // Update the dropdown menu options
-        setFilteredUsers(assignStaffIds)
-        setFilteredFollowers(followerStaffIds)
-        setTblAssigned(prevState => ({
-            ...prevState,
-            staffid: assignStaffIds.join(',')
-        }));
-        setTblFollower(prevState => ({
-            ...prevState,
-            staffid: followerStaffIds.join(',')
-        }));
+        if(tasksData && tasksData.edit && tasksData.edit.data.length > 0){
+            // Extract staff ids from taskAssignData and taskFollowerData
+            const assignStaffIds = taskAssignData?.edit?.data?.map(item => item.staffid);
+            const followerStaffIds = taskFollowerData?.edit?.data?.map(item => item.staffid);
+    
+            console.log("assignStaffIds", assignStaffIds);
+            console.log("followerStaffIds", followerStaffIds);
+            // Filter usersData based on extracted staff ids
+            const filteredAssignUsers = usersData.filter(user => assignStaffIds.includes(user.id));
+            const filteredFollowerUsers = usersData.filter(user => followerStaffIds.includes(user.id));
+    
+            console.log("filteredAssignUsers", filteredAssignUsers);
+            console.log("filteredFollowerUsers", filteredFollowerUsers);
+    
+            // Update the dropdown menu options
+            setFilteredUsers(assignStaffIds)
+            setFilteredFollowers(followerStaffIds)
+            setTblAssigned(prevState => ({
+                ...prevState,
+                staffid: assignStaffIds.join(',')
+            }));
+            setTblFollower(prevState => ({
+                ...prevState,
+                staffid: followerStaffIds.join(',')
+            }));
+        }
     }, [taskAssignData, taskFollowerData, usersData]);
 
     // useEffect(() => {
@@ -279,9 +281,11 @@ const TaskForm = () => {
     useEffect(() => {
         if (tblAssigned.taskid) {
             dispatch(addAssignedTask(tblAssigned));
+        }
+        if(tblFollower.taskid){
             dispatch(addFollowerTask(tblFollower));
         }
-    }, [tblAssigned]);
+    }, [tblAssigned, tblFollower]);
     useEffect(() => {
         console.log("task", task);
     }, [task]);
@@ -321,7 +325,7 @@ const TaskForm = () => {
 
   return (
     <div className='mx-6 my-10'>
-        <TaskModal/>
+        <TaskModal open={open} setOpen={setOpen} />
         {
             snackAlert ?
             <SnackbarWithDecorators snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
