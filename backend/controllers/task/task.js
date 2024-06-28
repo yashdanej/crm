@@ -457,7 +457,7 @@ exports.createTaskComment = async (req, res, next) => {
             INSERT INTO tbltask_comments (content, taskid, staffid, dateadded, file)
             VALUES (?, ?, ?, ?, ?)
         `;
-        const values = [content, taskid, getUser, dateadded, file_result.secure_url || null];
+        const values = [content, taskid, getUser, dateadded, file_result?.secure_url || null];
         const result = await query(sql, values);
 
         const selectResult = await query("select * from tbltask_comments where id = ?", [result.insertId]);
@@ -518,6 +518,8 @@ exports.startTaskTimer = async (req, res, next) => {
     try {
         const getUser = await verifyToken(req, res, next, verifyUser=true);
         const { task_id, hourly_rate, note } = req.body;
+        console.log("req.body", req.body);
+        console.log("task_id", task_id);
         const start_time = new Date().toISOString();
 
         const sql = `

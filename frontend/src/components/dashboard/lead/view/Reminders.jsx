@@ -8,7 +8,7 @@ const Reminders = ({from}) => {
     description: "",
     date: null,
     staff: 0,
-    rel_type: from === "customer"?"customer":"lead",
+    rel_type: from === "customer"?"customer":from === "task"? "task":"lead",
     notify_by_email: 1
   });
   const [snackAlert, setSnackAlert] = useState(false); // popup success or error
@@ -17,6 +17,7 @@ const Reminders = ({from}) => {
       color: ''
   });
   const customerId = useSelector(state => state.customer.id);
+  const taskModalData = useSelector(state => state.task.modal);
   const leadData = useSelector(state => state.leads.leadData);
   const userData = useSelector(state => state.assigned.assignedData);
   const reminderData = useSelector(state => state.reminder.lead);
@@ -30,11 +31,11 @@ const Reminders = ({from}) => {
       }));
       setSnackAlert(true);
     }else{
-      dispatch(addReminder({id: from==="customer"?customerId:leadData[0]?.id, data: reminder}));
+      dispatch(addReminder({id: from==="customer"?customerId:from==="task"?taskModalData?.id:leadData[0]?.id, data: reminder}));
     }
   }
   useEffect(() => {
-    dispatch(fetchReminder({id: from==="customer"?customerId:leadData[0]?.id, rel_type: from === "customer"?"customer":"lead"}));
+    dispatch(fetchReminder({id: from==="customer"?customerId:from==="task"?taskModalData?.id:leadData[0]?.id, rel_type: from === "customer"?"customer":from === "task"? "task":"lead"}));
   }, []);
   return (
     <div className='my-3 p-4 rounded-sm w-full min:h-full max:h-[50vh] overflow-auto bg-white shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)]'>
@@ -43,39 +44,41 @@ const Reminders = ({from}) => {
         <SnackbarWithDecorators  snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />
         : null
       }
-      <table className="w-full min-w-[540px] mb-5" data-tab-for="order" data-page="active">
-        <thead>
-            <tr>
-                <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tl-md rounded-bl-md">Description</th>
-                <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Date</th>
-                <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Remind</th>
-                <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tr-md rounded-br-md">Is notified</th>
-            </tr>
-        </thead>
-        <tbody>
-          {
-            reminderData && reminderData?.data && reminderData?.data?.length > 0 &&
-            reminderData?.data?.map((item) => {
-              return (
-                <tr key={item.id}>
-                  <td className="py-2 px-4 border-b border-b-gray-50">
-                      <p className="text-[13px] font-medium text-gray-400">{item?.description}</p>
-                  </td>
-                  <td className="py-2 px-4 border-b border-b-gray-50">
-                      <p className="text-[13px] font-medium text-gray-400">{item?.date?.split("T")[0]}</p>
-                  </td>
-                  <td className="py-2 px-4 border-b border-b-gray-50">
-                      <p className="text-[13px] font-medium text-gray-400">{userData && userData?.length > 0 && userData?.find(user => user.id === item?.staff)?.full_name}</p>
-                  </td>
-                  <td className="py-2 px-4 border-b border-b-gray-50">
-                      <p className="text-[13px] font-medium text-gray-400">{item?.isnotified}</p>
-                  </td>
-                </tr>
-              )
-            })
-          }
-        </tbody>
-      </table>
+      <div className='overflow-x-auto'>
+        <table className="w-full min-w-[540px] mb-5" data-tab-for="order" data-page="active">
+          <thead>
+              <tr>
+                  <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tl-md rounded-bl-md">Description</th>
+                  <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Date</th>
+                  <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Remind</th>
+                  <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tr-md rounded-br-md">Is notified</th>
+              </tr>
+          </thead>
+          <tbody>
+            {
+              reminderData && reminderData?.data && reminderData?.data?.length > 0 &&
+              reminderData?.data?.map((item) => {
+                return (
+                  <tr key={item.id}>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                        <p className="text-[13px] font-medium text-gray-400">{item?.description}</p>
+                    </td>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                        <p className="text-[13px] font-medium text-gray-400">{item?.date?.split("T")[0]}</p>
+                    </td>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                        <p className="text-[13px] font-medium text-gray-400">{userData && userData?.length > 0 && userData?.find(user => user.id === item?.staff)?.full_name}</p>
+                    </td>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                        <p className="text-[13px] font-medium text-gray-400">{item?.isnotified}</p>
+                    </td>
+                  </tr>
+                )
+              })
+            }
+          </tbody>
+        </table>
+      </div>
       <div className='my-3'>
           <label htmlFor="date_contacted" className="block mb-2 text-sm font-medium my-2 text-gray-900 dark:text-white">
             <span className='text-red-600'>* </span>Date to be notified

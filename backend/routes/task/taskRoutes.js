@@ -32,7 +32,7 @@ router
 
     // tbltasktimers
     .post('/task-timer', verifyToken, taskController.startTaskTimer)
-    .patch('/task-timer/:id', verifyToken, taskController.endTaskTimer)
+    .patch('/task-timer/end/:id', verifyToken, taskController.endTaskTimer)
     .get('/task-timer/get', verifyToken, taskController.getTaskTimers)
 
     // tbltasks_checklist_item

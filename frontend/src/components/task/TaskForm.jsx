@@ -14,6 +14,7 @@ const TaskForm = () => {
         text: '',
         color: ''
     });
+    const [taskId, setTaskId] = useState(null);
     const [open, setOpen] = useState(false);
     
     let getUser = JSON.parse(localStorage.getItem("user"));
@@ -169,31 +170,6 @@ const TaskForm = () => {
         }
     }, [taskAssignData, taskFollowerData, usersData]);
 
-    // useEffect(() => {
-
-    //     // assigned
-    //     // Extract staff ids from taskAssignData
-    //     const staffIds = taskAssignData?.edit?.data?.map(item => item.staffid);
-
-    //     // Filter usersData based on extracted staff ids
-    //     const filteredUsers = usersData.filter(user => staffIds?.includes(user.id));
-
-    //     // Update the dropdown menu options
-    //     setFilteredUsers(filteredUsers);
-
-    //     // assigned
-    //     // Extract staff ids from taskAssignData
-    //     const fstaffIds = taskFollowerData?.edit?.data?.map(item => item.staffid);
-
-    //     // Filter usersData based on extracted staff ids
-    //     const ffilteredUsers = usersData.filter(user => fstaffIds?.includes(user.id));
-
-    //     // Update the dropdown menu options
-    //     setFilteredUsers(filteredUsers);
-    //     setFilteredFollowers(ffilteredUsers);
-
-    // }, [taskAssignData, taskFollowerData, usersData]);
-
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [filteredFollowers, setFilteredFollowers] = useState([]);
 
@@ -231,7 +207,6 @@ const TaskForm = () => {
             deadline_notified: 0
         });
     }
-    const navigate = useNavigate();
     const handleSubmit = async () => {
         if(task.name === ""){
             setSnackbarProperty({
@@ -250,10 +225,7 @@ const TaskForm = () => {
                     });
                     dispatch(updateTaskAssigned({id: tasksData.edit.data[0].id, data: tblAssigned}));
                     dispatch(updateTaskFollower({id: tasksData.edit.data[0].id, data: tblFollower}));
-                    dispatch(emptyTaskAssignEdit());
-                    dispatch(emptyTaskFollowerEdit());
-                    resetTaskValues();
-                    setOpen(true);
+                    setTaskId(tasksData.edit.data[0].id);
                 } else {
                     const getThatTask = await dispatch(addTask(task)).unwrap();
                     setSnackbarProperty({
@@ -263,9 +235,9 @@ const TaskForm = () => {
                     setTblAssigned(prev => ({...prev, taskid: getThatTask?.data[0]?.id}));
                     setTblFollower(prev => ({...prev, taskid: getThatTask?.data[0]?.id}));
                     console.log("getThatTask", getThatTask);
+                    setTaskId(getThatTask?.data[0]?.id);
                     dispatch(emptyTaskAssignEdit());
                     dispatch(emptyTaskFollowerEdit());
-                    resetTaskValues();
                     setOpen(true);
                 }
             } catch (error) {
@@ -278,6 +250,14 @@ const TaskForm = () => {
             }
         }
     }
+    useEffect(() => {
+        if (taskId !== null) {
+          dispatch(emptyTaskAssignEdit());
+          dispatch(emptyTaskFollowerEdit());
+          setOpen(true);
+        }
+      }, [taskId, dispatch]);
+    
     useEffect(() => {
         if (tblAssigned.taskid) {
             dispatch(addAssignedTask(tblAssigned));
@@ -325,7 +305,7 @@ const TaskForm = () => {
 
   return (
     <div className='mx-6 my-10'>
-        <TaskModal open={open} setOpen={setOpen} />
+        <TaskModal resetTaskValues={resetTaskValues} taskid={taskId} open={open} setOpen={setOpen} />
         {
             snackAlert ?
             <SnackbarWithDecorators snackAlert={snackAlert} setSnackAlert={setSnackAlert} text={snackbarProperty.text} color={snackbarProperty.color} />

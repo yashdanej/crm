@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteTask, getTask, getTaskAssign, getTaskById, getTaskStatus, updateTaskStatus } from '../../store/slices/TaskSlices';
+import { deleteTask, getTask, getTaskAssign, getTaskById, getTaskByIdView, getTaskStatus, updateTaskStatus } from '../../store/slices/TaskSlices';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { changeText } from '../../utils/Utils';
+import TaskModal from './TaskModal';
 
 const TaskTable = () => {
     const [assignedUsers, setAssignedUsers] = useState({});
     const taskData = useSelector(state => state.task.task);
     const usersData = useSelector(state => state.assigned.assignedData);
     const statusData = useSelector(state => state.task.status);
+    const [open, setOpen] = useState(false);
+    const [taskId, setTaskId] = useState(null);
 
     const dispatch = useDispatch();
 
@@ -50,15 +53,34 @@ const TaskTable = () => {
     const navigate = useNavigate();
     const onEdit = (id) => {
         dispatch(getTaskById(id));
-        navigate("/admin/task/add");
+        navigate(`/admin/task/${id}`);
     }
 
     const onDelete = (id) => {
         dispatch(deleteTask(id));
     }
 
+    const onView = async (id) => {
+        try {
+            await dispatch(getTaskByIdView(id)).unwrap();
+            setTaskId(id);
+        } catch (error) {
+            alert("error", error);
+        }
+    }
+    useEffect(() => {
+        if(taskId !== null){
+            setOpen(true);
+        }
+    }, [taskId]);
+    useEffect(() => {
+        return () => {
+            setTaskId(null);
+        }
+    }, [])
     return (
         <table className="w-full min-w-[540px]" data-tab-for="order" data-page="active">
+            <TaskModal taskid={taskId} open={open} setOpen={setOpen} />
             <thead>
                 <tr>
                     <th className="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tl-md rounded-bl-md">#ID</th>
@@ -79,6 +101,8 @@ const TaskTable = () => {
                             </td>
                             <td className="py-2 px-4 border-b border-b-gray-50">
                                 <p className="text-[13px] font-medium text-gray-400">{item?.name}</p>
+                                <span onClick={() => onView(item.id)} className="text-xs hover:underline cursor-pointer text-green-950">View</span>
+                                <span className="text-xs hover:underline cursor-pointer">/</span>
                                 <span onClick={() => onEdit(item.id)} className="text-xs hover:underline cursor-pointer text-green-950"> {taskData?.edit?.isLoading ?"--Loading":"Edit"} </span>
                                 <span className="text-xs hover:underline cursor-pointer">/</span>
                                 <span onClick={() => onDelete(item.id)} className="text-xs hover:underline cursor-pointer text-red-950"> Delete</span>
